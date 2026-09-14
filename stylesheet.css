@@ -75,26 +75,26 @@
     margin: 3px 6px;
 }
 
-/* Show applications launcher button - Android 16 App Drawer Pill */
+/* Show applications launcher button */
 .show-apps-button {
-    padding: 4px 10px;
-    border-radius: 22px;
-    background-color: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    padding: 4px 6px;
+    border-radius: 20px;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
     color: #ffffff;
-    transition-duration: 180ms;
+    transition-duration: 200ms;
 }
 
 .show-apps-button:hover {
-    background-color: st-transparentize(-st-accent-color, 0.75);
-    border-color: st-transparentize(-st-accent-color, 0.50);
+    background-color: st-transparentize(-st-accent-color, 0.80);
+    box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.60);
     color: #ffffff;
 }
 
 .show-apps-button:active,
 .show-apps-button:checked {
-    background-color: -st-accent-color;
-    border-color: -st-accent-color;
+    background-color: st-transparentize(-st-accent-color, 0.65);
     box-shadow: 0 0 16px -st-accent-color;
     color: #ffffff;
 }
@@ -144,19 +144,14 @@
     background-color: rgba(255, 150, 75, 0.30);
 }
 
-.accent-orange .show-apps-button {
-    background-color: rgba(237, 91, 0, 0.30);
-    border-color: rgba(255, 150, 75, 0.45);
-}
-
 .accent-orange .show-apps-button:hover {
-    background-color: rgba(237, 91, 0, 0.45);
+    background-color: rgba(255, 150, 75, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(255, 160, 90, 0.45);
 }
 
 .accent-orange .show-apps-button:checked,
 .accent-orange .show-apps-button:active {
-    background-color: #ed5b00;
-    border-color: #ff9d42;
+    background-color: rgba(255, 150, 75, 0.35);
     box-shadow: 0 0 18px rgba(237, 91, 0, 0.75);
     color: #ffffff;
 }
@@ -211,19 +206,14 @@
     background-color: rgba(100, 175, 255, 0.30);
 }
 
-.accent-blue .show-apps-button {
-    background-color: rgba(53, 132, 228, 0.30);
-    border-color: rgba(100, 175, 255, 0.45);
-}
-
 .accent-blue .show-apps-button:hover {
-    background-color: rgba(53, 132, 228, 0.45);
+    background-color: rgba(100, 175, 255, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(110, 185, 255, 0.45);
 }
 
 .accent-blue .show-apps-button:checked,
 .accent-blue .show-apps-button:active {
-    background-color: #3584e4;
-    border-color: #62a0ea;
+    background-color: rgba(100, 175, 255, 0.35);
     box-shadow: 0 0 18px rgba(53, 132, 228, 0.75);
     color: #ffffff;
 }
@@ -278,19 +268,14 @@
     background-color: rgba(70, 195, 220, 0.30);
 }
 
-.accent-teal .show-apps-button {
-    background-color: rgba(33, 144, 164, 0.30);
-    border-color: rgba(70, 195, 220, 0.45);
-}
-
 .accent-teal .show-apps-button:hover {
-    background-color: rgba(33, 144, 164, 0.45);
+    background-color: rgba(70, 195, 220, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(80, 205, 230, 0.45);
 }
 
 .accent-teal .show-apps-button:checked,
 .accent-teal .show-apps-button:active {
-    background-color: #2190a4;
-    border-color: #4dc4db;
+    background-color: rgba(70, 195, 220, 0.35);
     box-shadow: 0 0 18px rgba(33, 144, 164, 0.75);
     color: #ffffff;
 }
@@ -345,19 +330,14 @@
     background-color: rgba(105, 210, 125, 0.30);
 }
 
-.accent-green .show-apps-button {
-    background-color: rgba(58, 148, 74, 0.30);
-    border-color: rgba(105, 210, 125, 0.45);
-}
-
 .accent-green .show-apps-button:hover {
-    background-color: rgba(58, 148, 74, 0.45);
+    background-color: rgba(105, 210, 125, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(115, 220, 135, 0.45);
 }
 
 .accent-green .show-apps-button:checked,
 .accent-green .show-apps-button:active {
-    background-color: #3a944a;
-    border-color: #57ab5a;
+    background-color: rgba(105, 210, 125, 0.35);
     box-shadow: 0 0 18px rgba(58, 148, 74, 0.75);
     color: #ffffff;
 }
@@ -412,19 +392,14 @@
     background-color: rgba(250, 195, 55, 0.30);
 }
 
-.accent-yellow .show-apps-button {
-    background-color: rgba(200, 136, 0, 0.30);
-    border-color: rgba(250, 195, 55, 0.45);
-}
-
 .accent-yellow .show-apps-button:hover {
-    background-color: rgba(200, 136, 0, 0.45);
+    background-color: rgba(250, 195, 55, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(255, 205, 65, 0.45);
 }
 
 .accent-yellow .show-apps-button:checked,
 .accent-yellow .show-apps-button:active {
-    background-color: #c88800;
-    border-color: #f6c144;
+    background-color: rgba(250, 195, 55, 0.35);
     box-shadow: 0 0 18px rgba(200, 136, 0, 0.75);
     color: #ffffff;
 }
@@ -479,19 +454,14 @@
     background-color: rgba(255, 105, 125, 0.30);
 }
 
-.accent-red .show-apps-button {
-    background-color: rgba(230, 45, 66, 0.30);
-    border-color: rgba(255, 105, 125, 0.45);
-}
-
 .accent-red .show-apps-button:hover {
-    background-color: rgba(230, 45, 66, 0.45);
+    background-color: rgba(255, 105, 125, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(255, 115, 135, 0.45);
 }
 
 .accent-red .show-apps-button:checked,
 .accent-red .show-apps-button:active {
-    background-color: #e62d42;
-    border-color: #f85166;
+    background-color: rgba(255, 105, 125, 0.35);
     box-shadow: 0 0 18px rgba(230, 45, 66, 0.75);
     color: #ffffff;
 }
@@ -546,19 +516,14 @@
     background-color: rgba(250, 135, 195, 0.30);
 }
 
-.accent-pink .show-apps-button {
-    background-color: rgba(213, 97, 153, 0.30);
-    border-color: rgba(250, 135, 195, 0.45);
-}
-
 .accent-pink .show-apps-button:hover {
-    background-color: rgba(213, 97, 153, 0.45);
+    background-color: rgba(250, 135, 195, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(255, 145, 205, 0.45);
 }
 
 .accent-pink .show-apps-button:checked,
 .accent-pink .show-apps-button:active {
-    background-color: #d56199;
-    border-color: #e587b6;
+    background-color: rgba(250, 135, 195, 0.35);
     box-shadow: 0 0 18px rgba(213, 97, 153, 0.75);
     color: #ffffff;
 }
@@ -613,19 +578,14 @@
     background-color: rgba(195, 110, 235, 0.30);
 }
 
-.accent-purple .show-apps-button {
-    background-color: rgba(145, 65, 172, 0.30);
-    border-color: rgba(195, 110, 235, 0.45);
-}
-
 .accent-purple .show-apps-button:hover {
-    background-color: rgba(145, 65, 172, 0.45);
+    background-color: rgba(195, 110, 235, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(205, 120, 245, 0.45);
 }
 
 .accent-purple .show-apps-button:checked,
 .accent-purple .show-apps-button:active {
-    background-color: #9141ac;
-    border-color: #b363d6;
+    background-color: rgba(195, 110, 235, 0.35);
     box-shadow: 0 0 18px rgba(145, 65, 172, 0.75);
     color: #ffffff;
 }
@@ -680,19 +640,14 @@
     background-color: rgba(160, 185, 205, 0.30);
 }
 
-.accent-slate .show-apps-button {
-    background-color: rgba(111, 131, 150, 0.30);
-    border-color: rgba(160, 185, 205, 0.45);
-}
-
 .accent-slate .show-apps-button:hover {
-    background-color: rgba(111, 131, 150, 0.45);
+    background-color: rgba(160, 185, 205, 0.22);
+    box-shadow: inset 0 0 0 1px rgba(170, 195, 215, 0.45);
 }
 
 .accent-slate .show-apps-button:checked,
 .accent-slate .show-apps-button:active {
-    background-color: #6f8396;
-    border-color: #9cb2c6;
+    background-color: rgba(160, 185, 205, 0.35);
     box-shadow: 0 0 18px rgba(111, 131, 150, 0.75);
     color: #ffffff;
 }
@@ -846,8 +801,8 @@
 }
 
 .size-small .show-apps-button {
-    padding: 2px 6px;
-    border-radius: 16px;
+    padding: 2px 4px;
+    border-radius: 14px;
 }
 
 .size-small .dock-app-icon .app-grid-running-dot {
@@ -881,8 +836,8 @@
 }
 
 .size-medium .show-apps-button {
-    padding: 4px 10px;
-    border-radius: 22px;
+    padding: 4px 6px;
+    border-radius: 20px;
 }
 
 .size-medium .dock-app-icon .app-grid-running-dot {
@@ -916,8 +871,8 @@
 }
 
 .size-large .show-apps-button {
-    padding: 6px 12px;
-    border-radius: 26px;
+    padding: 6px 8px;
+    border-radius: 24px;
 }
 
 .size-large .dock-app-icon .app-grid-running-dot {
@@ -949,9 +904,9 @@
     background-color: rgba(255, 255, 255, 0.18);
 }
 
-.theme-black-outline .show-apps-button {
-    background-color: rgba(255, 255, 255, 0.10);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+.theme-black-outline .show-apps-button:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.60);
 }
 
 /* Orange */
@@ -1083,7 +1038,7 @@
 }
 
 .position-bottom .show-apps-button {
-    padding: 4px 10px;
+    padding: 4px 6px;
 }
 
 /* Left Position */
@@ -1104,7 +1059,7 @@
 }
 
 .position-left .show-apps-button {
-    padding: 10px 4px;
+    padding: 6px 4px;
 }
 
 .position-left .dock-app-icon .app-grid-running-dot {
@@ -1137,7 +1092,7 @@
 }
 
 .position-right .show-apps-button {
-    padding: 10px 4px;
+    padding: 6px 4px;
 }
 
 .position-right .dock-app-icon .app-grid-running-dot {
@@ -1166,7 +1121,7 @@
 
 .position-left.size-small .show-apps-button,
 .position-right.size-small .show-apps-button {
-    padding: 6px 2px;
+    padding: 4px 2px;
 }
 
 .position-left.size-small .dock-app-icon .app-grid-running-dot,
@@ -1195,7 +1150,7 @@
 
 .position-left.size-large .show-apps-button,
 .position-right.size-large .show-apps-button {
-    padding: 12px 6px;
+    padding: 8px 6px;
 }
 
 .position-left.size-large .dock-app-icon .app-grid-running-dot,

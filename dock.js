@@ -647,6 +647,10 @@ class ArreraDock extends St.Widget {
         this._leadingSpacer = new Clutter.Actor({ visible: false });
         this._dockPill.add_child(this._leadingSpacer);
 
+        // Show Apps Button (placed on the left)
+        this._showAppsButton = new ShowAppsButton(this, this._iconSize);
+        this._dockPill.add_child(this._showAppsButton);
+
         // Icons box (favorites and running apps)
         this._iconsBox = new St.BoxLayout({
             style_class: 'arrera-dock-icons',
@@ -655,17 +659,6 @@ class ArreraDock extends St.Widget {
         });
         this._iconsBox._delegate = this;
         this._dockPill.add_child(this._iconsBox);
-
-        // Separator between apps and Show Apps launcher
-        this._appsSeparator = new St.Widget({
-            style_class: 'dock-separator',
-            y_align: Clutter.ActorAlign.CENTER,
-        });
-        this._dockPill.add_child(this._appsSeparator);
-
-        // Show Apps Button
-        this._showAppsButton = new ShowAppsButton(this, this._iconSize);
-        this._dockPill.add_child(this._showAppsButton);
 
         // Trailing spacer for bar mode (centers icons when dock spans full screen)
         this._trailingSpacer = new Clutter.Actor({ visible: false });
@@ -860,12 +853,12 @@ class ArreraDock extends St.Widget {
 
     _getAllDockItems() {
         const items = [];
+        if (this._showAppsButton)
+            items.push(this._showAppsButton);
         for (const child of this._iconsBox.get_children()) {
             if (child instanceof DockAppIcon)
                 items.push(child);
         }
-        if (this._showAppsButton)
-            items.push(this._showAppsButton);
         return items;
     }
 
@@ -1160,18 +1153,12 @@ class ArreraDock extends St.Widget {
         if (this._position === 'bottom') {
             this._dockPill.x_align = Clutter.ActorAlign.CENTER;
             this._dockPill.y_align = Clutter.ActorAlign.END;
-            this._appsSeparator.y_align = Clutter.ActorAlign.CENTER;
-            this._appsSeparator.x_align = Clutter.ActorAlign.FILL;
         } else if (this._position === 'left') {
             this._dockPill.x_align = Clutter.ActorAlign.START;
             this._dockPill.y_align = Clutter.ActorAlign.CENTER;
-            this._appsSeparator.x_align = Clutter.ActorAlign.CENTER;
-            this._appsSeparator.y_align = Clutter.ActorAlign.FILL;
         } else if (this._position === 'right') {
             this._dockPill.x_align = Clutter.ActorAlign.END;
             this._dockPill.y_align = Clutter.ActorAlign.CENTER;
-            this._appsSeparator.x_align = Clutter.ActorAlign.CENTER;
-            this._appsSeparator.y_align = Clutter.ActorAlign.FILL;
         }
 
         for (const icon of this._appIcons.values()) {
