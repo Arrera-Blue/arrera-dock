@@ -876,6 +876,8 @@ class ArreraDock extends St.Widget {
         const pos = this._position || 'bottom';
         const isVertical = pos === 'left' || pos === 'right';
 
+        let peakScale = 1.0;
+
         for (const item of items) {
             item.remove_all_transitions();
 
@@ -890,6 +892,7 @@ class ArreraDock extends St.Widget {
                 if (dy < radius) {
                     const factor = 0.5 * (1 + Math.cos((Math.PI * dy) / radius));
                     const scale = 1.0 + (maxScale - 1.0) * factor;
+                    if (scale > peakScale) peakScale = scale;
 
                     const direction = itemCenterY >= stageY ? 1 : -1;
                     const shiftFactor = Math.sin((Math.PI * dy) / radius);
@@ -919,6 +922,7 @@ class ArreraDock extends St.Widget {
                 if (dx < radius) {
                     const factor = 0.5 * (1 + Math.cos((Math.PI * dx) / radius));
                     const scale = 1.0 + (maxScale - 1.0) * factor;
+                    if (scale > peakScale) peakScale = scale;
 
                     const direction = itemCenterX >= stageX ? 1 : -1;
                     const shiftFactor = Math.sin((Math.PI * dx) / radius);
@@ -937,6 +941,9 @@ class ArreraDock extends St.Widget {
 
             item.updateTooltipPosition?.();
         }
+
+        // macOS-style: grow the dock pill to envelop magnified icons
+        this._applyDockPillGrowth(peakScale, isVertical, pos);
     }
 
     _resetWaveMagnification() {
@@ -951,6 +958,75 @@ class ArreraDock extends St.Widget {
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             });
             item.updateTooltipPosition?.();
+        }
+
+        // Animate dock pill back to its resting size
+        this._resetDockPillGrowth();
+    }
+
+    /**
+     * Dynamically grow the dock pill to match the tallest magnified icon,
+     * keeping the dock anchored to its screen edge (like macOS).
+     * Uses direct height/width changes instead of scale to avoid distorting children.
+     */
+    _applyDockPillGrowth(peakScale, isVertical, pos) {
+        if (this._isBarMode)
+            return;
+
+        // How much extra thickness the pill needs (proportional to icon growth, dampened)
+        const extraPx = Math.round(this._iconSize * (peakScale - 1.0) * 0.5);
+
+        if (extraPx <= 0) {
+            // No growth needed, reset to natural size
+            if (isVertical)
+                this._dockPill.width = -1;
+            else
+                this._dockPill.height = -1;
+            return;
+        }
+
+        const baseThickness = this._dockHeight || DOCK_HEIGHT;
+
+        if (isVertical) {
+            // Left/right: grow wider
+            this._dockPill.width = baseThickness + extraPx;
+        } else {
+            // Bottom: grow taller (upward, since pill is y_align=END)
+            this._dockPill.height = baseThickness + extraPx;
+        }
+    }
+
+    /**
+     * Animate the dock pill back to its default (resting) dimensions.
+     */
+    _resetDockPillGrowth() {
+        if (this._isBarMode)
+            return;
+
+        const pos = this._position || 'bottom';
+        const isVertical = pos === 'left' || pos === 'right';
+
+        // Animate back to natural size (-1 = natural)
+        if (isVertical) {
+            this._dockPill.ease({
+                width: this._dockHeight || DOCK_HEIGHT,
+                duration: 220,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => {
+                    if (!this._isBarMode)
+                        this._dockPill.width = -1;
+                },
+            });
+        } else {
+            this._dockPill.ease({
+                height: this._dockHeight || DOCK_HEIGHT,
+                duration: 220,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => {
+                    if (!this._isBarMode)
+                        this._dockPill.height = -1;
+                },
+            });
         }
     }
 
@@ -1219,21 +1295,27 @@ class ArreraDock extends St.Widget {
         const thickness = this.getPreferredThickness();
         const pos = this._position || 'bottom';
 
+        // Pre-allocate extra room for the wave magnification effect
+        // so the dock pill has space to grow into without clipping
+        const waveRoom = this._enableWaveEffect
+            ? Math.round(this._iconSize * ((this._waveMaxScale || WAVE_MAX_SCALE) - 1.0) * 0.5)
+            : 0;
+
         if (pos === 'left') {
             if (this._autohide && this._isDockHidden) {
                 this.set_position(monitor.x, monitor.y);
                 this.set_size(4, monitor.height);
             } else {
                 this.set_position(monitor.x, monitor.y);
-                this.set_size(thickness, monitor.height);
+                this.set_size(thickness + waveRoom, monitor.height);
             }
         } else if (pos === 'right') {
             if (this._autohide && this._isDockHidden) {
                 this.set_position(monitor.x + monitor.width - 4, monitor.y);
                 this.set_size(4, monitor.height);
             } else {
-                this.set_position(monitor.x + monitor.width - thickness, monitor.y);
-                this.set_size(thickness, monitor.height);
+                this.set_position(monitor.x + monitor.width - thickness - waveRoom, monitor.y);
+                this.set_size(thickness + waveRoom, monitor.height);
             }
         } else {
             // Default: bottom
@@ -1241,8 +1323,8 @@ class ArreraDock extends St.Widget {
                 this.set_position(monitor.x, monitor.y + monitor.height - 4);
                 this.set_size(monitor.width, 4);
             } else {
-                this.set_position(monitor.x, monitor.y + monitor.height - thickness);
-                this.set_size(monitor.width, thickness);
+                this.set_position(monitor.x, monitor.y + monitor.height - thickness - waveRoom);
+                this.set_size(monitor.width, thickness + waveRoom);
             }
         }
     }
