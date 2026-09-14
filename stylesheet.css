@@ -121,30 +121,38 @@
     border-color: rgba(255, 140, 60, 0.48);
     box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(237, 91, 0, 0.38);
 }
+
 .accent-orange .dock-app-icon:hover {
     background-color: rgba(255, 150, 75, 0.22);
     box-shadow: inset 0 0 0 1px rgba(255, 160, 90, 0.45);
 }
+
 .accent-orange .dock-app-icon:active {
     background-color: rgba(255, 150, 75, 0.35);
 }
+
 .accent-orange .dock-app-icon .app-grid-running-dot {
     background-color: rgba(255, 190, 140, 0.70);
 }
+
 .accent-orange .dock-app-icon .app-grid-running-dot.focused {
     background-color: #ff9d42;
     box-shadow: 0 0 12px #ff9d42;
 }
+
 .accent-orange .dock-separator {
     background-color: rgba(255, 150, 75, 0.30);
 }
+
 .accent-orange .show-apps-button {
     background-color: rgba(237, 91, 0, 0.30);
     border-color: rgba(255, 150, 75, 0.45);
 }
+
 .accent-orange .show-apps-button:hover {
     background-color: rgba(237, 91, 0, 0.45);
 }
+
 .accent-orange .show-apps-button:checked,
 .accent-orange .show-apps-button:active {
     background-color: #ed5b00;
@@ -152,17 +160,23 @@
     box-shadow: 0 0 18px rgba(237, 91, 0, 0.75);
     color: #ffffff;
 }
+
 .accent-orange .mac-app-launcher-window {
     background-color: rgba(48, 20, 6, 0.94);
     border-color: rgba(255, 140, 60, 0.35);
     box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(237, 91, 0, 0.22);
 }
-.accent-orange .mac-launcher-title-icon { color: #ff9d42; }
+
+.accent-orange .mac-launcher-title-icon {
+    color: #ff9d42;
+}
+
 .accent-orange .mac-launcher-search-entry:focus {
     border-color: rgba(255, 140, 60, 0.80);
     box-shadow: 0 0 0 2px rgba(237, 91, 0, 0.30);
     caret-color: #ff9d42;
 }
+
 .accent-orange .mac-app-item:hover {
     background-color: rgba(255, 150, 75, 0.18);
     box-shadow: inset 0 0 0 1px rgba(255, 160, 90, 0.38);
@@ -174,30 +188,38 @@
     border-color: rgba(100, 175, 255, 0.48);
     box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(53, 132, 228, 0.38);
 }
+
 .accent-blue .dock-app-icon:hover {
     background-color: rgba(100, 175, 255, 0.22);
     box-shadow: inset 0 0 0 1px rgba(110, 185, 255, 0.45);
 }
+
 .accent-blue .dock-app-icon:active {
     background-color: rgba(100, 175, 255, 0.35);
 }
+
 .accent-blue .dock-app-icon .app-grid-running-dot {
     background-color: rgba(175, 215, 255, 0.70);
 }
+
 .accent-blue .dock-app-icon .app-grid-running-dot.focused {
     background-color: #62a0ea;
     box-shadow: 0 0 12px #62a0ea;
 }
+
 .accent-blue .dock-separator {
     background-color: rgba(100, 175, 255, 0.30);
 }
+
 .accent-blue .show-apps-button {
     background-color: rgba(53, 132, 228, 0.30);
     border-color: rgba(100, 175, 255, 0.45);
 }
+
 .accent-blue .show-apps-button:hover {
     background-color: rgba(53, 132, 228, 0.45);
 }
+
 .accent-blue .show-apps-button:checked,
 .accent-blue .show-apps-button:active {
     background-color: #3584e4;
@@ -205,17 +227,23 @@
     box-shadow: 0 0 18px rgba(53, 132, 228, 0.75);
     color: #ffffff;
 }
+
 .accent-blue .mac-app-launcher-window {
     background-color: rgba(12, 28, 56, 0.94);
     border-color: rgba(100, 175, 255, 0.35);
     box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(53, 132, 228, 0.22);
 }
-.accent-blue .mac-launcher-title-icon { color: #62a0ea; }
+
+.accent-blue .mac-launcher-title-icon {
+    color: #62a0ea;
+}
+
 .accent-blue .mac-launcher-search-entry:focus {
     border-color: rgba(100, 175, 255, 0.80);
     box-shadow: 0 0 0 2px rgba(53, 132, 228, 0.30);
     caret-color: #62a0ea;
 }
+
 .accent-blue .mac-app-item:hover {
     background-color: rgba(100, 175, 255, 0.18);
     box-shadow: inset 0 0 0 1px rgba(110, 185, 255, 0.38);
@@ -227,30 +255,38 @@
     border-color: rgba(70, 195, 220, 0.48);
     box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(33, 144, 164, 0.38);
 }
+
 .accent-teal .dock-app-icon:hover {
     background-color: rgba(70, 195, 220, 0.22);
     box-shadow: inset 0 0 0 1px rgba(80, 205, 230, 0.45);
 }
+
 .accent-teal .dock-app-icon:active {
     background-color: rgba(70, 195, 220, 0.35);
 }
+
 .accent-teal .dock-app-icon .app-grid-running-dot {
     background-color: rgba(160, 230, 245, 0.70);
 }
+
 .accent-teal .dock-app-icon .app-grid-running-dot.focused {
     background-color: #4dc4db;
     box-shadow: 0 0 12px #4dc4db;
 }
+
 .accent-teal .dock-separator {
     background-color: rgba(70, 195, 220, 0.30);
 }
+
 .accent-teal .show-apps-button {
     background-color: rgba(33, 144, 164, 0.30);
     border-color: rgba(70, 195, 220, 0.45);
 }
+
 .accent-teal .show-apps-button:hover {
     background-color: rgba(33, 144, 164, 0.45);
 }
+
 .accent-teal .show-apps-button:checked,
 .accent-teal .show-apps-button:active {
     background-color: #2190a4;
@@ -258,17 +294,23 @@
     box-shadow: 0 0 18px rgba(33, 144, 164, 0.75);
     color: #ffffff;
 }
+
 .accent-teal .mac-app-launcher-window {
     background-color: rgba(8, 34, 40, 0.94);
     border-color: rgba(70, 195, 220, 0.35);
     box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(33, 144, 164, 0.22);
 }
-.accent-teal .mac-launcher-title-icon { color: #4dc4db; }
+
+.accent-teal .mac-launcher-title-icon {
+    color: #4dc4db;
+}
+
 .accent-teal .mac-launcher-search-entry:focus {
     border-color: rgba(70, 195, 220, 0.80);
     box-shadow: 0 0 0 2px rgba(33, 144, 164, 0.30);
     caret-color: #4dc4db;
 }
+
 .accent-teal .mac-app-item:hover {
     background-color: rgba(70, 195, 220, 0.18);
     box-shadow: inset 0 0 0 1px rgba(80, 205, 230, 0.38);
@@ -280,30 +322,38 @@
     border-color: rgba(105, 210, 125, 0.48);
     box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(58, 148, 74, 0.38);
 }
+
 .accent-green .dock-app-icon:hover {
     background-color: rgba(105, 210, 125, 0.22);
     box-shadow: inset 0 0 0 1px rgba(115, 220, 135, 0.45);
 }
+
 .accent-green .dock-app-icon:active {
     background-color: rgba(105, 210, 125, 0.35);
 }
+
 .accent-green .dock-app-icon .app-grid-running-dot {
     background-color: rgba(180, 240, 190, 0.70);
 }
+
 .accent-green .dock-app-icon .app-grid-running-dot.focused {
     background-color: #57ab5a;
     box-shadow: 0 0 12px #57ab5a;
 }
+
 .accent-green .dock-separator {
     background-color: rgba(105, 210, 125, 0.30);
 }
+
 .accent-green .show-apps-button {
     background-color: rgba(58, 148, 74, 0.30);
     border-color: rgba(105, 210, 125, 0.45);
 }
+
 .accent-green .show-apps-button:hover {
     background-color: rgba(58, 148, 74, 0.45);
 }
+
 .accent-green .show-apps-button:checked,
 .accent-green .show-apps-button:active {
     background-color: #3a944a;
@@ -311,17 +361,23 @@
     box-shadow: 0 0 18px rgba(58, 148, 74, 0.75);
     color: #ffffff;
 }
+
 .accent-green .mac-app-launcher-window {
     background-color: rgba(10, 34, 16, 0.94);
     border-color: rgba(105, 210, 125, 0.35);
     box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(58, 148, 74, 0.22);
 }
-.accent-green .mac-launcher-title-icon { color: #57ab5a; }
+
+.accent-green .mac-launcher-title-icon {
+    color: #57ab5a;
+}
+
 .accent-green .mac-launcher-search-entry:focus {
     border-color: rgba(105, 210, 125, 0.80);
     box-shadow: 0 0 0 2px rgba(58, 148, 74, 0.30);
     caret-color: #57ab5a;
 }
+
 .accent-green .mac-app-item:hover {
     background-color: rgba(105, 210, 125, 0.18);
     box-shadow: inset 0 0 0 1px rgba(115, 220, 135, 0.38);
@@ -333,30 +389,38 @@
     border-color: rgba(250, 195, 55, 0.48);
     box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(200, 136, 0, 0.38);
 }
+
 .accent-yellow .dock-app-icon:hover {
     background-color: rgba(250, 195, 55, 0.22);
     box-shadow: inset 0 0 0 1px rgba(255, 205, 65, 0.45);
 }
+
 .accent-yellow .dock-app-icon:active {
     background-color: rgba(250, 195, 55, 0.35);
 }
+
 .accent-yellow .dock-app-icon .app-grid-running-dot {
     background-color: rgba(255, 230, 150, 0.70);
 }
+
 .accent-yellow .dock-app-icon .app-grid-running-dot.focused {
     background-color: #f6c144;
     box-shadow: 0 0 12px #f6c144;
 }
+
 .accent-yellow .dock-separator {
     background-color: rgba(250, 195, 55, 0.30);
 }
+
 .accent-yellow .show-apps-button {
     background-color: rgba(200, 136, 0, 0.30);
     border-color: rgba(250, 195, 55, 0.45);
 }
+
 .accent-yellow .show-apps-button:hover {
     background-color: rgba(200, 136, 0, 0.45);
 }
+
 .accent-yellow .show-apps-button:checked,
 .accent-yellow .show-apps-button:active {
     background-color: #c88800;
@@ -364,17 +428,23 @@
     box-shadow: 0 0 18px rgba(200, 136, 0, 0.75);
     color: #ffffff;
 }
+
 .accent-yellow .mac-app-launcher-window {
     background-color: rgba(44, 30, 4, 0.94);
     border-color: rgba(250, 195, 55, 0.35);
     box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(200, 136, 0, 0.22);
 }
-.accent-yellow .mac-launcher-title-icon { color: #f6c144; }
+
+.accent-yellow .mac-launcher-title-icon {
+    color: #f6c144;
+}
+
 .accent-yellow .mac-launcher-search-entry:focus {
     border-color: rgba(250, 195, 55, 0.80);
     box-shadow: 0 0 0 2px rgba(200, 136, 0, 0.30);
     caret-color: #f6c144;
 }
+
 .accent-yellow .mac-app-item:hover {
     background-color: rgba(250, 195, 55, 0.18);
     box-shadow: inset 0 0 0 1px rgba(255, 205, 65, 0.38);
@@ -386,30 +456,38 @@
     border-color: rgba(255, 105, 125, 0.48);
     box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(230, 45, 66, 0.38);
 }
+
 .accent-red .dock-app-icon:hover {
     background-color: rgba(255, 105, 125, 0.22);
     box-shadow: inset 0 0 0 1px rgba(255, 115, 135, 0.45);
 }
+
 .accent-red .dock-app-icon:active {
     background-color: rgba(255, 105, 125, 0.35);
 }
+
 .accent-red .dock-app-icon .app-grid-running-dot {
     background-color: rgba(255, 175, 190, 0.70);
 }
+
 .accent-red .dock-app-icon .app-grid-running-dot.focused {
     background-color: #f85166;
     box-shadow: 0 0 12px #f85166;
 }
+
 .accent-red .dock-separator {
     background-color: rgba(255, 105, 125, 0.30);
 }
+
 .accent-red .show-apps-button {
     background-color: rgba(230, 45, 66, 0.30);
     border-color: rgba(255, 105, 125, 0.45);
 }
+
 .accent-red .show-apps-button:hover {
     background-color: rgba(230, 45, 66, 0.45);
 }
+
 .accent-red .show-apps-button:checked,
 .accent-red .show-apps-button:active {
     background-color: #e62d42;
@@ -417,17 +495,23 @@
     box-shadow: 0 0 18px rgba(230, 45, 66, 0.75);
     color: #ffffff;
 }
+
 .accent-red .mac-app-launcher-window {
     background-color: rgba(50, 10, 16, 0.94);
     border-color: rgba(255, 105, 125, 0.35);
     box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(230, 45, 66, 0.22);
 }
-.accent-red .mac-launcher-title-icon { color: #f85166; }
+
+.accent-red .mac-launcher-title-icon {
+    color: #f85166;
+}
+
 .accent-red .mac-launcher-search-entry:focus {
     border-color: rgba(255, 105, 125, 0.80);
     box-shadow: 0 0 0 2px rgba(230, 45, 66, 0.30);
     caret-color: #f85166;
 }
+
 .accent-red .mac-app-item:hover {
     background-color: rgba(255, 105, 125, 0.18);
     box-shadow: inset 0 0 0 1px rgba(255, 115, 135, 0.38);
@@ -439,30 +523,38 @@
     border-color: rgba(250, 135, 195, 0.48);
     box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(213, 97, 153, 0.38);
 }
+
 .accent-pink .dock-app-icon:hover {
     background-color: rgba(250, 135, 195, 0.22);
     box-shadow: inset 0 0 0 1px rgba(255, 145, 205, 0.45);
 }
+
 .accent-pink .dock-app-icon:active {
     background-color: rgba(250, 135, 195, 0.35);
 }
+
 .accent-pink .dock-app-icon .app-grid-running-dot {
     background-color: rgba(255, 195, 225, 0.70);
 }
+
 .accent-pink .dock-app-icon .app-grid-running-dot.focused {
     background-color: #e587b6;
     box-shadow: 0 0 12px #e587b6;
 }
+
 .accent-pink .dock-separator {
     background-color: rgba(250, 135, 195, 0.30);
 }
+
 .accent-pink .show-apps-button {
     background-color: rgba(213, 97, 153, 0.30);
     border-color: rgba(250, 135, 195, 0.45);
 }
+
 .accent-pink .show-apps-button:hover {
     background-color: rgba(213, 97, 153, 0.45);
 }
+
 .accent-pink .show-apps-button:checked,
 .accent-pink .show-apps-button:active {
     background-color: #d56199;
@@ -470,17 +562,23 @@
     box-shadow: 0 0 18px rgba(213, 97, 153, 0.75);
     color: #ffffff;
 }
+
 .accent-pink .mac-app-launcher-window {
     background-color: rgba(46, 14, 32, 0.94);
     border-color: rgba(250, 135, 195, 0.35);
     box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(213, 97, 153, 0.22);
 }
-.accent-pink .mac-launcher-title-icon { color: #e587b6; }
+
+.accent-pink .mac-launcher-title-icon {
+    color: #e587b6;
+}
+
 .accent-pink .mac-launcher-search-entry:focus {
     border-color: rgba(250, 135, 195, 0.80);
     box-shadow: 0 0 0 2px rgba(213, 97, 153, 0.30);
     caret-color: #e587b6;
 }
+
 .accent-pink .mac-app-item:hover {
     background-color: rgba(250, 135, 195, 0.18);
     box-shadow: inset 0 0 0 1px rgba(255, 145, 205, 0.38);
@@ -492,30 +590,38 @@
     border-color: rgba(195, 110, 235, 0.48);
     box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(145, 65, 172, 0.38);
 }
+
 .accent-purple .dock-app-icon:hover {
     background-color: rgba(195, 110, 235, 0.22);
     box-shadow: inset 0 0 0 1px rgba(205, 120, 245, 0.45);
 }
+
 .accent-purple .dock-app-icon:active {
     background-color: rgba(195, 110, 235, 0.35);
 }
+
 .accent-purple .dock-app-icon .app-grid-running-dot {
     background-color: rgba(230, 180, 255, 0.70);
 }
+
 .accent-purple .dock-app-icon .app-grid-running-dot.focused {
     background-color: #b363d6;
     box-shadow: 0 0 12px #b363d6;
 }
+
 .accent-purple .dock-separator {
     background-color: rgba(195, 110, 235, 0.30);
 }
+
 .accent-purple .show-apps-button {
     background-color: rgba(145, 65, 172, 0.30);
     border-color: rgba(195, 110, 235, 0.45);
 }
+
 .accent-purple .show-apps-button:hover {
     background-color: rgba(145, 65, 172, 0.45);
 }
+
 .accent-purple .show-apps-button:checked,
 .accent-purple .show-apps-button:active {
     background-color: #9141ac;
@@ -523,17 +629,23 @@
     box-shadow: 0 0 18px rgba(145, 65, 172, 0.75);
     color: #ffffff;
 }
+
 .accent-purple .mac-app-launcher-window {
     background-color: rgba(36, 12, 45, 0.94);
     border-color: rgba(195, 110, 235, 0.35);
     box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(145, 65, 172, 0.22);
 }
-.accent-purple .mac-launcher-title-icon { color: #b363d6; }
+
+.accent-purple .mac-launcher-title-icon {
+    color: #b363d6;
+}
+
 .accent-purple .mac-launcher-search-entry:focus {
     border-color: rgba(195, 110, 235, 0.80);
     box-shadow: 0 0 0 2px rgba(145, 65, 172, 0.30);
     caret-color: #b363d6;
 }
+
 .accent-purple .mac-app-item:hover {
     background-color: rgba(195, 110, 235, 0.18);
     box-shadow: inset 0 0 0 1px rgba(205, 120, 245, 0.38);
@@ -545,30 +657,38 @@
     border-color: rgba(160, 185, 205, 0.48);
     box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(111, 131, 150, 0.38);
 }
+
 .accent-slate .dock-app-icon:hover {
     background-color: rgba(160, 185, 205, 0.22);
     box-shadow: inset 0 0 0 1px rgba(170, 195, 215, 0.45);
 }
+
 .accent-slate .dock-app-icon:active {
     background-color: rgba(160, 185, 205, 0.35);
 }
+
 .accent-slate .dock-app-icon .app-grid-running-dot {
     background-color: rgba(200, 218, 232, 0.70);
 }
+
 .accent-slate .dock-app-icon .app-grid-running-dot.focused {
     background-color: #9cb2c6;
     box-shadow: 0 0 12px #9cb2c6;
 }
+
 .accent-slate .dock-separator {
     background-color: rgba(160, 185, 205, 0.30);
 }
+
 .accent-slate .show-apps-button {
     background-color: rgba(111, 131, 150, 0.30);
     border-color: rgba(160, 185, 205, 0.45);
 }
+
 .accent-slate .show-apps-button:hover {
     background-color: rgba(111, 131, 150, 0.45);
 }
+
 .accent-slate .show-apps-button:checked,
 .accent-slate .show-apps-button:active {
     background-color: #6f8396;
@@ -576,17 +696,23 @@
     box-shadow: 0 0 18px rgba(111, 131, 150, 0.75);
     color: #ffffff;
 }
+
 .accent-slate .mac-app-launcher-window {
     background-color: rgba(25, 32, 40, 0.94);
     border-color: rgba(160, 185, 205, 0.35);
     box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(111, 131, 150, 0.22);
 }
-.accent-slate .mac-launcher-title-icon { color: #9cb2c6; }
+
+.accent-slate .mac-launcher-title-icon {
+    color: #9cb2c6;
+}
+
 .accent-slate .mac-launcher-search-entry:focus {
     border-color: rgba(160, 185, 205, 0.80);
     box-shadow: 0 0 0 2px rgba(111, 131, 150, 0.30);
     caret-color: #9cb2c6;
 }
+
 .accent-slate .mac-app-item:hover {
     background-color: rgba(160, 185, 205, 0.18);
     box-shadow: inset 0 0 0 1px rgba(170, 195, 215, 0.38);
@@ -705,24 +831,30 @@
     padding: 3px 12px;
     spacing: 8px;
 }
+
 .size-small .arrera-dock-icons {
     spacing: 8px;
 }
+
 .size-small .dock-app-icon {
     padding: 2px 4px;
     border-radius: 14px;
 }
+
 .size-small .dock-separator {
     height: 20px;
 }
+
 .size-small .show-apps-button {
     padding: 2px 6px;
     border-radius: 16px;
 }
+
 .size-small .dock-app-icon .app-grid-running-dot {
     width: 6px;
     height: 3px;
 }
+
 .size-small .dock-app-icon .app-grid-running-dot.focused {
     width: 16px;
     height: 3.5px;
@@ -734,24 +866,30 @@
     padding: 5px 16px;
     spacing: 10px;
 }
+
 .size-medium .arrera-dock-icons {
     spacing: 10px;
 }
+
 .size-medium .dock-app-icon {
     padding: 4px 6px;
     border-radius: 20px;
 }
+
 .size-medium .dock-separator {
     height: 26px;
 }
+
 .size-medium .show-apps-button {
     padding: 4px 10px;
     border-radius: 22px;
 }
+
 .size-medium .dock-app-icon .app-grid-running-dot {
     width: 8px;
     height: 3.5px;
 }
+
 .size-medium .dock-app-icon .app-grid-running-dot.focused {
     width: 22px;
     height: 4px;
@@ -763,24 +901,30 @@
     padding: 6px 20px;
     spacing: 14px;
 }
+
 .size-large .arrera-dock-icons {
     spacing: 14px;
 }
+
 .size-large .dock-app-icon {
     padding: 6px 8px;
     border-radius: 24px;
 }
+
 .size-large .dock-separator {
     height: 32px;
 }
+
 .size-large .show-apps-button {
     padding: 6px 12px;
     border-radius: 26px;
 }
+
 .size-large .dock-app-icon .app-grid-running-dot {
     width: 10px;
     height: 4px;
 }
+
 .size-large .dock-app-icon .app-grid-running-dot.focused {
     width: 26px;
     height: 5px;
@@ -795,13 +939,16 @@
     border: 2px solid -st-accent-color;
     box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 22px st-transparentize(-st-accent-color, 0.55);
 }
+
 .theme-black-outline .dock-app-icon:hover {
     background-color: rgba(255, 255, 255, 0.12);
     box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.60);
 }
+
 .theme-black-outline .dock-separator {
     background-color: rgba(255, 255, 255, 0.18);
 }
+
 .theme-black-outline .show-apps-button {
     background-color: rgba(255, 255, 255, 0.10);
     border: 1px solid rgba(255, 255, 255, 0.16);
@@ -813,6 +960,7 @@
     border: 2px solid #ed5b00;
     box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(237, 91, 0, 0.50);
 }
+
 .theme-black-outline.accent-orange .dock-app-icon:hover {
     background-color: rgba(237, 91, 0, 0.18);
     box-shadow: inset 0 0 0 1px rgba(237, 91, 0, 0.50);
@@ -824,6 +972,7 @@
     border: 2px solid #3584e4;
     box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(53, 132, 228, 0.50);
 }
+
 .theme-black-outline.accent-blue .dock-app-icon:hover {
     background-color: rgba(53, 132, 228, 0.18);
     box-shadow: inset 0 0 0 1px rgba(53, 132, 228, 0.50);
@@ -835,6 +984,7 @@
     border: 2px solid #2190a4;
     box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(33, 144, 164, 0.50);
 }
+
 .theme-black-outline.accent-teal .dock-app-icon:hover {
     background-color: rgba(33, 144, 164, 0.18);
     box-shadow: inset 0 0 0 1px rgba(33, 144, 164, 0.50);
@@ -846,6 +996,7 @@
     border: 2px solid #3a944a;
     box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(58, 148, 74, 0.50);
 }
+
 .theme-black-outline.accent-green .dock-app-icon:hover {
     background-color: rgba(58, 148, 74, 0.18);
     box-shadow: inset 0 0 0 1px rgba(58, 148, 74, 0.50);
@@ -857,6 +1008,7 @@
     border: 2px solid #c88800;
     box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(200, 136, 0, 0.50);
 }
+
 .theme-black-outline.accent-yellow .dock-app-icon:hover {
     background-color: rgba(200, 136, 0, 0.18);
     box-shadow: inset 0 0 0 1px rgba(200, 136, 0, 0.50);
@@ -868,6 +1020,7 @@
     border: 2px solid #e62d42;
     box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(230, 45, 66, 0.50);
 }
+
 .theme-black-outline.accent-red .dock-app-icon:hover {
     background-color: rgba(230, 45, 66, 0.18);
     box-shadow: inset 0 0 0 1px rgba(230, 45, 66, 0.50);
@@ -879,6 +1032,7 @@
     border: 2px solid #d56199;
     box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(213, 97, 153, 0.50);
 }
+
 .theme-black-outline.accent-pink .dock-app-icon:hover {
     background-color: rgba(213, 97, 153, 0.18);
     box-shadow: inset 0 0 0 1px rgba(213, 97, 153, 0.50);
@@ -890,6 +1044,7 @@
     border: 2px solid #9141ac;
     box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(145, 65, 172, 0.50);
 }
+
 .theme-black-outline.accent-purple .dock-app-icon:hover {
     background-color: rgba(145, 65, 172, 0.18);
     box-shadow: inset 0 0 0 1px rgba(145, 65, 172, 0.50);
@@ -901,6 +1056,7 @@
     border: 2px solid #6f8396;
     box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(111, 131, 150, 0.50);
 }
+
 .theme-black-outline.accent-slate .dock-app-icon:hover {
     background-color: rgba(111, 131, 150, 0.18);
     box-shadow: inset 0 0 0 1px rgba(111, 131, 150, 0.50);
@@ -915,14 +1071,17 @@
     padding: 5px 16px;
     margin-bottom: 0;
 }
+
 .position-bottom .dock-separator {
     width: 2px;
     height: 26px;
     margin: 3px 6px;
 }
+
 .position-bottom .dock-app-icon {
     padding: 4px 6px;
 }
+
 .position-bottom .show-apps-button {
     padding: 4px 10px;
 }
@@ -933,23 +1092,28 @@
     margin-left: 0;
     margin-bottom: 0;
 }
+
 .position-left .dock-separator {
     width: 26px;
     height: 2px;
     margin: 6px 3px;
 }
+
 .position-left .dock-app-icon {
     padding: 6px 4px;
 }
+
 .position-left .show-apps-button {
     padding: 10px 4px;
 }
+
 .position-left .dock-app-icon .app-grid-running-dot {
     width: 3.5px;
     height: 8px;
     margin-left: 1px;
     margin-bottom: 0;
 }
+
 .position-left .dock-app-icon .app-grid-running-dot.focused {
     width: 4px;
     height: 22px;
@@ -961,23 +1125,28 @@
     margin-right: 0;
     margin-bottom: 0;
 }
+
 .position-right .dock-separator {
     width: 26px;
     height: 2px;
     margin: 6px 3px;
 }
+
 .position-right .dock-app-icon {
     padding: 6px 4px;
 }
+
 .position-right .show-apps-button {
     padding: 10px 4px;
 }
+
 .position-right .dock-app-icon .app-grid-running-dot {
     width: 3.5px;
     height: 8px;
     margin-right: 1px;
     margin-bottom: 0;
 }
+
 .position-right .dock-app-icon .app-grid-running-dot.focused {
     width: 4px;
     height: 22px;
@@ -988,20 +1157,24 @@
 .position-right.size-small.arrera-dock {
     padding: 12px 3px;
 }
+
 .position-left.size-small .dock-separator,
 .position-right.size-small .dock-separator {
     width: 20px;
     height: 2px;
 }
+
 .position-left.size-small .show-apps-button,
 .position-right.size-small .show-apps-button {
     padding: 6px 2px;
 }
+
 .position-left.size-small .dock-app-icon .app-grid-running-dot,
 .position-right.size-small .dock-app-icon .app-grid-running-dot {
     width: 3px;
     height: 6px;
 }
+
 .position-left.size-small .dock-app-icon .app-grid-running-dot.focused,
 .position-right.size-small .dock-app-icon .app-grid-running-dot.focused {
     width: 3.5px;
@@ -1013,22 +1186,71 @@
 .position-right.size-large.arrera-dock {
     padding: 20px 6px;
 }
+
 .position-left.size-large .dock-separator,
 .position-right.size-large .dock-separator {
     width: 32px;
     height: 2px;
 }
+
 .position-left.size-large .show-apps-button,
 .position-right.size-large .show-apps-button {
     padding: 12px 6px;
 }
+
 .position-left.size-large .dock-app-icon .app-grid-running-dot,
 .position-right.size-large .dock-app-icon .app-grid-running-dot {
     width: 4px;
     height: 10px;
 }
+
 .position-left.size-large .dock-app-icon .app-grid-running-dot.focused,
 .position-right.size-large .dock-app-icon .app-grid-running-dot.focused {
     width: 4.5px;
     height: 26px;
+}
+
+/* ==========================================================================
+   Bar Mode (Full-width/height screen panel without rounded corners)
+   ========================================================================== */
+
+.arrera-dock.mode-bar,
+.size-small.arrera-dock.mode-bar,
+.size-medium.arrera-dock.mode-bar,
+.size-large.arrera-dock.mode-bar {
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
+
+/* Bottom Bar: stuck to bottom edge and sides */
+.position-bottom.arrera-dock.mode-bar {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.40) !important;
+    padding: 5px 0 !important;
+    margin: 0 !important;
+}
+
+/* Left Bar: stuck to left edge, top and bottom */
+.position-left.arrera-dock.mode-bar {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.40) !important;
+    padding: 0 5px !important;
+    margin: 0 !important;
+}
+
+/* Right Bar: stuck to right edge, top and bottom */
+.position-right.arrera-dock.mode-bar {
+    border-radius: 0 !important;
+    border-right: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    box-shadow: -2px 0 12px rgba(0, 0, 0, 0.40) !important;
+    padding: 0 5px !important;
+    margin: 0 !important;
 }

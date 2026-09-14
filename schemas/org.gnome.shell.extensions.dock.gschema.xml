@@ -8,6 +8,13 @@
       <description>Masque automatiquement le dock quand il n'est pas survolé ou quand une fenêtre le chevauche.</description>
     </key>
 
+    <key name="extend-on-maximize" type="b">
+      <default>true</default>
+      <summary>Mode barre quand une fenêtre est maximisée</summary>
+      <description>En mode toujours affiché, transforme le dock en barre pleine largeur (ou pleine hauteur) si une fenêtre est maximisée ou en plein écran.</description>
+    </key>
+
+
     <key name="enable-wave-effect" type="b">
       <default>true</default>
       <summary>Effet de vague (agrandissement au survol)</summary>

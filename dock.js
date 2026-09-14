@@ -585,6 +585,11 @@ class ArreraDock extends St.Widget {
         this._openMenusCount = 0;
         this._isDockHidden = false;
 
+        // Bar mode state (full width/height when a window is maximized/fullscreen & always shown)
+        this._isBarMode = false;
+        this._extendOnMaximize = true;
+        this._trackedWindows = new Set();
+
         this._appIcons = new Map();
         this._separator = null;
 
@@ -638,6 +643,10 @@ class ArreraDock extends St.Widget {
                 this._onLeave();
         });
 
+        // Leading spacer for bar mode (centers icons when dock spans full screen)
+        this._leadingSpacer = new Clutter.Actor({ visible: false });
+        this._dockPill.add_child(this._leadingSpacer);
+
         // Icons box (favorites and running apps)
         this._iconsBox = new St.BoxLayout({
             style_class: 'arrera-dock-icons',
@@ -658,6 +667,10 @@ class ArreraDock extends St.Widget {
         this._showAppsButton = new ShowAppsButton(this, this._iconSize);
         this._dockPill.add_child(this._showAppsButton);
 
+        // Trailing spacer for bar mode (centers icons when dock spans full screen)
+        this._trailingSpacer = new Clutter.Actor({ visible: false });
+        this._dockPill.add_child(this._trailingSpacer);
+
         // Deferred work to coalesce redisplay updates
         this._workId = Main.initializeDeferredWork(
             this._iconsBox,
@@ -675,13 +688,26 @@ class ArreraDock extends St.Widget {
             this
         );
 
+        global.window_manager.connectObject(
+            'size-change', () => this._updateBarMode(),
+            'minimize', () => this._updateBarMode(),
+            'unminimize', () => this._updateBarMode(),
+            'destroy', () => this._updateBarMode(),
+            this
+        );
+
         global.display.connectObject(
-            'notify::focus-window', () => this._updateActiveWindow(),
+            'notify::focus-window', () => {
+                this._updateActiveWindow();
+                this._updateBarMode();
+            },
+            'window-created', (_d, win) => this._onWindowCreated(win),
+            'restacked', () => this._updateBarMode(),
             this
         );
 
         global.workspace_manager.connectObject(
-            'active-workspace-changed', () => this._updateActiveWindow(),
+            'active-workspace-changed', () => this._onWorkspaceChanged(),
             this
         );
 
@@ -694,6 +720,7 @@ class ArreraDock extends St.Widget {
         if (this._settings) {
             this._settings.connectObject(
                 'changed::autohide', () => this._syncAutohide(),
+                'changed::extend-on-maximize', () => this._syncExtendOnMaximize(),
                 'changed::enable-wave-effect', () => this._syncWaveEffect(),
                 'changed::icon-size', () => this._syncIconSize(true),
                 'changed::theme-mode', () => this._syncThemeMode(),
@@ -707,7 +734,10 @@ class ArreraDock extends St.Widget {
         this._syncPosition();
         this._syncWaveEffect();
         this._syncThemeMode();
+        this._syncExtendOnMaximize();
         this._syncAutohide();
+        this._trackWorkspaceWindows();
+        this._updateBarMode();
 
         this._hasConnectedAdjustment = false;
         this._bindOverview();
@@ -749,6 +779,7 @@ class ArreraDock extends St.Widget {
         this._dockPill.translation_y = 0;
         this._dockPill.reactive = true;
         this._resetWaveMagnification();
+        this._updateBarMode();
 
         if (this._autohide && !this.hover && !this._dockPill.hover)
             this._onLeave();
@@ -1066,6 +1097,8 @@ class ArreraDock extends St.Widget {
             if (!this.hover && !this._dockPill.hover && !Main.overview.visible)
                 this._hideDock();
         }
+
+        this._updateBarMode();
     }
 
     _syncWaveEffect() {
@@ -1147,6 +1180,7 @@ class ArreraDock extends St.Widget {
         this._showAppsButton?.updatePositionStyle?.(this._position);
 
         this.updatePosition();
+        this._applyBarMode();
         this._extension?.updateChromeStruts?.(!this._autohide);
     }
 
@@ -1304,6 +1338,171 @@ class ArreraDock extends St.Widget {
         }
     }
 
+    _syncExtendOnMaximize() {
+        this._extendOnMaximize = this._settings?.get_boolean('extend-on-maximize') ?? true;
+        this._updateBarMode();
+    }
+
+    _onWorkspaceChanged() {
+        this._trackWorkspaceWindows();
+        this._updateActiveWindow();
+        this._updateBarMode();
+    }
+
+    _onWindowCreated(win) {
+        this._trackWindow(win);
+        this._updateBarMode();
+    }
+
+    _trackWorkspaceWindows() {
+        if (this._trackedWindows) {
+            for (const win of this._trackedWindows) {
+                win.disconnectObject?.(this);
+            }
+            this._trackedWindows.clear();
+        } else {
+            this._trackedWindows = new Set();
+        }
+
+        const ws = global.workspace_manager.get_active_workspace();
+        if (!ws)
+            return;
+
+        const windows = ws.list_windows();
+        for (const win of windows) {
+            this._trackWindow(win);
+        }
+    }
+
+    _trackWindow(win) {
+        if (!win || this._trackedWindows?.has(win))
+            return;
+
+        this._trackedWindows.add(win);
+        win.connectObject(
+            'notify::maximized-horizontally', () => this._updateBarMode(),
+            'notify::maximized-vertically', () => this._updateBarMode(),
+            'notify::fullscreen', () => this._updateBarMode(),
+            'notify::minimized', () => this._updateBarMode(),
+            'unmanaged', () => {
+                this._trackedWindows?.delete(win);
+                this._updateBarMode();
+            },
+            this
+        );
+    }
+
+    _hasMaximizedOrFullscreenWindow() {
+        const primaryMonitorIndex = Main.layoutManager.primaryIndex;
+        const ws = global.workspace_manager.get_active_workspace();
+        if (!ws)
+            return false;
+
+        const windows = ws.list_windows();
+        for (const win of windows) {
+            // Uniquement les fenêtres sur l'écran principal où se trouve le dock
+            if (win.get_monitor() !== primaryMonitorIndex)
+                continue;
+
+            // Ignorer les fenêtres minimisées ou masquées
+            if (win.minimized || win.is_hidden())
+                continue;
+
+            // Ignorer les fenêtres non-normales (dialogues, popups, splash, etc.)
+            const winType = win.get_window_type();
+            if (winType !== Meta.WindowType.NORMAL)
+                continue;
+
+            // Fenêtre en plein écran (F11 / vidéo / jeu)
+            if (win.is_fullscreen())
+                return true;
+
+            // Fenêtre qui prend tout l'écran (maximisée horizontalement ET verticalement)
+            const isFullyMaximized = (win.maximized_horizontally && win.maximized_vertically) ||
+                (typeof win.get_maximize_flags === 'function' &&
+                 (win.get_maximize_flags() & Meta.MaximizeFlags.BOTH) === Meta.MaximizeFlags.BOTH);
+
+            if (isFullyMaximized)
+                return true;
+        }
+
+        return false;
+    }
+
+    _updateBarMode() {
+        const shouldBeBar = !this._autohide && this._extendOnMaximize && this._hasMaximizedOrFullscreenWindow();
+        if (this._isBarMode === shouldBeBar)
+            return;
+
+        this._isBarMode = shouldBeBar;
+        this._applyBarMode();
+    }
+
+    _applyBarMode() {
+        const monitor = Main.layoutManager.primaryMonitor;
+        const thickness = this.getPreferredThickness();
+        const isVertical = this._position === 'left' || this._position === 'right';
+
+        if (this._isBarMode && monitor) {
+            this.add_style_class_name('mode-bar');
+            this._dockPill.add_style_class_name('mode-bar');
+
+            if (this._position === 'bottom') {
+                this._dockPill.width = monitor.width;
+                this._dockPill.height = thickness;
+                this._dockPill.x_align = Clutter.ActorAlign.FILL;
+                this._dockPill.y_align = Clutter.ActorAlign.FILL;
+                this._dockPill.set_style('border-radius: 0px !important; border-bottom: none !important; border-left: none !important; border-right: none !important; margin: 0px !important; padding-left: 0px !important; padding-right: 0px !important;');
+            } else if (this._position === 'left') {
+                this._dockPill.width = thickness;
+                this._dockPill.height = monitor.height;
+                this._dockPill.x_align = Clutter.ActorAlign.FILL;
+                this._dockPill.y_align = Clutter.ActorAlign.FILL;
+                this._dockPill.set_style('border-radius: 0px !important; border-left: none !important; border-top: none !important; border-bottom: none !important; margin: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important;');
+            } else if (this._position === 'right') {
+                this._dockPill.width = thickness;
+                this._dockPill.height = monitor.height;
+                this._dockPill.x_align = Clutter.ActorAlign.FILL;
+                this._dockPill.y_align = Clutter.ActorAlign.FILL;
+                this._dockPill.set_style('border-radius: 0px !important; border-right: none !important; border-top: none !important; border-bottom: none !important; margin: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important;');
+            }
+
+            this._leadingSpacer.visible = true;
+            this._leadingSpacer.x_expand = !isVertical;
+            this._leadingSpacer.y_expand = isVertical;
+
+            this._trailingSpacer.visible = true;
+            this._trailingSpacer.x_expand = !isVertical;
+            this._trailingSpacer.y_expand = isVertical;
+        } else {
+            this.remove_style_class_name('mode-bar');
+            this._dockPill.remove_style_class_name('mode-bar');
+
+            this._dockPill.set_style(null);
+            this._dockPill.width = -1;
+            this._dockPill.height = -1;
+
+            this._leadingSpacer.visible = false;
+            this._leadingSpacer.x_expand = false;
+            this._leadingSpacer.y_expand = false;
+
+            this._trailingSpacer.visible = false;
+            this._trailingSpacer.x_expand = false;
+            this._trailingSpacer.y_expand = false;
+
+            if (this._position === 'bottom') {
+                this._dockPill.x_align = Clutter.ActorAlign.CENTER;
+                this._dockPill.y_align = Clutter.ActorAlign.END;
+            } else if (this._position === 'left') {
+                this._dockPill.x_align = Clutter.ActorAlign.START;
+                this._dockPill.y_align = Clutter.ActorAlign.CENTER;
+            } else if (this._position === 'right') {
+                this._dockPill.x_align = Clutter.ActorAlign.END;
+                this._dockPill.y_align = Clutter.ActorAlign.CENTER;
+            }
+        }
+    }
+
     // Drag-and-drop support: reorder favorites inside Arrera Dock
     handleDragOver(source, _actor, x, y, _step) {
         const app = source.app;
@@ -1353,6 +1552,16 @@ class ArreraDock extends St.Widget {
         const controls = Main.overview._overview?._controls;
         if (controls?._stateAdjustment)
             controls._stateAdjustment.disconnectObject(this);
+
+        if (this._trackedWindows) {
+            for (const win of this._trackedWindows) {
+                win.disconnectObject?.(this);
+            }
+            this._trackedWindows.clear();
+            this._trackedWindows = null;
+        }
+
+        global.window_manager.disconnectObject(this);
 
         this._appFavorites.disconnectObject(this);
         this._appSystem.disconnectObject(this);
