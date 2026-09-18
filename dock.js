@@ -1360,6 +1360,12 @@ export const ArreraDock = GObject.registerClass(
             const topY = monitor.y + panelHeight;
             const availableHeight = Math.max(0, monitor.height - panelHeight);
 
+            // Pre-allocate extra room for the wave magnification effect
+            // so the dock pill has space to grow into without clipping
+            const waveRoom = this._enableWaveEffect
+                ? Math.round(this._iconSize * ((this._waveMaxScale || WAVE_MAX_SCALE) - 1.0) * 0.5)
+                : 0;
+
             if (pos === 'left') {
                 if (this._autohide && this._isDockHidden) {
                     this.set_position(monitor.x, topY);
