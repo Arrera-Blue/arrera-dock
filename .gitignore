@@ -1,0 +1,3 @@
+output/
+build_rpm/
+*.tar.gz
