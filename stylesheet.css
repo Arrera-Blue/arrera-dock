@@ -1055,23 +1055,27 @@
 }
 
 .position-left .dock-app-icon {
-    padding: 6px 4px;
+    padding: 6px 4px 6px 8px;
 }
 
 .position-left .show-apps-button {
-    padding: 6px 4px;
+    padding: 6px 4px 6px 8px;
 }
 
 .position-left .dock-app-icon .app-grid-running-dot {
     width: 3.5px;
-    height: 8px;
-    margin-left: 1px;
-    margin-bottom: 0;
+    height: 6px;
+    border-radius: 2px;
+    offset-y: 0px;
+    margin: 0px;
 }
 
 .position-left .dock-app-icon .app-grid-running-dot.focused {
     width: 4px;
-    height: 22px;
+    height: 14px;
+    border-radius: 2px;
+    offset-y: 0px;
+    margin: 0px;
 }
 
 /* Right Position */
@@ -1088,23 +1092,27 @@
 }
 
 .position-right .dock-app-icon {
-    padding: 6px 4px;
+    padding: 6px 8px 6px 4px;
 }
 
 .position-right .show-apps-button {
-    padding: 6px 4px;
+    padding: 6px 8px 6px 4px;
 }
 
 .position-right .dock-app-icon .app-grid-running-dot {
     width: 3.5px;
-    height: 8px;
-    margin-right: 1px;
-    margin-bottom: 0;
+    height: 6px;
+    border-radius: 2px;
+    offset-y: 0px;
+    margin: 0px;
 }
 
 .position-right .dock-app-icon .app-grid-running-dot.focused {
     width: 4px;
-    height: 22px;
+    height: 14px;
+    border-radius: 2px;
+    offset-y: 0px;
+    margin: 0px;
 }
 
 /* Vertical Sizing: Small (28px) */
@@ -1119,21 +1127,32 @@
     height: 2px;
 }
 
-.position-left.size-small .show-apps-button,
+.position-left.size-small .dock-app-icon,
+.position-left.size-small .show-apps-button {
+    padding: 4px 3px 4px 6px;
+}
+
+.position-right.size-small .dock-app-icon,
 .position-right.size-small .show-apps-button {
-    padding: 4px 2px;
+    padding: 4px 6px 4px 3px;
 }
 
 .position-left.size-small .dock-app-icon .app-grid-running-dot,
 .position-right.size-small .dock-app-icon .app-grid-running-dot {
     width: 3px;
-    height: 6px;
+    height: 5px;
+    border-radius: 1.5px;
+    offset-y: 0px;
+    margin: 0px;
 }
 
 .position-left.size-small .dock-app-icon .app-grid-running-dot.focused,
 .position-right.size-small .dock-app-icon .app-grid-running-dot.focused {
-    width: 3.5px;
-    height: 16px;
+    width: 3px;
+    height: 11px;
+    border-radius: 1.5px;
+    offset-y: 0px;
+    margin: 0px;
 }
 
 /* Vertical Sizing: Large (48px) */
@@ -1148,21 +1167,32 @@
     height: 2px;
 }
 
-.position-left.size-large .show-apps-button,
+.position-left.size-large .dock-app-icon,
+.position-left.size-large .show-apps-button {
+    padding: 8px 5px 8px 10px;
+}
+
+.position-right.size-large .dock-app-icon,
 .position-right.size-large .show-apps-button {
-    padding: 8px 6px;
+    padding: 8px 10px 8px 5px;
 }
 
 .position-left.size-large .dock-app-icon .app-grid-running-dot,
 .position-right.size-large .dock-app-icon .app-grid-running-dot {
-    width: 4px;
-    height: 10px;
+    width: 4.5px;
+    height: 8px;
+    border-radius: 2px;
+    offset-y: 0px;
+    margin: 0px;
 }
 
 .position-left.size-large .dock-app-icon .app-grid-running-dot.focused,
 .position-right.size-large .dock-app-icon .app-grid-running-dot.focused {
     width: 4.5px;
-    height: 26px;
+    height: 18px;
+    border-radius: 2px;
+    offset-y: 0px;
+    margin: 0px;
 }
 
 /* ==========================================================================

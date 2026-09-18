@@ -58,1506 +58,1235 @@ const WAVE_MAX_SHIFT = SIZES.medium.waveMaxShift;
  * Inherits from Dash.DashIcon to reuse AppMenu, icon texture, and DND logic.
  */
 export const DockAppIcon = GObject.registerClass(
-class DockAppIcon extends Dash.DashIcon {
-    _init(app, iconSize = DEFAULT_ICON_SIZE, dock = null) {
-        super._init(app);
+    class DockAppIcon extends Dash.DashIcon {
+        _init(app, iconSize = DEFAULT_ICON_SIZE, dock = null) {
+            super._init(app);
 
-        this._dock = dock;
-        this._iconSize = iconSize;
-        this.icon.setIconSize(iconSize);
-        this.label_actor = null;
-        this.add_style_class_name('dock-app-icon');
-        this._tooltip = null;
-        this.updatePositionStyle(this._dock?._position || 'bottom');
-
-        this.connect('notify::hover', () => {
-            if (this.hover && (!this._menu || !this._menu.isOpen)) {
-                this._showTooltip();
-            } else {
-                this._hideTooltip();
-            }
-        });
-
-        // Hide tooltip when context menu opens & notify dock for autohide
-        this.connect('menu-state-changed', (_actor, opened) => {
-            if (opened) {
-                this._hideTooltip();
-                if (this._dock?._appLauncher?.isOpen)
-                    this._dock._appLauncher.close();
-            }
-            this._dock?._onMenuStateChanged?.(opened);
-        });
-
-        // Right-click event handler
-        this.connect('button-press-event', (_actor, event) => {
-            if (event.get_button() === Clutter.BUTTON_SECONDARY) {
-                this.popupMenu();
-                return Clutter.EVENT_STOP;
-            }
-            return Clutter.EVENT_PROPAGATE;
-        });
-
-        const rightClickGesture = new Clutter.ClickGesture({
-            required_button: Clutter.BUTTON_SECONDARY,
-            recognize_on_press: true,
-        });
-        rightClickGesture.connect('recognize', () => this.popupMenu());
-        this.add_action(rightClickGesture);
-
-        this.connect('destroy', () => {
-            this._cleanupTooltip();
-        });
-    }
-
-    vfunc_clicked(button) {
-        if (button === Clutter.BUTTON_SECONDARY) {
-            this.popupMenu();
-            return;
-        }
-        this.activate(button);
-    }
-
-    setIconSize(size) {
-        this._iconSize = size;
-        this.icon.setIconSize(size);
-    }
-
-    _cleanupTooltip() {
-        if (!this._tooltip)
-            return;
-
-        try {
-            this._tooltip.remove_all_transitions();
-            Main.layoutManager.removeChrome(this._tooltip);
-            this._tooltip.destroy();
-        } catch (_e) {
-            // Already destroyed or disposed by parent during shutdown
-        } finally {
+            this._dock = dock;
+            this._iconSize = iconSize;
+            this.icon.setIconSize(iconSize);
+            this.label_actor = null;
+            this.add_style_class_name('dock-app-icon');
             this._tooltip = null;
-        }
-    }
+            this.updatePositionStyle(this._dock?._position || 'bottom');
 
-    updatePositionStyle(position) {
-        if (position === 'left') {
-            this.set_pivot_point(0.0, 0.5);
-            this._popupMenuSide = St.Side.LEFT;
-            if (this._dot) {
-                this._dot.x_align = Clutter.ActorAlign.START;
-                this._dot.y_align = Clutter.ActorAlign.CENTER;
-            }
-        } else if (position === 'right') {
-            this.set_pivot_point(1.0, 0.5);
-            this._popupMenuSide = St.Side.RIGHT;
-            if (this._dot) {
-                this._dot.x_align = Clutter.ActorAlign.END;
-                this._dot.y_align = Clutter.ActorAlign.CENTER;
-            }
-        } else {
-            this.set_pivot_point(0.5, 1.0);
-            this._popupMenuSide = St.Side.BOTTOM;
-            if (this._dot) {
-                this._dot.x_align = Clutter.ActorAlign.CENTER;
-                this._dot.y_align = Clutter.ActorAlign.END;
-            }
-        }
-
-        if (this._menu) {
-            this._menu.destroy();
-            this._menu = null;
-        }
-    }
-
-    popupMenu() {
-        this._hideTooltip();
-        this.setForcedHighlight(true);
-
-        if (!this._menu) {
-            this._menu = new AppMenu(this, this._popupMenuSide, {
-                favoritesSection: true,
-                showSingleWindows: true,
-            });
-            this._menu.setApp(this.app);
-
-            const origUpdateFavoriteItem = this._menu._updateFavoriteItem.bind(this._menu);
-            this._menu._updateFavoriteItem = () => {
-                origUpdateFavoriteItem();
-                if (this._menu?._toggleFavoriteItem?.visible) {
-                    const isFav = this._dock?._appFavorites?.isFavorite(this.app.get_id());
-                    this._menu._toggleFavoriteItem.label.text = isFav
-                        ? 'Détacher du dock'
-                        : 'Épingler au dock';
-                }
-            };
-
-            this._menu.connect('open-state-changed', (_menu, isPoppedUp) => {
-                if (!isPoppedUp)
-                    this._onMenuPoppedDown();
-            });
-            Main.overview.connectObject('hiding',
-                () => this._menu?.close(), this);
-
-            Main.uiGroup.add_child(this._menu.actor);
-            this._menuManager.addMenu(this._menu);
-        }
-
-        this._menu._updateFavoriteItem?.();
-        this.emit('menu-state-changed', true);
-
-        this._menu.open(BoxPointer.PopupAnimation.FULL);
-        this.emit('sync-tooltip');
-
-        return false;
-    }
-
-    _showTooltip() {
-        if (!this.get_stage() || !this.app)
-            return;
-
-        if (!this._tooltip) {
-            this._tooltip = new St.Label({
-                style_class: 'dock-tooltip',
-                text: this.app.get_name(),
-            });
-            this._tooltip.connect('destroy', () => {
-                this._tooltip = null;
-            });
-            Main.layoutManager.addChrome(this._tooltip);
-        }
-
-        this._tooltip.opacity = 0;
-        this._tooltip.show();
-        this.updateTooltipPosition();
-
-        this._tooltip.ease({
-            opacity: 255,
-            duration: 150,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-        });
-    }
-
-    updateTooltipPosition() {
-        if (!this._tooltip || !this._tooltip.visible)
-            return;
-
-        const [stageX, stageY] = this.get_transformed_position();
-        const [w, h] = this.get_transformed_size();
-        const [tw, th] = this._tooltip.get_preferred_size();
-        const pos = this._dock?._position || 'bottom';
-
-        let x, y;
-        if (pos === 'left') {
-            x = Math.round(stageX + w + 8);
-            y = Math.round(stageY + (h - th) / 2);
-        } else if (pos === 'right') {
-            x = Math.round(stageX - tw - 8);
-            y = Math.round(stageY + (h - th) / 2);
-        } else {
-            x = Math.round(stageX + (w - tw) / 2);
-            y = Math.round(stageY - th - 8);
-        }
-        this._tooltip.set_position(x, y);
-    }
-
-    _hideTooltip() {
-        if (!this._tooltip)
-            return;
-
-        this._tooltip.ease({
-            opacity: 0,
-            duration: 100,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => {
-                if (this._tooltip)
-                    this._tooltip.hide();
-            },
-        });
-    }
-
-    activate(button) {
-        if (button === Clutter.BUTTON_SECONDARY) {
-            this.popupMenu();
-            return;
-        }
-
-        this._hideTooltip();
-
-        if (this._dock?._appLauncher?.isOpen)
-            this._dock._appLauncher.close();
-
-        const event = Clutter.get_current_event();
-        const modifiers = event ? event.get_state() : 0;
-        const isMiddleButton = button && button === Clutter.BUTTON_MIDDLE;
-        const isCtrlPressed = (modifiers & Clutter.ModifierType.CONTROL_MASK) !== 0;
-        const openNewWindow = this.app.can_open_new_window() &&
-                             this.app.state === Shell.AppState.RUNNING &&
-                             (isCtrlPressed || isMiddleButton);
-
-        if (openNewWindow) {
-            this.animateLaunch();
-            this.app.open_new_window(-1);
-            if (Main.overview.visible)
-                Main.overview.hide();
-            return;
-        }
-
-        if (this.app.state === Shell.AppState.STOPPED) {
-            this.animateLaunch();
-            this.app.activate();
-            if (Main.overview.visible)
-                Main.overview.hide();
-            return;
-        }
-
-        // App is already running: smart toggle / minimize / focus
-        const windows = this.app.get_windows() || [];
-        const currentWorkspace = global.workspace_manager.get_active_workspace();
-        const activeWindow = global.display.focus_window;
-
-        if (windows.length > 0) {
-            const hasFocusedWindow = activeWindow && windows.includes(activeWindow) &&
-                                     (activeWindow.is_on_all_workspaces?.() || activeWindow.located_on_workspace(currentWorkspace));
-
-            if (hasFocusedWindow) {
-                if (windows.length === 1) {
-                    if (activeWindow.can_minimize?.())
-                        activeWindow.minimize();
+            this.connect('notify::hover', () => {
+                if (this.hover && (!this._menu || !this._menu.isOpen)) {
+                    this._showTooltip();
                 } else {
-                    const currentIdx = windows.indexOf(activeWindow);
-                    const nextIdx = (currentIdx + 1) % windows.length;
-                    const nextWin = windows[nextIdx];
-                    if (nextWin.minimized)
-                        nextWin.unminimize();
-                    nextWin.activate(global.get_current_time());
+                    this._hideTooltip();
+                }
+            });
+
+            // Hide tooltip when context menu opens & notify dock for autohide
+            this.connect('menu-state-changed', (_actor, opened) => {
+                if (opened) {
+                    this._hideTooltip();
+                    if (this._dock?._appLauncher?.isOpen)
+                        this._dock._appLauncher.close();
+                }
+                this._dock?._onMenuStateChanged?.(opened);
+            });
+
+            // Right-click event handler
+            this.connect('button-press-event', (_actor, event) => {
+                if (event.get_button() === Clutter.BUTTON_SECONDARY) {
+                    this.popupMenu();
+                    return Clutter.EVENT_STOP;
+                }
+                return Clutter.EVENT_PROPAGATE;
+            });
+
+            const rightClickGesture = new Clutter.ClickGesture({
+                required_button: Clutter.BUTTON_SECONDARY,
+                recognize_on_press: true,
+            });
+            rightClickGesture.connect('recognize', () => this.popupMenu());
+            this.add_action(rightClickGesture);
+
+            this.connect('destroy', () => {
+                this._cleanupTooltip();
+            });
+        }
+
+        vfunc_clicked(button) {
+            if (button === Clutter.BUTTON_SECONDARY) {
+                this.popupMenu();
+                return;
+            }
+            this.activate(button);
+        }
+
+        setIconSize(size) {
+            this._iconSize = size;
+            this.icon.setIconSize(size);
+            this._updateDotStyle();
+        }
+
+        _cleanupTooltip() {
+            if (!this._tooltip)
+                return;
+
+            try {
+                this._tooltip.remove_all_transitions();
+                Main.layoutManager.removeChrome(this._tooltip);
+                this._tooltip.destroy();
+            } catch (_e) {
+                // Already destroyed or disposed by parent during shutdown
+            } finally {
+                this._tooltip = null;
+            }
+        }
+
+        _updateDotStyle() {
+            if (!this._dot)
+                return;
+
+            const pos = this._dock?._position || 'bottom';
+            if (pos === 'left' || pos === 'right') {
+                this._dot.translation_y = 0;
+                const shift = this._iconSize <= 28 ? 5 : (this._iconSize >= 48 ? 8 : 6.5);
+                this._dot.translation_x = pos === 'left' ? -shift : shift;
+            } else {
+                this._dot.translation_x = 0;
+                const themeNode = this._dot.get_theme_node();
+                this._dot.translation_y = themeNode ? themeNode.get_length('offset-y') : 0;
+            }
+        }
+
+        updatePositionStyle(position) {
+            if (position === 'left') {
+                this.set_pivot_point(0.0, 0.5);
+                this._popupMenuSide = St.Side.LEFT;
+                if (this._dot) {
+                    this._dot.x_align = Clutter.ActorAlign.START;
+                    this._dot.y_align = Clutter.ActorAlign.CENTER;
+                }
+            } else if (position === 'right') {
+                this.set_pivot_point(1.0, 0.5);
+                this._popupMenuSide = St.Side.RIGHT;
+                if (this._dot) {
+                    this._dot.x_align = Clutter.ActorAlign.END;
+                    this._dot.y_align = Clutter.ActorAlign.CENTER;
                 }
             } else {
-                const workspaceWindows = windows.filter(w => w.is_on_all_workspaces?.() || w.located_on_workspace(currentWorkspace));
-                const winToActivate = workspaceWindows[0] || windows[0];
-                if (winToActivate.minimized)
-                    winToActivate.unminimize();
-                winToActivate.activate(global.get_current_time());
+                this.set_pivot_point(0.5, 1.0);
+                this._popupMenuSide = St.Side.BOTTOM;
+                if (this._dot) {
+                    this._dot.x_align = Clutter.ActorAlign.CENTER;
+                    this._dot.y_align = Clutter.ActorAlign.END;
+                }
             }
-        } else {
-            this.app.activate();
+            this._updateDotStyle();
+
+            if (this._menu) {
+                this._menu.destroy();
+                this._menu = null;
+            }
         }
 
-        if (Main.overview.visible)
-            Main.overview.hide();
-    }
+        popupMenu() {
+            this._hideTooltip();
+            this.setForcedHighlight(true);
 
-    updateActiveState(focusWindow) {
-        if (!this.app || !this._dot)
-            return;
+            if (!this._menu) {
+                this._menu = new AppMenu(this, this._popupMenuSide, {
+                    favoritesSection: true,
+                    showSingleWindows: true,
+                });
+                this._menu.setApp(this.app);
 
-        if (this.app.state === Shell.AppState.STOPPED) {
-            this._dot.hide();
-            this.remove_style_pseudo_class('running');
-            this.remove_style_pseudo_class('focused');
-            return;
+                const origUpdateFavoriteItem = this._menu._updateFavoriteItem.bind(this._menu);
+                this._menu._updateFavoriteItem = () => {
+                    origUpdateFavoriteItem();
+                    if (this._menu?._toggleFavoriteItem?.visible) {
+                        const isFav = this._dock?._appFavorites?.isFavorite(this.app.get_id());
+                        this._menu._toggleFavoriteItem.label.text = isFav
+                            ? 'Détacher du dock'
+                            : 'Épingler au dock';
+                    }
+                };
+
+                this._menu.connect('open-state-changed', (_menu, isPoppedUp) => {
+                    if (!isPoppedUp)
+                        this._onMenuPoppedDown();
+                });
+                Main.overview.connectObject('hiding',
+                    () => this._menu?.close(), this);
+
+                Main.uiGroup.add_child(this._menu.actor);
+                this._menuManager.addMenu(this._menu);
+            }
+
+            this._menu._updateFavoriteItem?.();
+            this.emit('menu-state-changed', true);
+
+            this._menu.open(BoxPointer.PopupAnimation.FULL);
+            this.emit('sync-tooltip');
+
+            return false;
         }
 
-        this._dot.show();
-        this.add_style_pseudo_class('running');
+        _showTooltip() {
+            if (!this.get_stage() || !this.app)
+                return;
 
-        const windows = this.app.get_windows() || [];
-        const isFocused = focusWindow && windows.includes(focusWindow);
+            if (!this._tooltip) {
+                this._tooltip = new St.Label({
+                    style_class: 'dock-tooltip',
+                    text: this.app.get_name(),
+                });
+                this._tooltip.connect('destroy', () => {
+                    this._tooltip = null;
+                });
+                Main.layoutManager.addTopChrome(this._tooltip);
+            }
 
-        if (isFocused) {
-            this._dot.add_style_class_name('focused');
-            this.add_style_pseudo_class('focused');
-        } else {
-            this._dot.remove_style_class_name('focused');
-            this.remove_style_pseudo_class('focused');
+            this._tooltip.opacity = 0;
+            this._tooltip.show();
+            this.updateTooltipPosition();
+
+            this._tooltip.ease({
+                opacity: 255,
+                duration: 150,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
         }
-    }
 
-    destroy() {
-        this._cleanupTooltip();
-        super.destroy();
-    }
-});
+        updateTooltipPosition() {
+            if (!this._tooltip || !this._tooltip.visible)
+                return;
+
+            const [stageX, stageY] = this.get_transformed_position();
+            const [w, h] = this.get_transformed_size();
+            const [, , natW, natH] = this._tooltip.get_preferred_size();
+            const tw = this._tooltip.width || natW;
+            const th = this._tooltip.height || natH;
+            const pos = this._dock?._position || 'bottom';
+
+            let x, y;
+            if (pos === 'left') {
+                const dockX = this._dock ? this._dock.x : stageX;
+                const dockW = this._dock ? this._dock.width : w;
+                x = Math.round(dockX + dockW + 10);
+                y = Math.round(stageY + (h - th) / 2);
+            } else if (pos === 'right') {
+                const dockX = this._dock ? this._dock.x : stageX;
+                x = Math.round(dockX - tw - 10);
+                y = Math.round(stageY + (h - th) / 2);
+            } else {
+                const dockY = this._dock ? this._dock.y : stageY;
+                x = Math.round(stageX + (w - tw) / 2);
+                y = Math.round(dockY - th - 10);
+            }
+
+            const monitor = Main.layoutManager.primaryMonitor;
+            if (monitor) {
+                const panelHeight = (Main.panel && Main.panel.visible) ? Main.panel.height : 0;
+                const minY = monitor.y + panelHeight + 4;
+                const maxY = monitor.y + monitor.height - th - 4;
+                const minX = monitor.x + 4;
+                const maxX = monitor.x + monitor.width - tw - 4;
+
+                x = Math.clamp(x, minX, maxX);
+                y = Math.clamp(y, minY, maxY);
+            }
+
+            this._tooltip.set_position(x, y);
+        }
+
+        _hideTooltip() {
+            if (!this._tooltip)
+                return;
+
+            this._tooltip.ease({
+                opacity: 0,
+                duration: 100,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => {
+                    if (this._tooltip)
+                        this._tooltip.hide();
+                },
+            });
+        }
+
+        activate(button) {
+            if (button === Clutter.BUTTON_SECONDARY) {
+                this.popupMenu();
+                return;
+            }
+
+            this._hideTooltip();
+
+            if (this._dock?._appLauncher?.isOpen)
+                this._dock._appLauncher.close();
+
+            const event = Clutter.get_current_event();
+            const modifiers = event ? event.get_state() : 0;
+            const isMiddleButton = button && button === Clutter.BUTTON_MIDDLE;
+            const isCtrlPressed = (modifiers & Clutter.ModifierType.CONTROL_MASK) !== 0;
+            const openNewWindow = this.app.can_open_new_window() &&
+                this.app.state === Shell.AppState.RUNNING &&
+                (isCtrlPressed || isMiddleButton);
+
+            if (openNewWindow) {
+                this.animateLaunch();
+                this.app.open_new_window(-1);
+                if (Main.overview.visible)
+                    Main.overview.hide();
+                return;
+            }
+
+            if (this.app.state === Shell.AppState.STOPPED) {
+                this.animateLaunch();
+                this.app.activate();
+                if (Main.overview.visible)
+                    Main.overview.hide();
+                return;
+            }
+
+            // App is already running: smart toggle / minimize / focus
+            const windows = this.app.get_windows() || [];
+            const currentWorkspace = global.workspace_manager.get_active_workspace();
+            const activeWindow = global.display.focus_window;
+
+            if (windows.length > 0) {
+                const hasFocusedWindow = activeWindow && windows.includes(activeWindow) &&
+                    (activeWindow.is_on_all_workspaces?.() || activeWindow.located_on_workspace(currentWorkspace));
+
+                if (hasFocusedWindow) {
+                    if (windows.length === 1) {
+                        if (activeWindow.can_minimize?.())
+                            activeWindow.minimize();
+                    } else {
+                        const currentIdx = windows.indexOf(activeWindow);
+                        const nextIdx = (currentIdx + 1) % windows.length;
+                        const nextWin = windows[nextIdx];
+                        if (nextWin.minimized)
+                            nextWin.unminimize();
+                        nextWin.activate(global.get_current_time());
+                    }
+                } else {
+                    const workspaceWindows = windows.filter(w => w.is_on_all_workspaces?.() || w.located_on_workspace(currentWorkspace));
+                    const winToActivate = workspaceWindows[0] || windows[0];
+                    if (winToActivate.minimized)
+                        winToActivate.unminimize();
+                    winToActivate.activate(global.get_current_time());
+                }
+            } else {
+                this.app.activate();
+            }
+
+            if (Main.overview.visible)
+                Main.overview.hide();
+        }
+
+        updateActiveState(focusWindow) {
+            if (!this.app || !this._dot)
+                return;
+
+            if (this.app.state === Shell.AppState.STOPPED) {
+                this._dot.hide();
+                this.remove_style_pseudo_class('running');
+                this.remove_style_pseudo_class('focused');
+                return;
+            }
+
+            this._dot.show();
+            this.add_style_pseudo_class('running');
+
+            const windows = this.app.get_windows() || [];
+            const isFocused = focusWindow && windows.includes(focusWindow);
+
+            if (isFocused) {
+                this._dot.add_style_class_name('focused');
+                this.add_style_pseudo_class('focused');
+            } else {
+                this._dot.remove_style_class_name('focused');
+                this.remove_style_pseudo_class('focused');
+            }
+        }
+
+        destroy() {
+            this._cleanupTooltip();
+            super.destroy();
+        }
+    });
 
 /**
  * ShowAppsButton triggers GNOME Shell's application grid overview
  * and stays in sync with overview state.
  */
 export const ShowAppsButton = GObject.registerClass(
-class ShowAppsButton extends St.Button {
-    _init(dock, iconSize = DEFAULT_ICON_SIZE) {
-        super._init({
-            style_class: 'dock-item show-apps-button',
-            reactive: true,
-            can_focus: true,
-            track_hover: true,
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.CENTER,
-        });
+    class ShowAppsButton extends St.Button {
+        _init(dock, iconSize = DEFAULT_ICON_SIZE) {
+            super._init({
+                style_class: 'dock-item show-apps-button',
+                reactive: true,
+                can_focus: true,
+                track_hover: true,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
 
-        this._dock = dock;
-        this._iconSize = iconSize;
-        this._icon = this._createIcon(iconSize);
-        this.set_child(this._icon);
-        this._tooltip = null;
-        this.updatePositionStyle(this._dock?._position || 'bottom');
+            this._dock = dock;
+            this._iconSize = iconSize;
+            this._icon = this._createIcon(iconSize);
+            this.set_child(this._icon);
+            this._tooltip = null;
+            this.updatePositionStyle(this._dock?._position || 'bottom');
 
-        this.connect('clicked', () => this._onClicked());
-        this.connect('notify::hover', () => {
-            if (this.hover)
-                this._showTooltip();
-            else
-                this._hideTooltip();
-        });
+            this.connect('clicked', () => this._onClicked());
+            this.connect('notify::hover', () => {
+                if (this.hover)
+                    this._showTooltip();
+                else
+                    this._hideTooltip();
+            });
 
-        this.connect('destroy', () => {
-            this._cleanupTooltip();
-        });
-    }
+            this.connect('destroy', () => {
+                this._cleanupTooltip();
+            });
+        }
 
-    _createIcon(iconSize) {
-        const extPath = this._dock?._extension?.path;
-        if (extPath) {
-            const candidates = [
-                'show-apps-symbolic.svg',
-                'show-apps.svg',
-                'show-apps.png',
-                'logo-symbolic.svg',
-                'logo.svg',
-                'logo.png',
-            ];
-            for (const name of candidates) {
-                const filePath = `${extPath}/icons/${name}`;
-                const file = Gio.File.new_for_path(filePath);
-                if (file.query_exists(null)) {
-                    return new St.Icon({
-                        gicon: new Gio.FileIcon({ file }),
-                        icon_size: iconSize,
-                        style_class: 'show-apps-icon',
-                    });
+        _createIcon(iconSize) {
+            const extPath = this._dock?._extension?.path;
+            if (extPath) {
+                const candidates = [
+                    'show-apps-symbolic.svg',
+                    'show-apps.svg',
+                    'show-apps.png',
+                    'logo-symbolic.svg',
+                    'logo.svg',
+                    'logo.png',
+                ];
+                for (const name of candidates) {
+                    const filePath = `${extPath}/icons/${name}`;
+                    const file = Gio.File.new_for_path(filePath);
+                    if (file.query_exists(null)) {
+                        return new St.Icon({
+                            gicon: new Gio.FileIcon({ file }),
+                            icon_size: iconSize,
+                            style_class: 'show-apps-icon',
+                        });
+                    }
                 }
+            }
+
+            return new St.Icon({
+                icon_name: 'view-app-grid-symbolic',
+                icon_size: iconSize,
+                style_class: 'show-apps-icon',
+            });
+        }
+
+        setIconSize(size) {
+            this._iconSize = size;
+            if (this._icon)
+                this._icon.icon_size = size;
+        }
+
+        _cleanupTooltip() {
+            if (!this._tooltip)
+                return;
+
+            try {
+                this._tooltip.remove_all_transitions();
+                Main.layoutManager.removeChrome(this._tooltip);
+                this._tooltip.destroy();
+            } catch (_e) {
+                // Already destroyed or disposed by parent during shutdown
+            } finally {
+                this._tooltip = null;
             }
         }
 
-        return new St.Icon({
-            icon_name: 'view-app-grid-symbolic',
-            icon_size: iconSize,
-            style_class: 'show-apps-icon',
-        });
-    }
-
-    setIconSize(size) {
-        this._iconSize = size;
-        if (this._icon)
-            this._icon.icon_size = size;
-    }
-
-    _cleanupTooltip() {
-        if (!this._tooltip)
-            return;
-
-        try {
-            this._tooltip.remove_all_transitions();
-            Main.layoutManager.removeChrome(this._tooltip);
-            this._tooltip.destroy();
-        } catch (_e) {
-            // Already destroyed or disposed by parent during shutdown
-        } finally {
-            this._tooltip = null;
+        _onClicked() {
+            this._hideTooltip();
+            this._dock.toggleAppLauncher();
         }
-    }
 
-    _onClicked() {
-        this._hideTooltip();
-        this._dock.toggleAppLauncher();
-    }
-
-    updatePositionStyle(position) {
-        if (position === 'left') {
-            this.set_pivot_point(0.0, 0.5);
-        } else if (position === 'right') {
-            this.set_pivot_point(1.0, 0.5);
-        } else {
-            this.set_pivot_point(0.5, 1.0);
+        updatePositionStyle(position) {
+            if (position === 'left') {
+                this.set_pivot_point(0.0, 0.5);
+            } else if (position === 'right') {
+                this.set_pivot_point(1.0, 0.5);
+            } else {
+                this.set_pivot_point(0.5, 1.0);
+            }
         }
-    }
 
-    _showTooltip() {
-        if (!this.get_stage())
-            return;
+        _showTooltip() {
+            if (!this.get_stage())
+                return;
 
-        if (!this._tooltip) {
-            this._tooltip = new St.Label({
-                style_class: 'dock-tooltip',
-                text: _('Applications'),
+            if (!this._tooltip) {
+                this._tooltip = new St.Label({
+                    style_class: 'dock-tooltip',
+                    text: _('Applications'),
+                });
+                this._tooltip.connect('destroy', () => {
+                    this._tooltip = null;
+                });
+                Main.layoutManager.addTopChrome(this._tooltip);
+            }
+
+            this._tooltip.opacity = 0;
+            this._tooltip.show();
+            this.updateTooltipPosition();
+
+            this._tooltip.ease({
+                opacity: 255,
+                duration: 150,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             });
-            this._tooltip.connect('destroy', () => {
-                this._tooltip = null;
+        }
+
+        updateTooltipPosition() {
+            if (!this._tooltip || !this._tooltip.visible)
+                return;
+
+            const [stageX, stageY] = this.get_transformed_position();
+            const [w, h] = this.get_transformed_size();
+            const [, , natW, natH] = this._tooltip.get_preferred_size();
+            const tw = this._tooltip.width || natW;
+            const th = this._tooltip.height || natH;
+            const pos = this._dock?._position || 'bottom';
+
+            let x, y;
+            if (pos === 'left') {
+                const dockX = this._dock ? this._dock.x : stageX;
+                const dockW = this._dock ? this._dock.width : w;
+                x = Math.round(dockX + dockW + 10);
+                y = Math.round(stageY + (h - th) / 2);
+            } else if (pos === 'right') {
+                const dockX = this._dock ? this._dock.x : stageX;
+                x = Math.round(dockX - tw - 10);
+                y = Math.round(stageY + (h - th) / 2);
+            } else {
+                const dockY = this._dock ? this._dock.y : stageY;
+                x = Math.round(stageX + (w - tw) / 2);
+                y = Math.round(dockY - th - 10);
+            }
+
+            const monitor = Main.layoutManager.primaryMonitor;
+            if (monitor) {
+                const panelHeight = (Main.panel && Main.panel.visible) ? Main.panel.height : 0;
+                const minY = monitor.y + panelHeight + 4;
+                const maxY = monitor.y + monitor.height - th - 4;
+                const minX = monitor.x + 4;
+                const maxX = monitor.x + monitor.width - tw - 4;
+
+                x = Math.clamp(x, minX, maxX);
+                y = Math.clamp(y, minY, maxY);
+            }
+
+            this._tooltip.set_position(x, y);
+        }
+
+        _hideTooltip() {
+            if (!this._tooltip)
+                return;
+
+            this._tooltip.ease({
+                opacity: 0,
+                duration: 100,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => {
+                    if (this._tooltip)
+                        this._tooltip.hide();
+                },
             });
-            Main.layoutManager.addChrome(this._tooltip);
         }
 
-        this._tooltip.opacity = 0;
-        this._tooltip.show();
-        this.updateTooltipPosition();
-
-        this._tooltip.ease({
-            opacity: 255,
-            duration: 150,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-        });
-    }
-
-    updateTooltipPosition() {
-        if (!this._tooltip || !this._tooltip.visible)
-            return;
-
-        const [stageX, stageY] = this.get_transformed_position();
-        const [w, h] = this.get_transformed_size();
-        const [tw, th] = this._tooltip.get_preferred_size();
-        const pos = this._dock?._position || 'bottom';
-
-        let x, y;
-        if (pos === 'left') {
-            x = Math.round(stageX + w + 8);
-            y = Math.round(stageY + (h - th) / 2);
-        } else if (pos === 'right') {
-            x = Math.round(stageX - tw - 8);
-            y = Math.round(stageY + (h - th) / 2);
-        } else {
-            x = Math.round(stageX + (w - tw) / 2);
-            y = Math.round(stageY - th - 8);
+        destroy() {
+            this._cleanupTooltip();
+            super.destroy();
         }
-        this._tooltip.set_position(x, y);
-    }
-
-    _hideTooltip() {
-        if (!this._tooltip)
-            return;
-
-        this._tooltip.ease({
-            opacity: 0,
-            duration: 100,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => {
-                if (this._tooltip)
-                    this._tooltip.hide();
-            },
-        });
-    }
-
-    destroy() {
-        this._cleanupTooltip();
-        super.destroy();
-    }
-});
+    });
 
 /**
  * ArreraDock is the main dock widget container added to GNOME Shell's chrome.
  */
 export const ArreraDock = GObject.registerClass(
-class ArreraDock extends St.Widget {
-    _init(extension) {
-        super._init({
-            name: 'arrera-dock-container',
-            style_class: 'arrera-dock-container',
-            layout_manager: new Clutter.BinLayout(),
-            reactive: false,
-        });
+    class ArreraDock extends St.Widget {
+        _init(extension) {
+            super._init({
+                name: 'arrera-dock-container',
+                style_class: 'arrera-dock-container',
+                layout_manager: new Clutter.BinLayout(),
+                reactive: false,
+            });
 
-        this._extension = extension;
-        this._settings = extension.getSettings?.();
+            this._extension = extension;
+            this._settings = extension.getSettings?.();
 
-        // Icon sizing
-        this._sizeName = 'medium';
-        this._iconSize = SIZES.medium.iconSize;
-        this._dockHeight = SIZES.medium.dockHeight;
-        this._waveMaxScale = SIZES.medium.waveMaxScale;
-        this._waveRadius = SIZES.medium.waveRadius;
-        this._waveMaxShift = SIZES.medium.waveMaxShift;
+            // Icon sizing
+            this._sizeName = 'medium';
+            this._iconSize = SIZES.medium.iconSize;
+            this._dockHeight = SIZES.medium.dockHeight;
+            this._waveMaxScale = SIZES.medium.waveMaxScale;
+            this._waveRadius = SIZES.medium.waveRadius;
+            this._waveMaxShift = SIZES.medium.waveMaxShift;
 
-        // Wave effect
-        this._enableWaveEffect = true;
+            // Wave effect
+            this._enableWaveEffect = true;
 
-        // Position: bottom, left, right
-        this._position = 'bottom';
+            // Position: bottom, left, right
+            this._position = 'bottom';
 
-        // Autohide state
-        this._autohide = false;
-        this._autohideTimeoutId = 0;
-        this._openMenusCount = 0;
-        this._isDockHidden = false;
+            // Autohide state
+            this._autohide = false;
+            this._autohideTimeoutId = 0;
+            this._openMenusCount = 0;
+            this._isDockHidden = false;
 
-        // Bar mode state (full width/height when a window is maximized/fullscreen & always shown)
-        this._isBarMode = false;
-        this._extendOnMaximize = true;
-        this._trackedWindows = new Set();
+            // Bar mode state (full width/height when a window is maximized/fullscreen & always shown)
+            this._isBarMode = false;
+            this._extendOnMaximize = true;
+            this._trackedWindows = new Set();
 
-        this._appIcons = new Map();
-        this._separator = null;
+            this._appIcons = new Map();
+            this._separator = null;
 
-        // Floating pill container
-        this._dockPill = new St.BoxLayout({
-            style_class: 'arrera-dock',
-            x_align: Clutter.ActorAlign.CENTER,
-            y_align: Clutter.ActorAlign.END,
-            reactive: true,
-            track_hover: true,
-        });
-        this._dockPill._delegate = this;
-        this.add_child(this._dockPill);
+            // Floating pill container
+            this._dockPill = new St.BoxLayout({
+                style_class: 'arrera-dock',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.END,
+                reactive: true,
+                track_hover: true,
+            });
+            this._dockPill._delegate = this;
+            this.add_child(this._dockPill);
 
-        this._dockPill.connect('motion-event', (_actor, event) => {
-            const [stageX, stageY] = event.get_coords();
-            this._applyWaveMagnification(stageX, stageY);
-            return Clutter.EVENT_PROPAGATE;
-        });
-
-        this._dockPill.connect('leave-event', (_actor, event) => {
-            const related = event.get_related();
-            if (related && this._dockPill.contains(related))
+            this._dockPill.connect('motion-event', (_actor, event) => {
+                const [stageX, stageY] = event.get_coords();
+                this._applyWaveMagnification(stageX, stageY);
                 return Clutter.EVENT_PROPAGATE;
+            });
 
-            this._resetWaveMagnification();
-            return Clutter.EVENT_PROPAGATE;
-        });
+            this._dockPill.connect('leave-event', (_actor, event) => {
+                const related = event.get_related();
+                if (related && this._dockPill.contains(related))
+                    return Clutter.EVENT_PROPAGATE;
 
-        this._dockPill.connect('button-press-event', (_actor, event) => {
-            if (event.get_source() === this._dockPill && this._appLauncher?.isOpen) {
-                this._appLauncher.close();
-                return Clutter.EVENT_STOP;
-            }
-            return Clutter.EVENT_PROPAGATE;
-        });
-
-        this._dockPill.connect('notify::hover', () => {
-            if (this._dockPill.hover) {
-                this._onEnter();
-            } else {
                 this._resetWaveMagnification();
-                this._onLeave();
-            }
-        });
+                return Clutter.EVENT_PROPAGATE;
+            });
 
-        this.connect('notify::hover', () => {
-            if (this.hover)
-                this._onEnter();
-            else
-                this._onLeave();
-        });
-
-        // Leading spacer for bar mode (centers icons when dock spans full screen)
-        this._leadingSpacer = new Clutter.Actor({ visible: false });
-        this._dockPill.add_child(this._leadingSpacer);
-
-        // Show Apps Button (placed on the left)
-        this._showAppsButton = new ShowAppsButton(this, this._iconSize);
-        this._dockPill.add_child(this._showAppsButton);
-
-        // Icons box (favorites and running apps)
-        this._iconsBox = new St.BoxLayout({
-            style_class: 'arrera-dock-icons',
-            y_align: Clutter.ActorAlign.CENTER,
-            reactive: true,
-        });
-        this._iconsBox._delegate = this;
-        this._dockPill.add_child(this._iconsBox);
-
-        // Trailing spacer for bar mode (centers icons when dock spans full screen)
-        this._trailingSpacer = new Clutter.Actor({ visible: false });
-        this._dockPill.add_child(this._trailingSpacer);
-
-        // Deferred work to coalesce redisplay updates
-        this._workId = Main.initializeDeferredWork(
-            this._iconsBox,
-            () => this._redisplay()
-        );
-
-        // Setup signal listeners
-        this._appFavorites = AppFavorites.getAppFavorites();
-        this._appFavorites.connectObject('changed', () => this._queueRedisplay(), this);
-
-        this._appSystem = Shell.AppSystem.get_default();
-        this._appSystem.connectObject(
-            'installed-changed', () => this._queueRedisplay(),
-            'app-state-changed', () => this._queueRedisplay(),
-            this
-        );
-
-        global.window_manager.connectObject(
-            'size-change', () => this._updateBarMode(),
-            'minimize', () => this._updateBarMode(),
-            'unminimize', () => this._updateBarMode(),
-            'destroy', () => this._updateBarMode(),
-            this
-        );
-
-        global.display.connectObject(
-            'notify::focus-window', () => {
-                this._updateActiveWindow();
-                this._updateBarMode();
-            },
-            'window-created', (_d, win) => this._onWindowCreated(win),
-            'restacked', () => this._updateBarMode(),
-            this
-        );
-
-        global.workspace_manager.connectObject(
-            'active-workspace-changed', () => this._onWorkspaceChanged(),
-            this
-        );
-
-        // Synchronize with GNOME accent color settings (Material 3 Expressive)
-        this._interfaceSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.interface' });
-        this._interfaceSettings.connectObject('changed::accent-color', () => this._syncAccentColor(), this);
-        this._syncAccentColor();
-
-        // Connect GSettings for Dock customization
-        if (this._settings) {
-            this._settings.connectObject(
-                'changed::autohide', () => this._syncAutohide(),
-                'changed::extend-on-maximize', () => this._syncExtendOnMaximize(),
-                'changed::enable-wave-effect', () => this._syncWaveEffect(),
-                'changed::icon-size', () => this._syncIconSize(true),
-                'changed::theme-mode', () => this._syncThemeMode(),
-                'changed::position', () => this._syncPosition(),
-                this
-            );
-        }
-
-        // Initial synchronization of settings
-        this._syncIconSize(false);
-        this._syncPosition();
-        this._syncWaveEffect();
-        this._syncThemeMode();
-        this._syncExtendOnMaximize();
-        this._syncAutohide();
-        this._trackWorkspaceWindows();
-        this._updateBarMode();
-
-        this._hasConnectedAdjustment = false;
-        this._bindOverview();
-
-        this._redisplay();
-    }
-
-    _bindOverview() {
-        Main.overview.connectObject(
-            'showing', () => this._syncWithOverview(),
-            'hiding', () => this._syncWithOverview(),
-            'hidden', () => this._onOverviewHidden(),
-            this
-        );
-
-        this._connectStateAdjustment();
-        this._syncWithOverview();
-    }
-
-    _connectStateAdjustment() {
-        if (this._hasConnectedAdjustment)
-            return;
-
-        const controls = Main.overview._overview?._controls;
-        if (controls?._stateAdjustment) {
-            controls._stateAdjustment.connectObject(
-                'notify::value', () => this._syncWithOverview(),
-                this
-            );
-            this._hasConnectedAdjustment = true;
-        }
-    }
-
-    _onOverviewHidden() {
-        this.show();
-        this._dockPill.remove_all_transitions();
-        this._dockPill.opacity = 255;
-        this._dockPill.translation_x = 0;
-        this._dockPill.translation_y = 0;
-        this._dockPill.reactive = true;
-        this._resetWaveMagnification();
-        this._updateBarMode();
-
-        if (this._autohide && !this.hover && !this._dockPill.hover)
-            this._onLeave();
-    }
-
-    _syncWithOverview() {
-        this._connectStateAdjustment();
-
-        if (!Main.overview.visible) {
-            this._onOverviewHidden();
-            return;
-        }
-
-        const controls = Main.overview._overview?._controls;
-        const stateAdjustment = controls?._stateAdjustment;
-        if (!stateAdjustment) {
-            this._hideTooltips();
-            this.hide();
-            return;
-        }
-
-        const val = stateAdjustment.value;
-        const { initialState, finalState } = stateAdjustment.getStateTransitionParams();
-
-        let factor;
-        // Direct transition between Desktop (0) and App Grid (2): keep fully visible without flickering
-        if ((initialState === OverviewControls.ControlsState.HIDDEN && finalState === OverviewControls.ControlsState.APP_GRID) ||
-            (initialState === OverviewControls.ControlsState.APP_GRID && finalState === OverviewControls.ControlsState.HIDDEN)) {
-            factor = 1.0;
-        } else if (val <= 1.0) {
-            // Between Desktop (0) and Activities/Window Picker (1): fade out towards Activities
-            factor = Math.max(0, Math.min(1, 1.0 - val));
-        } else {
-            // Between Activities/Window Picker (1) and App Grid (2): fade in towards App Grid
-            factor = Math.max(0, Math.min(1, val - 1.0));
-        }
-
-        const pos = this._position || 'bottom';
-        if (factor <= 0.01) {
-            this._hideTooltips();
-            this._dockPill.opacity = 0;
-            if (pos === 'left') {
-                this._dockPill.translation_x = -30;
-                this._dockPill.translation_y = 0;
-            } else if (pos === 'right') {
-                this._dockPill.translation_x = 30;
-                this._dockPill.translation_y = 0;
-            } else {
-                this._dockPill.translation_y = 30;
-                this._dockPill.translation_x = 0;
-            }
-            this._dockPill.reactive = false;
-            this.hide();
-        } else {
-            this.show();
-            this._dockPill.opacity = Math.round(255 * factor);
-            const offset = Math.round((1.0 - factor) * 30);
-            if (pos === 'left') {
-                this._dockPill.translation_x = -offset;
-                this._dockPill.translation_y = 0;
-            } else if (pos === 'right') {
-                this._dockPill.translation_x = offset;
-                this._dockPill.translation_y = 0;
-            } else {
-                this._dockPill.translation_y = offset;
-                this._dockPill.translation_x = 0;
-            }
-            this._dockPill.reactive = factor >= 0.8;
-        }
-    }
-
-    _hideTooltips() {
-        for (const icon of this._appIcons.values()) {
-            icon._hideTooltip?.();
-        }
-        this._showAppsButton?._hideTooltip?.();
-    }
-
-    _getAllDockItems() {
-        const items = [];
-        if (this._showAppsButton)
-            items.push(this._showAppsButton);
-        for (const child of this._iconsBox.get_children()) {
-            if (child instanceof DockAppIcon)
-                items.push(child);
-        }
-        return items;
-    }
-
-    _applyWaveMagnification(stageX, stageY) {
-        if (!this._enableWaveEffect)
-            return;
-
-        const items = this._getAllDockItems();
-        if (items.length === 0)
-            return;
-
-        const maxScale = this._waveMaxScale || WAVE_MAX_SCALE;
-        const radius = this._waveRadius || WAVE_RADIUS;
-        const maxShift = this._waveMaxShift || WAVE_MAX_SHIFT;
-        const pos = this._position || 'bottom';
-        const isVertical = pos === 'left' || pos === 'right';
-
-        let peakScale = 1.0;
-
-        for (const item of items) {
-            item.remove_all_transitions();
-
-            if (isVertical) {
-                const [, itemY] = item.get_transformed_position();
-                const [, itemH] = item.get_transformed_size();
-                const itemBaseHeight = item.height || itemH;
-                const itemCenterY = itemY + itemBaseHeight / 2 - (item.translation_y || 0);
-
-                const dy = Math.abs(stageY - itemCenterY);
-
-                if (dy < radius) {
-                    const factor = 0.5 * (1 + Math.cos((Math.PI * dy) / radius));
-                    const scale = 1.0 + (maxScale - 1.0) * factor;
-                    if (scale > peakScale) peakScale = scale;
-
-                    const direction = itemCenterY >= stageY ? 1 : -1;
-                    const shiftFactor = Math.sin((Math.PI * dy) / radius);
-                    const shiftY = direction * maxShift * shiftFactor;
-
-                    if (pos === 'left')
-                        item.set_pivot_point(0.0, 0.5);
-                    else
-                        item.set_pivot_point(1.0, 0.5);
-
-                    item.set_scale(scale, scale);
-                    item.translation_y = Math.round(shiftY);
-                    item.translation_x = 0;
-                } else {
-                    item.set_scale(1.0, 1.0);
-                    item.translation_y = 0;
-                    item.translation_x = 0;
+            this._dockPill.connect('button-press-event', (_actor, event) => {
+                if (event.get_source() === this._dockPill && this._appLauncher?.isOpen) {
+                    this._appLauncher.close();
+                    return Clutter.EVENT_STOP;
                 }
-            } else {
-                const [itemX] = item.get_transformed_position();
-                const [itemW] = item.get_transformed_size();
-                const itemBaseWidth = item.width || itemW;
-                const itemCenterX = itemX + itemBaseWidth / 2 - (item.translation_x || 0);
+                return Clutter.EVENT_PROPAGATE;
+            });
 
-                const dx = Math.abs(stageX - itemCenterX);
-
-                if (dx < radius) {
-                    const factor = 0.5 * (1 + Math.cos((Math.PI * dx) / radius));
-                    const scale = 1.0 + (maxScale - 1.0) * factor;
-                    if (scale > peakScale) peakScale = scale;
-
-                    const direction = itemCenterX >= stageX ? 1 : -1;
-                    const shiftFactor = Math.sin((Math.PI * dx) / radius);
-                    const shiftX = direction * maxShift * shiftFactor;
-
-                    item.set_pivot_point(0.5, 1.0);
-                    item.set_scale(scale, scale);
-                    item.translation_x = Math.round(shiftX);
-                    item.translation_y = 0;
+            this._dockPill.connect('notify::hover', () => {
+                if (this._dockPill.hover) {
+                    this._onEnter();
                 } else {
-                    item.set_scale(1.0, 1.0);
-                    item.translation_x = 0;
-                    item.translation_y = 0;
-                }
-            }
-
-            item.updateTooltipPosition?.();
-        }
-
-        // macOS-style: grow the dock pill to envelop magnified icons
-        this._applyDockPillGrowth(peakScale, isVertical, pos);
-    }
-
-    _resetWaveMagnification() {
-        const items = this._getAllDockItems();
-        for (const item of items) {
-            item.ease({
-                scale_x: 1.0,
-                scale_y: 1.0,
-                translation_x: 0,
-                translation_y: 0,
-                duration: 220,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            });
-            item.updateTooltipPosition?.();
-        }
-
-        // Animate dock pill back to its resting size
-        this._resetDockPillGrowth();
-    }
-
-    /**
-     * Dynamically grow the dock pill to match the tallest magnified icon,
-     * keeping the dock anchored to its screen edge (like macOS).
-     * Uses direct height/width changes instead of scale to avoid distorting children.
-     */
-    _applyDockPillGrowth(peakScale, isVertical, pos) {
-        if (this._isBarMode)
-            return;
-
-        // How much extra thickness the pill needs (proportional to icon growth, dampened)
-        const extraPx = Math.round(this._iconSize * (peakScale - 1.0) * 0.5);
-
-        if (extraPx <= 0) {
-            // No growth needed, reset to natural size
-            if (isVertical)
-                this._dockPill.width = -1;
-            else
-                this._dockPill.height = -1;
-            return;
-        }
-
-        const baseThickness = this._dockHeight || DOCK_HEIGHT;
-
-        if (isVertical) {
-            // Left/right: grow wider
-            this._dockPill.width = baseThickness + extraPx;
-        } else {
-            // Bottom: grow taller (upward, since pill is y_align=END)
-            this._dockPill.height = baseThickness + extraPx;
-        }
-    }
-
-    /**
-     * Animate the dock pill back to its default (resting) dimensions.
-     */
-    _resetDockPillGrowth() {
-        if (this._isBarMode)
-            return;
-
-        const pos = this._position || 'bottom';
-        const isVertical = pos === 'left' || pos === 'right';
-
-        // Animate back to natural size (-1 = natural)
-        if (isVertical) {
-            this._dockPill.ease({
-                width: this._dockHeight || DOCK_HEIGHT,
-                duration: 220,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                onComplete: () => {
-                    if (!this._isBarMode)
-                        this._dockPill.width = -1;
-                },
-            });
-        } else {
-            this._dockPill.ease({
-                height: this._dockHeight || DOCK_HEIGHT,
-                duration: 220,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                onComplete: () => {
-                    if (!this._isBarMode)
-                        this._dockPill.height = -1;
-                },
-            });
-        }
-    }
-
-    _queueRedisplay() {
-        if (this._workId)
-            Main.queueDeferredWork(this._workId);
-        else
-            this._redisplay();
-    }
-
-    bindAppLauncher(appLauncher) {
-        this._appLauncher = appLauncher;
-        this._syncAccentColor();
-
-        appLauncher.connectObject(
-            'opened', () => {
-                this._showAppsButton.add_style_pseudo_class('checked');
-                if (Main.uiGroup.contains(this))
-                    Main.uiGroup.set_child_above_sibling(this, appLauncher);
-                if (this._autohide)
-                    this._showDock();
-            },
-            'closed', () => {
-                this._showAppsButton.remove_style_pseudo_class('checked');
-                if (this._autohide && !this.hover && !this._dockPill.hover)
+                    this._resetWaveMagnification();
                     this._onLeave();
-            },
-            this
-        );
-    }
+                }
+            });
 
-    _onMenuStateChanged(opened) {
-        if (opened) {
-            this._openMenusCount++;
+            this.connect('notify::hover', () => {
+                if (this.hover)
+                    this._onEnter();
+                else
+                    this._onLeave();
+            });
+
+            // Leading spacer for bar mode (centers icons when dock spans full screen)
+            this._leadingSpacer = new Clutter.Actor({ visible: false });
+            this._dockPill.add_child(this._leadingSpacer);
+
+            // Show Apps Button (placed on the left)
+            this._showAppsButton = new ShowAppsButton(this, this._iconSize);
+            this._dockPill.add_child(this._showAppsButton);
+
+            // Icons box (favorites and running apps)
+            this._iconsBox = new St.BoxLayout({
+                style_class: 'arrera-dock-icons',
+                y_align: Clutter.ActorAlign.CENTER,
+                reactive: true,
+            });
+            this._iconsBox._delegate = this;
+            this._dockPill.add_child(this._iconsBox);
+
+            // Trailing spacer for bar mode (centers icons when dock spans full screen)
+            this._trailingSpacer = new Clutter.Actor({ visible: false });
+            this._dockPill.add_child(this._trailingSpacer);
+
+            // Deferred work to coalesce redisplay updates
+            this._workId = Main.initializeDeferredWork(
+                this._iconsBox,
+                () => this._redisplay()
+            );
+
+            // Setup signal listeners
+            this._appFavorites = AppFavorites.getAppFavorites();
+            this._appFavorites.connectObject('changed', () => this._queueRedisplay(), this);
+
+            this._appSystem = Shell.AppSystem.get_default();
+            this._appSystem.connectObject(
+                'installed-changed', () => this._queueRedisplay(),
+                'app-state-changed', () => this._queueRedisplay(),
+                this
+            );
+
+            global.window_manager.connectObject(
+                'size-change', () => this._updateBarMode(),
+                'minimize', () => this._updateBarMode(),
+                'unminimize', () => this._updateBarMode(),
+                'destroy', () => this._updateBarMode(),
+                this
+            );
+
+            global.display.connectObject(
+                'notify::focus-window', () => {
+                    this._updateActiveWindow();
+                    this._updateBarMode();
+                },
+                'window-created', (_d, win) => this._onWindowCreated(win),
+                'restacked', () => this._updateBarMode(),
+                this
+            );
+
+            global.workspace_manager.connectObject(
+                'active-workspace-changed', () => this._onWorkspaceChanged(),
+                this
+            );
+
+            // Synchronize with GNOME accent color settings (Material 3 Expressive)
+            this._interfaceSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.interface' });
+            this._interfaceSettings.connectObject('changed::accent-color', () => this._syncAccentColor(), this);
+            this._syncAccentColor();
+
+            // Connect GSettings for Dock customization
+            if (this._settings) {
+                this._settings.connectObject(
+                    'changed::autohide', () => this._syncAutohide(),
+                    'changed::extend-on-maximize', () => this._syncExtendOnMaximize(),
+                    'changed::enable-wave-effect', () => this._syncWaveEffect(),
+                    'changed::icon-size', () => this._syncIconSize(true),
+                    'changed::theme-mode', () => this._syncThemeMode(),
+                    'changed::position', () => this._syncPosition(),
+                    this
+                );
+            }
+
+            Main.panel.connectObject?.(
+                'notify::height', () => this.updatePosition(),
+                'notify::visible', () => this.updatePosition(),
+                this
+            );
+
+            // Initial synchronization of settings
+            this._syncIconSize(false);
+            this._syncPosition();
+            this._syncWaveEffect();
+            this._syncThemeMode();
+            this._syncExtendOnMaximize();
+            this._syncAutohide();
+            this._trackWorkspaceWindows();
+            this._updateBarMode();
+
+            this._hasConnectedAdjustment = false;
+            this._bindOverview();
+
+            this._redisplay();
+        }
+
+        _bindOverview() {
+            Main.overview.connectObject(
+                'showing', () => this._syncWithOverview(),
+                'hiding', () => this._syncWithOverview(),
+                'hidden', () => this._onOverviewHidden(),
+                this
+            );
+
+            this._connectStateAdjustment();
+            this._syncWithOverview();
+        }
+
+        _connectStateAdjustment() {
+            if (this._hasConnectedAdjustment)
+                return;
+
+            const controls = Main.overview._overview?._controls;
+            if (controls?._stateAdjustment) {
+                controls._stateAdjustment.connectObject(
+                    'notify::value', () => this._syncWithOverview(),
+                    this
+                );
+                this._hasConnectedAdjustment = true;
+            }
+        }
+
+        _onOverviewHidden() {
+            this.show();
+            this._dockPill.remove_all_transitions();
+            this._dockPill.opacity = 255;
+            this._dockPill.translation_x = 0;
+            this._dockPill.translation_y = 0;
+            this._dockPill.reactive = true;
             this._resetWaveMagnification();
-            if (this._autohide)
-                this._showDock();
-        } else {
-            this._openMenusCount = Math.max(0, this._openMenusCount - 1);
+            this._updateBarMode();
+
             if (this._autohide && !this.hover && !this._dockPill.hover)
                 this._onLeave();
         }
-    }
 
-    _onEnter() {
-        if (!this._autohide)
-            return;
+        _syncWithOverview() {
+            this._connectStateAdjustment();
 
-        if (this._autohideTimeoutId) {
-            GLib.source_remove(this._autohideTimeoutId);
-            this._autohideTimeoutId = 0;
-        }
-
-        this._showDock();
-    }
-
-    _onLeave() {
-        if (!this._autohide)
-            return;
-
-        if (Main.overview.visible || this._appLauncher?.isOpen || this._openMenusCount > 0)
-            return;
-
-        if (this._autohideTimeoutId)
-            GLib.source_remove(this._autohideTimeoutId);
-
-        this._autohideTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 350, () => {
-            this._autohideTimeoutId = 0;
-            if (!this.hover && !this._dockPill.hover && !this._openMenusCount && !this._appLauncher?.isOpen && !Main.overview.visible) {
-                this._hideDock();
+            if (!Main.overview.visible) {
+                this._onOverviewHidden();
+                return;
             }
-            return GLib.SOURCE_REMOVE;
-        });
-    }
 
-    _showDock() {
-        this._isDockHidden = false;
-        this.updatePosition();
+            const controls = Main.overview._overview?._controls;
+            const stateAdjustment = controls?._stateAdjustment;
+            if (!stateAdjustment) {
+                this._hideTooltips();
+                this.hide();
+                return;
+            }
 
-        this._dockPill.remove_all_transitions();
-        this._dockPill.ease({
-            translation_x: 0,
-            translation_y: 0,
-            opacity: 255,
-            duration: 220,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-        });
-    }
+            const val = stateAdjustment.value;
+            const { initialState, finalState } = stateAdjustment.getStateTransitionParams();
 
-    _hideDock() {
-        this._isDockHidden = true;
-        this._resetWaveMagnification();
-        this._hideTooltips();
+            let factor;
+            // Direct transition between Desktop (0) and App Grid (2): keep fully visible without flickering
+            if ((initialState === OverviewControls.ControlsState.HIDDEN && finalState === OverviewControls.ControlsState.APP_GRID) ||
+                (initialState === OverviewControls.ControlsState.APP_GRID && finalState === OverviewControls.ControlsState.HIDDEN)) {
+                factor = 1.0;
+            } else if (val <= 1.0) {
+                // Between Desktop (0) and Activities/Window Picker (1): fade out towards Activities
+                factor = Math.max(0, Math.min(1, 1.0 - val));
+            } else {
+                // Between Activities/Window Picker (1) and App Grid (2): fade in towards App Grid
+                factor = Math.max(0, Math.min(1, val - 1.0));
+            }
 
-        const thickness = this.getPreferredThickness();
-        const pos = this._position || 'bottom';
-
-        let targetX = 0;
-        let targetY = 0;
-        if (pos === 'left') {
-            targetX = -(thickness + 10);
-        } else if (pos === 'right') {
-            targetX = thickness + 10;
-        } else {
-            targetY = thickness + 10;
+            const pos = this._position || 'bottom';
+            if (factor <= 0.01) {
+                this._hideTooltips();
+                this._dockPill.opacity = 0;
+                if (pos === 'left') {
+                    this._dockPill.translation_x = -30;
+                    this._dockPill.translation_y = 0;
+                } else if (pos === 'right') {
+                    this._dockPill.translation_x = 30;
+                    this._dockPill.translation_y = 0;
+                } else {
+                    this._dockPill.translation_y = 30;
+                    this._dockPill.translation_x = 0;
+                }
+                this._dockPill.reactive = false;
+                this.hide();
+            } else {
+                this.show();
+                this._dockPill.opacity = Math.round(255 * factor);
+                const offset = Math.round((1.0 - factor) * 30);
+                if (pos === 'left') {
+                    this._dockPill.translation_x = -offset;
+                    this._dockPill.translation_y = 0;
+                } else if (pos === 'right') {
+                    this._dockPill.translation_x = offset;
+                    this._dockPill.translation_y = 0;
+                } else {
+                    this._dockPill.translation_y = offset;
+                    this._dockPill.translation_x = 0;
+                }
+                this._dockPill.reactive = factor >= 0.8;
+            }
         }
 
-        this._dockPill.remove_all_transitions();
-        this._dockPill.ease({
-            translation_x: targetX,
-            translation_y: targetY,
-            opacity: 0,
-            duration: 250,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => {
-                if (this._isDockHidden && this._autohide) {
-                    this.updatePosition();
+        _hideTooltips() {
+            for (const icon of this._appIcons.values()) {
+                icon._hideTooltip?.();
+            }
+            this._showAppsButton?._hideTooltip?.();
+        }
+
+        _getAllDockItems() {
+            const items = [];
+            if (this._showAppsButton)
+                items.push(this._showAppsButton);
+            for (const child of this._iconsBox.get_children()) {
+                if (child instanceof DockAppIcon)
+                    items.push(child);
+            }
+            return items;
+        }
+
+        _applyWaveMagnification(stageX, stageY) {
+            if (!this._enableWaveEffect)
+                return;
+
+            const items = this._getAllDockItems();
+            if (items.length === 0)
+                return;
+
+            const maxScale = this._waveMaxScale || WAVE_MAX_SCALE;
+            const radius = this._waveRadius || WAVE_RADIUS;
+            const maxShift = this._waveMaxShift || WAVE_MAX_SHIFT;
+            const pos = this._position || 'bottom';
+            const isVertical = pos === 'left' || pos === 'right';
+
+            let peakScale = 1.0;
+
+            for (const item of items) {
+                item.remove_all_transitions();
+
+                if (isVertical) {
+                    const [, itemY] = item.get_transformed_position();
+                    const [, itemH] = item.get_transformed_size();
+                    const itemBaseHeight = item.height || itemH;
+                    const itemCenterY = itemY + itemBaseHeight / 2 - (item.translation_y || 0);
+
+                    const dy = Math.abs(stageY - itemCenterY);
+
+                    if (dy < radius) {
+                        const factor = 0.5 * (1 + Math.cos((Math.PI * dy) / radius));
+                        const scale = 1.0 + (maxScale - 1.0) * factor;
+                        if (scale > peakScale) peakScale = scale;
+
+                        const direction = itemCenterY >= stageY ? 1 : -1;
+                        const shiftFactor = Math.sin((Math.PI * dy) / radius);
+                        const shiftY = direction * maxShift * shiftFactor;
+
+                        if (pos === 'left')
+                            item.set_pivot_point(0.0, 0.5);
+                        else
+                            item.set_pivot_point(1.0, 0.5);
+
+                        item.set_scale(scale, scale);
+                        item.translation_y = Math.round(shiftY);
+                        item.translation_x = 0;
+                    } else {
+                        item.set_scale(1.0, 1.0);
+                        item.translation_y = 0;
+                        item.translation_x = 0;
+                    }
+                } else {
+                    const [itemX] = item.get_transformed_position();
+                    const [itemW] = item.get_transformed_size();
+                    const itemBaseWidth = item.width || itemW;
+                    const itemCenterX = itemX + itemBaseWidth / 2 - (item.translation_x || 0);
+
+                    const dx = Math.abs(stageX - itemCenterX);
+
+                    if (dx < radius) {
+                        const factor = 0.5 * (1 + Math.cos((Math.PI * dx) / radius));
+                        const scale = 1.0 + (maxScale - 1.0) * factor;
+                        if (scale > peakScale) peakScale = scale;
+
+                        const direction = itemCenterX >= stageX ? 1 : -1;
+                        const shiftFactor = Math.sin((Math.PI * dx) / radius);
+                        const shiftX = direction * maxShift * shiftFactor;
+
+                        item.set_pivot_point(0.5, 1.0);
+                        item.set_scale(scale, scale);
+                        item.translation_x = Math.round(shiftX);
+                        item.translation_y = 0;
+                    } else {
+                        item.set_scale(1.0, 1.0);
+                        item.translation_x = 0;
+                        item.translation_y = 0;
+                    }
                 }
-            },
-        });
-    }
 
-    _syncAutohide() {
-        this._autohide = this._settings?.get_boolean('autohide') ?? false;
-        this.reactive = this._autohide;
-        this.track_hover = this._autohide;
+                item.updateTooltipPosition?.();
+            }
 
-        this._extension?.updateChromeStruts?.(!this._autohide);
+            // macOS-style: grow the dock pill to envelop magnified icons
+            this._applyDockPillGrowth(peakScale, isVertical, pos);
+        }
 
-        if (!this._autohide) {
+        _resetWaveMagnification() {
+            const items = this._getAllDockItems();
+            for (const item of items) {
+                item.ease({
+                    scale_x: 1.0,
+                    scale_y: 1.0,
+                    translation_x: 0,
+                    translation_y: 0,
+                    duration: 220,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                });
+                item.updateTooltipPosition?.();
+            }
+
+            // Animate dock pill back to its resting size
+            this._resetDockPillGrowth();
+        }
+
+        /**
+         * Dynamically grow the dock pill to match the tallest magnified icon,
+         * keeping the dock anchored to its screen edge (like macOS).
+         * Uses direct height/width changes instead of scale to avoid distorting children.
+         */
+        _applyDockPillGrowth(peakScale, isVertical, pos) {
+            if (this._isBarMode)
+                return;
+
+            // How much extra thickness the pill needs (proportional to icon growth, dampened)
+            const extraPx = Math.round(this._iconSize * (peakScale - 1.0) * 0.5);
+
+            if (extraPx <= 0) {
+                // No growth needed, reset to natural size
+                if (isVertical)
+                    this._dockPill.width = -1;
+                else
+                    this._dockPill.height = -1;
+                return;
+            }
+
+            const baseThickness = this._dockHeight || DOCK_HEIGHT;
+
+            if (isVertical) {
+                // Left/right: grow wider
+                this._dockPill.width = baseThickness + extraPx;
+            } else {
+                // Bottom: grow taller (upward, since pill is y_align=END)
+                this._dockPill.height = baseThickness + extraPx;
+            }
+        }
+
+        /**
+         * Animate the dock pill back to its default (resting) dimensions.
+         */
+        _resetDockPillGrowth() {
+            if (this._isBarMode)
+                return;
+
+            const pos = this._position || 'bottom';
+            const isVertical = pos === 'left' || pos === 'right';
+
+            // Animate back to natural size (-1 = natural)
+            if (isVertical) {
+                this._dockPill.ease({
+                    width: this._dockHeight || DOCK_HEIGHT,
+                    duration: 220,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    onComplete: () => {
+                        if (!this._isBarMode)
+                            this._dockPill.width = -1;
+                    },
+                });
+            } else {
+                this._dockPill.ease({
+                    height: this._dockHeight || DOCK_HEIGHT,
+                    duration: 220,
+                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                    onComplete: () => {
+                        if (!this._isBarMode)
+                            this._dockPill.height = -1;
+                    },
+                });
+            }
+        }
+
+        _queueRedisplay() {
+            if (this._workId)
+                Main.queueDeferredWork(this._workId);
+            else
+                this._redisplay();
+        }
+
+        bindAppLauncher(appLauncher) {
+            this._appLauncher = appLauncher;
+            this._syncAccentColor();
+
+            appLauncher.connectObject(
+                'opened', () => {
+                    this._showAppsButton.add_style_pseudo_class('checked');
+                    if (Main.uiGroup.contains(this))
+                        Main.uiGroup.set_child_above_sibling(this, appLauncher);
+                    if (this._autohide)
+                        this._showDock();
+                },
+                'closed', () => {
+                    this._showAppsButton.remove_style_pseudo_class('checked');
+                    if (this._autohide && !this.hover && !this._dockPill.hover)
+                        this._onLeave();
+                },
+                this
+            );
+        }
+
+        _onMenuStateChanged(opened) {
+            if (opened) {
+                this._openMenusCount++;
+                this._resetWaveMagnification();
+                if (this._autohide)
+                    this._showDock();
+            } else {
+                this._openMenusCount = Math.max(0, this._openMenusCount - 1);
+                if (this._autohide && !this.hover && !this._dockPill.hover)
+                    this._onLeave();
+            }
+        }
+
+        _onEnter() {
+            if (!this._autohide)
+                return;
+
             if (this._autohideTimeoutId) {
                 GLib.source_remove(this._autohideTimeoutId);
                 this._autohideTimeoutId = 0;
             }
+
             this._showDock();
-        } else {
-            if (!this.hover && !this._dockPill.hover && !Main.overview.visible)
-                this._hideDock();
         }
 
-        this._updateBarMode();
-    }
+        _onLeave() {
+            if (!this._autohide)
+                return;
 
-    _syncWaveEffect() {
-        this._enableWaveEffect = this._settings?.get_boolean('enable-wave-effect') ?? true;
-        if (!this._enableWaveEffect)
+            if (Main.overview.visible || this._appLauncher?.isOpen || this._openMenusCount > 0)
+                return;
+
+            if (this._autohideTimeoutId)
+                GLib.source_remove(this._autohideTimeoutId);
+
+            this._autohideTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 350, () => {
+                this._autohideTimeoutId = 0;
+                if (!this.hover && !this._dockPill.hover && !this._openMenusCount && !this._appLauncher?.isOpen && !Main.overview.visible) {
+                    this._hideDock();
+                }
+                return GLib.SOURCE_REMOVE;
+            });
+        }
+
+        _showDock() {
+            this._isDockHidden = false;
+            this.updatePosition();
+
+            this._dockPill.remove_all_transitions();
+            this._dockPill.ease({
+                translation_x: 0,
+                translation_y: 0,
+                opacity: 255,
+                duration: 220,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        }
+
+        _hideDock() {
+            this._isDockHidden = true;
             this._resetWaveMagnification();
-    }
+            this._hideTooltips();
 
-    _syncIconSize(redisplay = true) {
-        const sizeName = this._settings?.get_string('icon-size') || 'medium';
-        const config = SIZES[sizeName] || SIZES.medium;
+            const thickness = this.getPreferredThickness();
+            const pos = this._position || 'bottom';
 
-        this._sizeName = sizeName;
-        this._iconSize = config.iconSize;
-        this._dockHeight = config.dockHeight;
-        this._waveMaxScale = config.waveMaxScale;
-        this._waveRadius = config.waveRadius;
-        this._waveMaxShift = config.waveMaxShift;
-
-        for (const s of ['small', 'medium', 'large']) {
-            this.remove_style_class_name(`size-${s}`);
-            this._dockPill?.remove_style_class_name(`size-${s}`);
-        }
-        this.add_style_class_name(`size-${sizeName}`);
-        this._dockPill?.add_style_class_name(`size-${sizeName}`);
-
-        for (const icon of this._appIcons.values()) {
-            icon.setIconSize(this._iconSize);
-        }
-        this._showAppsButton?.setIconSize(this._iconSize);
-
-        this.updatePosition();
-        this._extension?._updateDockPosition?.();
-
-        const controls = Main.overview._overview?._controls;
-        controls?.queue_relayout();
-
-        if (redisplay)
-            this._redisplay();
-    }
-
-    _syncPosition() {
-        const position = this._settings?.get_string('position') || 'bottom';
-        const validPositions = ['bottom', 'left', 'right'];
-        this._position = validPositions.includes(position) ? position : 'bottom';
-
-        for (const p of validPositions) {
-            this.remove_style_class_name(`position-${p}`);
-            this._dockPill?.remove_style_class_name(`position-${p}`);
-        }
-        this.add_style_class_name(`position-${this._position}`);
-        this._dockPill?.add_style_class_name(`position-${this._position}`);
-
-        const isVertical = this._position === 'left' || this._position === 'right';
-
-        this._dockPill.vertical = isVertical;
-        this._iconsBox.vertical = isVertical;
-
-        if (this._position === 'bottom') {
-            this._dockPill.x_align = Clutter.ActorAlign.CENTER;
-            this._dockPill.y_align = Clutter.ActorAlign.END;
-        } else if (this._position === 'left') {
-            this._dockPill.x_align = Clutter.ActorAlign.START;
-            this._dockPill.y_align = Clutter.ActorAlign.CENTER;
-        } else if (this._position === 'right') {
-            this._dockPill.x_align = Clutter.ActorAlign.END;
-            this._dockPill.y_align = Clutter.ActorAlign.CENTER;
-        }
-
-        for (const icon of this._appIcons.values()) {
-            icon.updatePositionStyle?.(this._position);
-        }
-        this._showAppsButton?.updatePositionStyle?.(this._position);
-
-        this.updatePosition();
-        this._applyBarMode();
-        this._extension?.updateChromeStruts?.(!this._autohide);
-    }
-
-    _syncThemeMode() {
-        const mode = this._settings?.get_string('theme-mode') || 'expressive';
-        this.remove_style_class_name('theme-expressive');
-        this.remove_style_class_name('theme-black-outline');
-        this._dockPill?.remove_style_class_name('theme-expressive');
-        this._dockPill?.remove_style_class_name('theme-black-outline');
-
-        this.add_style_class_name(`theme-${mode}`);
-        this._dockPill?.add_style_class_name(`theme-${mode}`);
-    }
-
-    _syncAccentColor() {
-        const colorName = this._interfaceSettings?.get_string('accent-color') || 'blue';
-        const allColors = ['blue', 'teal', 'green', 'yellow', 'orange', 'red', 'pink', 'purple', 'slate'];
-
-        for (const c of allColors) {
-            this.remove_style_class_name(`accent-${c}`);
-            this._dockPill?.remove_style_class_name(`accent-${c}`);
-            if (this._appLauncher)
-                this._appLauncher.remove_style_class_name(`accent-${c}`);
-        }
-
-        this.add_style_class_name(`accent-${colorName}`);
-        this._dockPill?.add_style_class_name(`accent-${colorName}`);
-        if (this._appLauncher)
-            this._appLauncher.add_style_class_name(`accent-${colorName}`);
-    }
-
-    toggleAppLauncher() {
-        this._extension?.toggleAppLauncher?.();
-    }
-
-    getPreferredThickness() {
-        return this._dockHeight || DOCK_HEIGHT;
-    }
-
-    getPreferredHeight() {
-        return this.getPreferredThickness();
-    }
-
-    updatePosition() {
-        const monitor = Main.layoutManager.primaryMonitor;
-        if (!monitor)
-            return;
-
-        const thickness = this.getPreferredThickness();
-        const pos = this._position || 'bottom';
-
-        // Pre-allocate extra room for the wave magnification effect
-        // so the dock pill has space to grow into without clipping
-        const waveRoom = this._enableWaveEffect
-            ? Math.round(this._iconSize * ((this._waveMaxScale || WAVE_MAX_SCALE) - 1.0) * 0.5)
-            : 0;
-
-        if (pos === 'left') {
-            if (this._autohide && this._isDockHidden) {
-                this.set_position(monitor.x, monitor.y);
-                this.set_size(4, monitor.height);
+            let targetX = 0;
+            let targetY = 0;
+            if (pos === 'left') {
+                targetX = -(thickness + 10);
+            } else if (pos === 'right') {
+                targetX = thickness + 10;
             } else {
-                this.set_position(monitor.x, monitor.y);
-                this.set_size(thickness + waveRoom, monitor.height);
+                targetY = thickness + 10;
             }
-        } else if (pos === 'right') {
-            if (this._autohide && this._isDockHidden) {
-                this.set_position(monitor.x + monitor.width - 4, monitor.y);
-                this.set_size(4, monitor.height);
-            } else {
-                this.set_position(monitor.x + monitor.width - thickness - waveRoom, monitor.y);
-                this.set_size(thickness + waveRoom, monitor.height);
-            }
-        } else {
-            // Default: bottom
-            if (this._autohide && this._isDockHidden) {
-                this.set_position(monitor.x, monitor.y + monitor.height - 4);
-                this.set_size(monitor.width, 4);
-            } else {
-                this.set_position(monitor.x, monitor.y + monitor.height - thickness - waveRoom);
-                this.set_size(monitor.width, thickness + waveRoom);
-            }
-        }
-    }
 
-    _redisplay() {
-        const favorites = this._appFavorites.getFavorites();
-        const running = this._appSystem.get_running();
-
-        const favoriteIds = new Set(favorites.map(app => app.get_id()));
-        const nonFavoriteRunning = running.filter(app => !favoriteIds.has(app.get_id()));
-
-        // The complete set of apps that should currently be in the dock
-        const targetApps = [...favorites, ...nonFavoriteRunning];
-        const targetIds = new Set(targetApps.map(app => app.get_id()));
-
-        // 1. Destroy and delete icons that are no longer favorites and no longer running
-        for (const [id, icon] of this._appIcons.entries()) {
-            if (!targetIds.has(id)) {
-                if (icon.get_parent() === this._iconsBox)
-                    this._iconsBox.remove_child(icon);
-                icon.destroy();
-                this._appIcons.delete(id);
-            }
+            this._dockPill.remove_all_transitions();
+            this._dockPill.ease({
+                translation_x: targetX,
+                translation_y: targetY,
+                opacity: 0,
+                duration: 250,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => {
+                    if (this._isDockHidden && this._autohide) {
+                        this.updatePosition();
+                    }
+                },
+            });
         }
 
-        // 2. Remove all remaining children from _iconsBox WITHOUT destroying them
-        this._iconsBox.remove_all_children();
+        _syncAutohide() {
+            this._autohide = this._settings?.get_boolean('autohide') ?? false;
+            this.reactive = this._autohide;
+            this.track_hover = this._autohide;
 
-        // 3. Add favorite icons in order
-        for (const app of favorites) {
-            const id = app.get_id();
-            let icon = this._appIcons.get(id);
-            if (!icon) {
-                icon = new DockAppIcon(app, this._iconSize, this);
-                this._appIcons.set(id, icon);
+            this._extension?.updateChromeStruts?.(!this._autohide);
+
+            if (!this._autohide) {
+                if (this._autohideTimeoutId) {
+                    GLib.source_remove(this._autohideTimeoutId);
+                    this._autohideTimeoutId = 0;
+                }
+                this._showDock();
             } else {
+                if (!this.hover && !this._dockPill.hover && !Main.overview.visible)
+                    this._hideDock();
+            }
+
+            this._updateBarMode();
+        }
+
+        _syncWaveEffect() {
+            this._enableWaveEffect = this._settings?.get_boolean('enable-wave-effect') ?? true;
+            if (!this._enableWaveEffect)
+                this._resetWaveMagnification();
+        }
+
+        _syncIconSize(redisplay = true) {
+            const sizeName = this._settings?.get_string('icon-size') || 'medium';
+            const config = SIZES[sizeName] || SIZES.medium;
+
+            this._sizeName = sizeName;
+            this._iconSize = config.iconSize;
+            this._dockHeight = config.dockHeight;
+            this._waveMaxScale = config.waveMaxScale;
+            this._waveRadius = config.waveRadius;
+            this._waveMaxShift = config.waveMaxShift;
+
+            for (const s of ['small', 'medium', 'large']) {
+                this.remove_style_class_name(`size-${s}`);
+                this._dockPill?.remove_style_class_name(`size-${s}`);
+            }
+            this.add_style_class_name(`size-${sizeName}`);
+            this._dockPill?.add_style_class_name(`size-${sizeName}`);
+
+            for (const icon of this._appIcons.values()) {
                 icon.setIconSize(this._iconSize);
             }
-            this._iconsBox.add_child(icon);
+            this._showAppsButton?.setIconSize(this._iconSize);
+
+            this.updatePosition();
+            this._extension?._updateDockPosition?.();
+
+            const controls = Main.overview._overview?._controls;
+            controls?.queue_relayout();
+
+            if (redisplay)
+                this._redisplay();
         }
 
-        // 4. Separator if both favorites and running non-favorites exist
-        if (favorites.length > 0 && nonFavoriteRunning.length > 0) {
-            if (!this._separator) {
-                this._separator = new St.Widget({
-                    style_class: 'dock-separator',
-                });
+        _syncPosition() {
+            const position = this._settings?.get_string('position') || 'bottom';
+            const validPositions = ['bottom', 'left', 'right'];
+            this._position = validPositions.includes(position) ? position : 'bottom';
+
+            for (const p of validPositions) {
+                this.remove_style_class_name(`position-${p}`);
+                this._dockPill?.remove_style_class_name(`position-${p}`);
             }
-            if (this._position === 'left' || this._position === 'right') {
-                this._separator.x_align = Clutter.ActorAlign.CENTER;
-                this._separator.y_align = Clutter.ActorAlign.FILL;
-            } else {
-                this._separator.y_align = Clutter.ActorAlign.CENTER;
-                this._separator.x_align = Clutter.ActorAlign.FILL;
-            }
-            this._iconsBox.add_child(this._separator);
-        }
+            this.add_style_class_name(`position-${this._position}`);
+            this._dockPill?.add_style_class_name(`position-${this._position}`);
 
-        // 5. Add running non-favorite apps in order
-        for (const app of nonFavoriteRunning) {
-            const id = app.get_id();
-            let icon = this._appIcons.get(id);
-            if (!icon) {
-                icon = new DockAppIcon(app, this._iconSize, this);
-                this._appIcons.set(id, icon);
-            } else {
-                icon.setIconSize(this._iconSize);
-            }
-            icon.updatePositionStyle?.(this._position || 'bottom');
-            this._iconsBox.add_child(icon);
-        }
+            const isVertical = this._position === 'left' || this._position === 'right';
 
-        this._updateActiveWindow();
-    }
-
-    _updateActiveWindow() {
-        const focusWindow = global.display.focus_window;
-        for (const icon of this._appIcons.values()) {
-            icon.updateActiveState(focusWindow);
-        }
-    }
-
-    _syncExtendOnMaximize() {
-        this._extendOnMaximize = this._settings?.get_boolean('extend-on-maximize') ?? true;
-        this._updateBarMode();
-    }
-
-    _onWorkspaceChanged() {
-        this._trackWorkspaceWindows();
-        this._updateActiveWindow();
-        this._updateBarMode();
-    }
-
-    _onWindowCreated(win) {
-        this._trackWindow(win);
-        this._updateBarMode();
-    }
-
-    _trackWorkspaceWindows() {
-        if (this._trackedWindows) {
-            for (const win of this._trackedWindows) {
-                win.disconnectObject?.(this);
-            }
-            this._trackedWindows.clear();
-        } else {
-            this._trackedWindows = new Set();
-        }
-
-        const ws = global.workspace_manager.get_active_workspace();
-        if (!ws)
-            return;
-
-        const windows = ws.list_windows();
-        for (const win of windows) {
-            this._trackWindow(win);
-        }
-    }
-
-    _trackWindow(win) {
-        if (!win || this._trackedWindows?.has(win))
-            return;
-
-        this._trackedWindows.add(win);
-        win.connectObject(
-            'notify::maximized-horizontally', () => this._updateBarMode(),
-            'notify::maximized-vertically', () => this._updateBarMode(),
-            'notify::fullscreen', () => this._updateBarMode(),
-            'notify::minimized', () => this._updateBarMode(),
-            'unmanaged', () => {
-                this._trackedWindows?.delete(win);
-                this._updateBarMode();
-            },
-            this
-        );
-    }
-
-    _hasMaximizedOrFullscreenWindow() {
-        const primaryMonitorIndex = Main.layoutManager.primaryIndex;
-        const ws = global.workspace_manager.get_active_workspace();
-        if (!ws)
-            return false;
-
-        const windows = ws.list_windows();
-        for (const win of windows) {
-            // Uniquement les fenêtres sur l'écran principal où se trouve le dock
-            if (win.get_monitor() !== primaryMonitorIndex)
-                continue;
-
-            // Ignorer les fenêtres minimisées ou masquées
-            if (win.minimized || win.is_hidden())
-                continue;
-
-            // Ignorer les fenêtres non-normales (dialogues, popups, splash, etc.)
-            const winType = win.get_window_type();
-            if (winType !== Meta.WindowType.NORMAL)
-                continue;
-
-            // Fenêtre en plein écran (F11 / vidéo / jeu)
-            if (win.is_fullscreen())
-                return true;
-
-            // Fenêtre qui prend tout l'écran (maximisée horizontalement ET verticalement)
-            const isFullyMaximized = (win.maximized_horizontally && win.maximized_vertically) ||
-                (typeof win.get_maximize_flags === 'function' &&
-                 (win.get_maximize_flags() & Meta.MaximizeFlags.BOTH) === Meta.MaximizeFlags.BOTH);
-
-            if (isFullyMaximized)
-                return true;
-        }
-
-        return false;
-    }
-
-    _updateBarMode() {
-        const shouldBeBar = !this._autohide && this._extendOnMaximize && this._hasMaximizedOrFullscreenWindow();
-        if (this._isBarMode === shouldBeBar)
-            return;
-
-        this._isBarMode = shouldBeBar;
-        this._applyBarMode();
-    }
-
-    _applyBarMode() {
-        const monitor = Main.layoutManager.primaryMonitor;
-        const thickness = this.getPreferredThickness();
-        const isVertical = this._position === 'left' || this._position === 'right';
-
-        if (this._isBarMode && monitor) {
-            this.add_style_class_name('mode-bar');
-            this._dockPill.add_style_class_name('mode-bar');
-
-            if (this._position === 'bottom') {
-                this._dockPill.width = monitor.width;
-                this._dockPill.height = thickness;
-                this._dockPill.x_align = Clutter.ActorAlign.FILL;
-                this._dockPill.y_align = Clutter.ActorAlign.FILL;
-                this._dockPill.set_style('border-radius: 0px !important; border-bottom: none !important; border-left: none !important; border-right: none !important; margin: 0px !important; padding-left: 0px !important; padding-right: 0px !important;');
-            } else if (this._position === 'left') {
-                this._dockPill.width = thickness;
-                this._dockPill.height = monitor.height;
-                this._dockPill.x_align = Clutter.ActorAlign.FILL;
-                this._dockPill.y_align = Clutter.ActorAlign.FILL;
-                this._dockPill.set_style('border-radius: 0px !important; border-left: none !important; border-top: none !important; border-bottom: none !important; margin: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important;');
-            } else if (this._position === 'right') {
-                this._dockPill.width = thickness;
-                this._dockPill.height = monitor.height;
-                this._dockPill.x_align = Clutter.ActorAlign.FILL;
-                this._dockPill.y_align = Clutter.ActorAlign.FILL;
-                this._dockPill.set_style('border-radius: 0px !important; border-right: none !important; border-top: none !important; border-bottom: none !important; margin: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important;');
-            }
-
-            this._leadingSpacer.visible = true;
-            this._leadingSpacer.x_expand = !isVertical;
-            this._leadingSpacer.y_expand = isVertical;
-
-            this._trailingSpacer.visible = true;
-            this._trailingSpacer.x_expand = !isVertical;
-            this._trailingSpacer.y_expand = isVertical;
-        } else {
-            this.remove_style_class_name('mode-bar');
-            this._dockPill.remove_style_class_name('mode-bar');
-
-            this._dockPill.set_style(null);
-            this._dockPill.width = -1;
-            this._dockPill.height = -1;
-
-            this._leadingSpacer.visible = false;
-            this._leadingSpacer.x_expand = false;
-            this._leadingSpacer.y_expand = false;
-
-            this._trailingSpacer.visible = false;
-            this._trailingSpacer.x_expand = false;
-            this._trailingSpacer.y_expand = false;
+            this._dockPill.vertical = isVertical;
+            this._iconsBox.vertical = isVertical;
 
             if (this._position === 'bottom') {
                 this._dockPill.x_align = Clutter.ActorAlign.CENTER;
@@ -1569,94 +1298,432 @@ class ArreraDock extends St.Widget {
                 this._dockPill.x_align = Clutter.ActorAlign.END;
                 this._dockPill.y_align = Clutter.ActorAlign.CENTER;
             }
-        }
-    }
 
-    // Drag-and-drop support: reorder favorites inside Arrera Dock
-    handleDragOver(source, _actor, x, y, _step) {
-        const app = source.app;
-        if (!app)
-            return DND.DragMotionResult.NO_DROP;
-
-        return DND.DragMotionResult.MOVE_DROP;
-    }
-
-    acceptDrop(source, _actor, x, y, _time) {
-        const app = source.app;
-        if (!app)
-            return false;
-
-        const id = app.get_id();
-        const favorites = this._appFavorites.getFavorites();
-
-        const isVertical = this._position === 'left' || this._position === 'right';
-        const coord = isVertical ? y : x;
-        const totalSize = isVertical ? this._iconsBox.height : this._iconsBox.width;
-
-        let pos = Math.min(
-            Math.floor((coord / Math.max(1, totalSize)) * favorites.length),
-            favorites.length
-        );
-
-        if (this._appFavorites.isFavorite(id))
-            this._appFavorites.moveFavoriteToPos(id, pos);
-        else
-            this._appFavorites.addFavoriteAtPos(id, pos);
-
-        return true;
-    }
-
-    destroy() {
-        if (this._autohideTimeoutId) {
-            GLib.source_remove(this._autohideTimeoutId);
-            this._autohideTimeoutId = 0;
-        }
-
-        this._resetWaveMagnification();
-
-        if (this._extension?.appLauncher)
-            this._extension.appLauncher.disconnectObject(this);
-
-        Main.overview.disconnectObject(this);
-        const controls = Main.overview._overview?._controls;
-        if (controls?._stateAdjustment)
-            controls._stateAdjustment.disconnectObject(this);
-
-        if (this._trackedWindows) {
-            for (const win of this._trackedWindows) {
-                win.disconnectObject?.(this);
+            for (const icon of this._appIcons.values()) {
+                icon.updatePositionStyle?.(this._position);
             }
-            this._trackedWindows.clear();
-            this._trackedWindows = null;
+            this._showAppsButton?.updatePositionStyle?.(this._position);
+
+            this.updatePosition();
+            this._applyBarMode();
+            this._extension?.updateChromeStruts?.(!this._autohide);
         }
 
-        global.window_manager.disconnectObject(this);
+        _syncThemeMode() {
+            const mode = this._settings?.get_string('theme-mode') || 'expressive';
+            this.remove_style_class_name('theme-expressive');
+            this.remove_style_class_name('theme-black-outline');
+            this._dockPill?.remove_style_class_name('theme-expressive');
+            this._dockPill?.remove_style_class_name('theme-black-outline');
 
-        this._appFavorites.disconnectObject(this);
-        this._appSystem.disconnectObject(this);
-        global.display.disconnectObject(this);
-        global.workspace_manager.disconnectObject(this);
-
-        if (this._settings) {
-            this._settings.disconnectObject(this);
-            this._settings = null;
+            this.add_style_class_name(`theme-${mode}`);
+            this._dockPill?.add_style_class_name(`theme-${mode}`);
         }
 
-        for (const icon of this._appIcons.values()) {
-            icon.destroy();
-        }
-        this._appIcons.clear();
+        _syncAccentColor() {
+            const colorName = this._interfaceSettings?.get_string('accent-color') || 'blue';
+            const allColors = ['blue', 'teal', 'green', 'yellow', 'orange', 'red', 'pink', 'purple', 'slate'];
 
-        if (this._separator) {
-            this._separator.destroy();
-            this._separator = null;
+            for (const c of allColors) {
+                this.remove_style_class_name(`accent-${c}`);
+                this._dockPill?.remove_style_class_name(`accent-${c}`);
+                if (this._appLauncher)
+                    this._appLauncher.remove_style_class_name(`accent-${c}`);
+            }
+
+            this.add_style_class_name(`accent-${colorName}`);
+            this._dockPill?.add_style_class_name(`accent-${colorName}`);
+            if (this._appLauncher)
+                this._appLauncher.add_style_class_name(`accent-${colorName}`);
         }
 
-        if (this._interfaceSettings) {
-            this._interfaceSettings.disconnectObject(this);
-            this._interfaceSettings = null;
+        toggleAppLauncher() {
+            this._extension?.toggleAppLauncher?.();
         }
 
-        super.destroy();
-    }
-});
+        getPreferredThickness() {
+            return this._dockHeight || DOCK_HEIGHT;
+        }
+
+        getPreferredHeight() {
+            return this.getPreferredThickness();
+        }
+
+        updatePosition() {
+            const monitor = Main.layoutManager.primaryMonitor;
+            if (!monitor)
+                return;
+
+            const thickness = this.getPreferredThickness();
+            const pos = this._position || 'bottom';
+            const panelHeight = (Main.panel && Main.panel.visible) ? Main.panel.height : 0;
+            const topY = monitor.y + panelHeight;
+            const availableHeight = Math.max(0, monitor.height - panelHeight);
+
+            if (pos === 'left') {
+                if (this._autohide && this._isDockHidden) {
+                    this.set_position(monitor.x, topY);
+                    this.set_size(4, availableHeight);
+                } else {
+                    this.set_position(monitor.x, topY);
+                    this.set_size(thickness, availableHeight);
+                }
+            } else if (pos === 'right') {
+                if (this._autohide && this._isDockHidden) {
+                    this.set_position(monitor.x + monitor.width - 4, topY);
+                    this.set_size(4, availableHeight);
+                } else {
+                    this.set_position(monitor.x + monitor.width - thickness, topY);
+                    this.set_size(thickness, availableHeight);
+                }
+            } else {
+                // Default: bottom
+                if (this._autohide && this._isDockHidden) {
+                    this.set_position(monitor.x, monitor.y + monitor.height - 4);
+                    this.set_size(monitor.width, 4);
+                } else {
+                    this.set_position(monitor.x, monitor.y + monitor.height - thickness - waveRoom);
+                    this.set_size(monitor.width, thickness + waveRoom);
+                }
+            }
+
+            if (this._isBarMode)
+                this._applyBarMode();
+        }
+
+        _redisplay() {
+            const favorites = this._appFavorites.getFavorites();
+            const running = this._appSystem.get_running();
+
+            const favoriteIds = new Set(favorites.map(app => app.get_id()));
+            const nonFavoriteRunning = running.filter(app => !favoriteIds.has(app.get_id()));
+
+            // The complete set of apps that should currently be in the dock
+            const targetApps = [...favorites, ...nonFavoriteRunning];
+            const targetIds = new Set(targetApps.map(app => app.get_id()));
+
+            // 1. Destroy and delete icons that are no longer favorites and no longer running
+            for (const [id, icon] of this._appIcons.entries()) {
+                if (!targetIds.has(id)) {
+                    if (icon.get_parent() === this._iconsBox)
+                        this._iconsBox.remove_child(icon);
+                    icon.destroy();
+                    this._appIcons.delete(id);
+                }
+            }
+
+            // 2. Remove all remaining children from _iconsBox WITHOUT destroying them
+            this._iconsBox.remove_all_children();
+
+            // 3. Add favorite icons in order
+            for (const app of favorites) {
+                const id = app.get_id();
+                let icon = this._appIcons.get(id);
+                if (!icon) {
+                    icon = new DockAppIcon(app, this._iconSize, this);
+                    this._appIcons.set(id, icon);
+                } else {
+                    icon.setIconSize(this._iconSize);
+                }
+                icon.updatePositionStyle?.(this._position || 'bottom');
+                this._iconsBox.add_child(icon);
+            }
+
+            // 4. Separator if both favorites and running non-favorites exist
+            if (favorites.length > 0 && nonFavoriteRunning.length > 0) {
+                if (!this._separator) {
+                    this._separator = new St.Widget({
+                        style_class: 'dock-separator',
+                    });
+                }
+                if (this._position === 'left' || this._position === 'right') {
+                    this._separator.x_align = Clutter.ActorAlign.CENTER;
+                    this._separator.y_align = Clutter.ActorAlign.FILL;
+                } else {
+                    this._separator.y_align = Clutter.ActorAlign.CENTER;
+                    this._separator.x_align = Clutter.ActorAlign.FILL;
+                }
+                this._iconsBox.add_child(this._separator);
+            }
+
+            // 5. Add running non-favorite apps in order
+            for (const app of nonFavoriteRunning) {
+                const id = app.get_id();
+                let icon = this._appIcons.get(id);
+                if (!icon) {
+                    icon = new DockAppIcon(app, this._iconSize, this);
+                    this._appIcons.set(id, icon);
+                } else {
+                    icon.setIconSize(this._iconSize);
+                }
+                icon.updatePositionStyle?.(this._position || 'bottom');
+                this._iconsBox.add_child(icon);
+            }
+
+            this._updateActiveWindow();
+        }
+
+        _updateActiveWindow() {
+            const focusWindow = global.display.focus_window;
+            for (const icon of this._appIcons.values()) {
+                icon.updateActiveState(focusWindow);
+            }
+        }
+
+        _syncExtendOnMaximize() {
+            this._extendOnMaximize = this._settings?.get_boolean('extend-on-maximize') ?? true;
+            this._updateBarMode();
+        }
+
+        _onWorkspaceChanged() {
+            this._trackWorkspaceWindows();
+            this._updateActiveWindow();
+            this._updateBarMode();
+        }
+
+        _onWindowCreated(win) {
+            this._trackWindow(win);
+            this._updateBarMode();
+        }
+
+        _trackWorkspaceWindows() {
+            if (this._trackedWindows) {
+                for (const win of this._trackedWindows) {
+                    win.disconnectObject?.(this);
+                }
+                this._trackedWindows.clear();
+            } else {
+                this._trackedWindows = new Set();
+            }
+
+            const ws = global.workspace_manager.get_active_workspace();
+            if (!ws)
+                return;
+
+            const windows = ws.list_windows();
+            for (const win of windows) {
+                this._trackWindow(win);
+            }
+        }
+
+        _trackWindow(win) {
+            if (!win || this._trackedWindows?.has(win))
+                return;
+
+            this._trackedWindows.add(win);
+            win.connectObject(
+                'notify::maximized-horizontally', () => this._updateBarMode(),
+                'notify::maximized-vertically', () => this._updateBarMode(),
+                'notify::fullscreen', () => this._updateBarMode(),
+                'notify::minimized', () => this._updateBarMode(),
+                'unmanaged', () => {
+                    this._trackedWindows?.delete(win);
+                    this._updateBarMode();
+                },
+                this
+            );
+        }
+
+        _hasMaximizedOrFullscreenWindow() {
+            const primaryMonitorIndex = Main.layoutManager.primaryIndex;
+            const ws = global.workspace_manager.get_active_workspace();
+            if (!ws)
+                return false;
+
+            const windows = ws.list_windows();
+            for (const win of windows) {
+                // Uniquement les fenêtres sur l'écran principal où se trouve le dock
+                if (win.get_monitor() !== primaryMonitorIndex)
+                    continue;
+
+                // Ignorer les fenêtres minimisées ou masquées
+                if (win.minimized || win.is_hidden())
+                    continue;
+
+                // Ignorer les fenêtres non-normales (dialogues, popups, splash, etc.)
+                const winType = win.get_window_type();
+                if (winType !== Meta.WindowType.NORMAL)
+                    continue;
+
+                // Fenêtre en plein écran (F11 / vidéo / jeu)
+                if (win.is_fullscreen())
+                    return true;
+
+                // Fenêtre qui prend tout l'écran (maximisée horizontalement ET verticalement)
+                const isFullyMaximized = (win.maximized_horizontally && win.maximized_vertically) ||
+                    (typeof win.get_maximize_flags === 'function' &&
+                        (win.get_maximize_flags() & Meta.MaximizeFlags.BOTH) === Meta.MaximizeFlags.BOTH);
+
+                if (isFullyMaximized)
+                    return true;
+            }
+
+            return false;
+        }
+
+        _updateBarMode() {
+            const shouldBeBar = !this._autohide && this._extendOnMaximize && this._hasMaximizedOrFullscreenWindow();
+            if (this._isBarMode === shouldBeBar)
+                return;
+
+            this._isBarMode = shouldBeBar;
+            this._applyBarMode();
+        }
+
+        _applyBarMode() {
+            const monitor = Main.layoutManager.primaryMonitor;
+            const thickness = this.getPreferredThickness();
+            const isVertical = this._position === 'left' || this._position === 'right';
+            const panelHeight = (Main.panel && Main.panel.visible) ? Main.panel.height : 0;
+            const availableHeight = monitor ? Math.max(0, monitor.height - panelHeight) : 0;
+
+            if (this._isBarMode && monitor) {
+                this.add_style_class_name('mode-bar');
+                this._dockPill.add_style_class_name('mode-bar');
+
+                if (this._position === 'bottom') {
+                    this._dockPill.width = monitor.width;
+                    this._dockPill.height = thickness;
+                    this._dockPill.x_align = Clutter.ActorAlign.FILL;
+                    this._dockPill.y_align = Clutter.ActorAlign.FILL;
+                    this._dockPill.set_style('border-radius: 0px !important; border-bottom: none !important; border-left: none !important; border-right: none !important; margin: 0px !important; padding-left: 0px !important; padding-right: 0px !important;');
+                } else if (this._position === 'left') {
+                    this._dockPill.width = thickness;
+                    this._dockPill.height = availableHeight;
+                    this._dockPill.x_align = Clutter.ActorAlign.FILL;
+                    this._dockPill.y_align = Clutter.ActorAlign.FILL;
+                    this._dockPill.set_style('border-radius: 0px !important; border-left: none !important; border-top: none !important; border-bottom: none !important; margin: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important;');
+                } else if (this._position === 'right') {
+                    this._dockPill.width = thickness;
+                    this._dockPill.height = availableHeight;
+                    this._dockPill.x_align = Clutter.ActorAlign.FILL;
+                    this._dockPill.y_align = Clutter.ActorAlign.FILL;
+                    this._dockPill.set_style('border-radius: 0px !important; border-right: none !important; border-top: none !important; border-bottom: none !important; margin: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important;');
+                }
+
+                this._leadingSpacer.visible = true;
+                this._leadingSpacer.x_expand = !isVertical;
+                this._leadingSpacer.y_expand = isVertical;
+
+                this._trailingSpacer.visible = true;
+                this._trailingSpacer.x_expand = !isVertical;
+                this._trailingSpacer.y_expand = isVertical;
+            } else {
+                this.remove_style_class_name('mode-bar');
+                this._dockPill.remove_style_class_name('mode-bar');
+
+                this._dockPill.set_style(null);
+                this._dockPill.width = -1;
+                this._dockPill.height = -1;
+
+                this._leadingSpacer.visible = false;
+                this._leadingSpacer.x_expand = false;
+                this._leadingSpacer.y_expand = false;
+
+                this._trailingSpacer.visible = false;
+                this._trailingSpacer.x_expand = false;
+                this._trailingSpacer.y_expand = false;
+
+                if (this._position === 'bottom') {
+                    this._dockPill.x_align = Clutter.ActorAlign.CENTER;
+                    this._dockPill.y_align = Clutter.ActorAlign.END;
+                } else if (this._position === 'left') {
+                    this._dockPill.x_align = Clutter.ActorAlign.START;
+                    this._dockPill.y_align = Clutter.ActorAlign.CENTER;
+                } else if (this._position === 'right') {
+                    this._dockPill.x_align = Clutter.ActorAlign.END;
+                    this._dockPill.y_align = Clutter.ActorAlign.CENTER;
+                }
+            }
+        }
+
+        // Drag-and-drop support: reorder favorites inside Arrera Dock
+        handleDragOver(source, _actor, x, y, _step) {
+            const app = source.app;
+            if (!app)
+                return DND.DragMotionResult.NO_DROP;
+
+            return DND.DragMotionResult.MOVE_DROP;
+        }
+
+        acceptDrop(source, _actor, x, y, _time) {
+            const app = source.app;
+            if (!app)
+                return false;
+
+            const id = app.get_id();
+            const favorites = this._appFavorites.getFavorites();
+
+            const isVertical = this._position === 'left' || this._position === 'right';
+            const coord = isVertical ? y : x;
+            const totalSize = isVertical ? this._iconsBox.height : this._iconsBox.width;
+
+            let pos = Math.min(
+                Math.floor((coord / Math.max(1, totalSize)) * favorites.length),
+                favorites.length
+            );
+
+            if (this._appFavorites.isFavorite(id))
+                this._appFavorites.moveFavoriteToPos(id, pos);
+            else
+                this._appFavorites.addFavoriteAtPos(id, pos);
+
+            return true;
+        }
+
+        destroy() {
+            if (this._autohideTimeoutId) {
+                GLib.source_remove(this._autohideTimeoutId);
+                this._autohideTimeoutId = 0;
+            }
+
+            this._resetWaveMagnification();
+
+            if (this._extension?.appLauncher)
+                this._extension.appLauncher.disconnectObject(this);
+
+            Main.overview.disconnectObject(this);
+            const controls = Main.overview._overview?._controls;
+            if (controls?._stateAdjustment)
+                controls._stateAdjustment.disconnectObject(this);
+
+            if (this._trackedWindows) {
+                for (const win of this._trackedWindows) {
+                    win.disconnectObject?.(this);
+                }
+                this._trackedWindows.clear();
+                this._trackedWindows = null;
+            }
+
+            global.window_manager.disconnectObject(this);
+
+            this._appFavorites.disconnectObject(this);
+            this._appSystem.disconnectObject(this);
+            global.display.disconnectObject(this);
+            global.workspace_manager.disconnectObject(this);
+
+            if (this._settings) {
+                this._settings.disconnectObject(this);
+                this._settings = null;
+            }
+
+            for (const icon of this._appIcons.values()) {
+                icon.destroy();
+            }
+            this._appIcons.clear();
+
+            if (this._separator) {
+                this._separator.destroy();
+                this._separator = null;
+            }
+
+            if (this._interfaceSettings) {
+                this._interfaceSettings.disconnectObject(this);
+                this._interfaceSettings = null;
+            }
+
+            Main.panel.disconnectObject?.(this);
+
+            super.destroy();
+        }
+    });
