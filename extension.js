@@ -20,6 +20,8 @@ export default class ArreraDockExtension extends Extension {
         const autohide = this._settings?.get_boolean('autohide') ?? false;
 
         this._dock = new ArreraDock(this);
+        global.arreraDock = this._dock;
+        Main.arreraDock = this._dock;
 
         // Position and add dock as top chrome
         // affectsStruts: true ensures desktop windows maximize above the dock (when autohide is off)
@@ -211,6 +213,11 @@ export default class ArreraDockExtension extends Extension {
 
         // Remove dock from chrome and destroy
         if (this._dock) {
+            if (global.arreraDock === this._dock)
+                delete global.arreraDock;
+            if (Main.arreraDock === this._dock)
+                delete Main.arreraDock;
+
             Main.layoutManager.removeChrome(this._dock);
             this._dock.destroy();
             this._dock = null;

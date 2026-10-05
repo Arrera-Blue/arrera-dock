@@ -80,8 +80,12 @@ export const DockAppIcon = GObject.registerClass(
 
             // Hide tooltip when context menu opens & notify dock for autohide
             this.connect('menu-state-changed', (_actor, opened) => {
-                if (opened)
+                if (opened) {
                     this._hideTooltip();
+                    const appMenu = global.arreraAppMenu || Main.arreraAppMenu;
+                    if (appMenu?.isOpen)
+                        appMenu.close();
+                }
                 this._dock?._onMenuStateChanged?.(opened);
             });
 
@@ -315,6 +319,10 @@ export const DockAppIcon = GObject.registerClass(
 
             this._hideTooltip();
 
+            const appMenu = global.arreraAppMenu || Main.arreraAppMenu;
+            if (appMenu?.isOpen)
+                appMenu.close();
+
             const event = Clutter.get_current_event();
             const modifiers = event ? event.get_state() : 0;
             const isMiddleButton = button && button === Clutter.BUTTON_MIDDLE;
@@ -519,10 +527,10 @@ export const ShowAppsButton = GObject.registerClass(
         _onClicked() {
             this._hideTooltip();
 
-            // Si l'extension Arrera App Menu est installée et activée, l'ouvrir
-            const appMenuExt = Main.extensionManager?.lookup('app-menu@linux.arrera-software.fr');
-            if (appMenuExt?.state === 1 /* ExtensionState.ENABLED */ && appMenuExt?.stateObj?.toggle) {
-                appMenuExt.stateObj.toggle();
+            // Si l'extension Arrera App Menu est installée et activée, l'ouvrir / fermer
+            const appMenu = global.arreraAppMenu || Main.arreraAppMenu || Main.extensionManager?.lookup('app-menu@linux.arrera-software.fr')?.stateObj;
+            if (appMenu && typeof appMenu.toggle === 'function') {
+                appMenu.toggle();
                 return;
             }
 
@@ -719,6 +727,15 @@ export const ArreraDock = GObject.registerClass(
                     return Clutter.EVENT_PROPAGATE;
 
                 this._resetWaveMagnification();
+                return Clutter.EVENT_PROPAGATE;
+            });
+
+            this._dockPill.connect('button-press-event', (_actor, event) => {
+                const appMenu = global.arreraAppMenu || Main.arreraAppMenu;
+                if (event.get_source() === this._dockPill && appMenu?.isOpen) {
+                    appMenu.close();
+                    return Clutter.EVENT_STOP;
+                }
                 return Clutter.EVENT_PROPAGATE;
             });
 
@@ -1167,7 +1184,8 @@ export const ArreraDock = GObject.registerClass(
             if (!this._autohide)
                 return;
 
-            if (Main.overview.visible || this._openMenusCount > 0)
+            const appMenu = global.arreraAppMenu || Main.arreraAppMenu;
+            if (Main.overview.visible || appMenu?.isOpen || this._openMenusCount > 0)
                 return;
 
             if (this._autohideTimeoutId)
@@ -1175,7 +1193,8 @@ export const ArreraDock = GObject.registerClass(
 
             this._autohideTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 350, () => {
                 this._autohideTimeoutId = 0;
-                if (!this.hover && !this._dockPill.hover && !this._openMenusCount && !Main.overview.visible) {
+                const menu = global.arreraAppMenu || Main.arreraAppMenu;
+                if (!this.hover && !this._dockPill.hover && !this._openMenusCount && !menu?.isOpen && !Main.overview.visible) {
                     this._hideDock();
                 }
                 return GLib.SOURCE_REMOVE;
@@ -1349,6 +1368,12 @@ export const ArreraDock = GObject.registerClass(
 
             this.add_style_class_name(`accent-${colorName}`);
             this._dockPill?.add_style_class_name(`accent-${colorName}`);
+        }
+
+        toggleAppLauncher() {
+            const appMenu = global.arreraAppMenu || Main.arreraAppMenu;
+            if (appMenu && typeof appMenu.toggle === 'function')
+                appMenu.toggle();
         }
 
         getPreferredThickness() {
