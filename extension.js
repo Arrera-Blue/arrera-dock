@@ -8,7 +8,6 @@
 
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as OverviewControls from 'resource:///org/gnome/shell/ui/overviewControls.js';
 import * as Workspace from 'resource:///org/gnome/shell/ui/workspace.js';
 import * as WorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 import Graphene from 'gi://Graphene';
@@ -37,7 +36,7 @@ export default class ArreraDockExtension extends Extension {
         );
         this._updateDockPosition();
 
-        // Totally replace the native dash in the overview / application menu
+        // Totally replace the native dash in the overview
         this._replaceNativeDash();
 
         // Ensure the wallpaper is displayed in its entirety in the Activities overview

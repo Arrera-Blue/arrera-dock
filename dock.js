@@ -15,7 +15,6 @@ import Shell from 'gi://Shell';
 import St from 'gi://St';
 
 import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
-import * as AppDisplay from 'resource:///org/gnome/shell/ui/appDisplay.js';
 import { AppMenu } from 'resource:///org/gnome/shell/ui/appMenu.js';
 import * as BoxPointer from 'resource:///org/gnome/shell/ui/boxpointer.js';
 import * as Dash from 'resource:///org/gnome/shell/ui/dash.js';
@@ -150,6 +149,10 @@ export const DockAppIcon = GObject.registerClass(
                 this._dot.translation_x = pos === 'left' ? -shift : shift;
             } else {
                 this._dot.translation_x = 0;
+                if (!this.get_stage()) {
+                    this._dot.translation_y = 0;
+                    return;
+                }
                 const themeNode = this._dot.get_theme_node();
                 this._dot.translation_y = themeNode ? themeNode.get_length('offset-y') : 0;
             }
@@ -1322,8 +1325,13 @@ export const ArreraDock = GObject.registerClass(
 
             const isVertical = this._position === 'left' || this._position === 'right';
 
-            this._dockPill.vertical = isVertical;
-            this._iconsBox.vertical = isVertical;
+            if ('is_vertical' in this._dockPill) {
+                this._dockPill.is_vertical = isVertical;
+                this._iconsBox.is_vertical = isVertical;
+            } else {
+                this._dockPill.vertical = isVertical;
+                this._iconsBox.vertical = isVertical;
+            }
 
             if (this._position === 'bottom') {
                 this._dockPill.x_align = Clutter.ActorAlign.CENTER;
@@ -1368,12 +1376,6 @@ export const ArreraDock = GObject.registerClass(
 
             this.add_style_class_name(`accent-${colorName}`);
             this._dockPill?.add_style_class_name(`accent-${colorName}`);
-        }
-
-        toggleAppLauncher() {
-            const appMenu = globalThis.arreraAppMenu;
-            if (appMenu && typeof appMenu.toggle === 'function')
-                appMenu.toggle();
         }
 
         getPreferredThickness() {

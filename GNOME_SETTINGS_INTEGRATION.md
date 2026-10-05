@@ -52,14 +52,14 @@ Ce document décrit en détail les clés **GSettings** du dock, leurs types, leu
 
 ---
 
-### 5. Style du thème de couleur (`theme-mode`)
+### 4. Style du thème de couleur (`theme-mode`)
 * **Clé** : `theme-mode`
 * **Type** : `s` (Chaîne de caractères / `gchar*`)
 * **Valeur par défaut** : `'expressive'`
 * **Valeurs possibles** :
   * `'expressive'` : Style **Android 16 QPR2 / Material 3 Expressive**. Le conteneur du dock s'imprègne de la couleur d'accentuation choisie dans GNOME (ex: surface ambrée riche si orange).
   * `'black-outline'` : Style **Fond noir avec contour couleur**. Le conteneur du dock est noir profond (`#0c0c0f`), avec une bordure nette de 2px et un halo lumineux de la couleur d'accentuation active.
-### 6. Position du dock sur l'écran (`position`)
+### 5. Position du dock sur l'écran (`position`)
 * **Clé** : `position`
 * **Type** : `s` (Chaîne de caractères / `gchar*`)
 * **Valeur par défaut** : `'bottom'`
@@ -180,7 +180,6 @@ setup_dock_settings (AdwPreferencesPage *page, GtkBuilder *builder)
 
     GtkWidget *autohide_row  = GTK_WIDGET (gtk_builder_get_object (builder, "autohide_row"));
     GtkWidget *wave_row      = GTK_WIDGET (gtk_builder_get_object (builder, "wave_row"));
-    GtkWidget *super_key_row = GTK_WIDGET (gtk_builder_get_object (builder, "super_key_row"));
     AdwComboRow *position_row = ADW_COMBO_ROW (gtk_builder_get_object (builder, "position_row"));
     AdwComboRow *size_row    = ADW_COMBO_ROW (gtk_builder_get_object (builder, "size_row"));
     AdwComboRow *theme_row   = ADW_COMBO_ROW (gtk_builder_get_object (builder, "theme_row"));
@@ -192,10 +191,6 @@ setup_dock_settings (AdwPreferencesPage *page, GtkBuilder *builder)
 
     g_settings_bind (settings, "enable-wave-effect",
                      wave_row, "active",
-                     G_SETTINGS_BIND_DEFAULT);
-
-    g_settings_bind (settings, "super-key-opens-launcher",
-                     super_key_row, "active",
                      G_SETTINGS_BIND_DEFAULT);
 
     /* 2. Lier la position (Index <-> Chaîne) */

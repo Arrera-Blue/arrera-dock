@@ -1,6 +1,6 @@
 {
   "name": "Arrera Dock",
-  "description": "Dock moderne de la distribution Arrera Blue remplaçant le dock natif de l'aperçu et du menu des applications.",
+  "description": "Dock moderne de la distribution Arrera Blue remplaçant le dock natif de l'aperçu.",
   "uuid": "dock@linux.arrera-software.fr",
   "shell-version": [
     "45",
