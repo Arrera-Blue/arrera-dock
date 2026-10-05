@@ -82,7 +82,7 @@ export const DockAppIcon = GObject.registerClass(
             this.connect('menu-state-changed', (_actor, opened) => {
                 if (opened) {
                     this._hideTooltip();
-                    const appMenu = global.arreraAppMenu || Main.arreraAppMenu;
+                    const appMenu = globalThis.arreraAppMenu;
                     if (appMenu?.isOpen)
                         appMenu.close();
                 }
@@ -319,7 +319,7 @@ export const DockAppIcon = GObject.registerClass(
 
             this._hideTooltip();
 
-            const appMenu = global.arreraAppMenu || Main.arreraAppMenu;
+            const appMenu = globalThis.arreraAppMenu;
             if (appMenu?.isOpen)
                 appMenu.close();
 
@@ -528,7 +528,7 @@ export const ShowAppsButton = GObject.registerClass(
             this._hideTooltip();
 
             // Si l'extension Arrera App Menu est installée et activée, l'ouvrir / fermer
-            const appMenu = global.arreraAppMenu || Main.arreraAppMenu || Main.extensionManager?.lookup('app-menu@linux.arrera-software.fr')?.stateObj;
+            const appMenu = globalThis.arreraAppMenu || Main.extensionManager?.lookup('app-menu@linux.arrera-software.fr')?.stateObj;
             if (appMenu && typeof appMenu.toggle === 'function') {
                 appMenu.toggle();
                 return;
@@ -731,7 +731,7 @@ export const ArreraDock = GObject.registerClass(
             });
 
             this._dockPill.connect('button-press-event', (_actor, event) => {
-                const appMenu = global.arreraAppMenu || Main.arreraAppMenu;
+                const appMenu = globalThis.arreraAppMenu;
                 if (event.get_source() === this._dockPill && appMenu?.isOpen) {
                     appMenu.close();
                     return Clutter.EVENT_STOP;
@@ -1184,7 +1184,7 @@ export const ArreraDock = GObject.registerClass(
             if (!this._autohide)
                 return;
 
-            const appMenu = global.arreraAppMenu || Main.arreraAppMenu;
+            const appMenu = globalThis.arreraAppMenu;
             if (Main.overview.visible || appMenu?.isOpen || this._openMenusCount > 0)
                 return;
 
@@ -1193,7 +1193,7 @@ export const ArreraDock = GObject.registerClass(
 
             this._autohideTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 350, () => {
                 this._autohideTimeoutId = 0;
-                const menu = global.arreraAppMenu || Main.arreraAppMenu;
+                const menu = globalThis.arreraAppMenu;
                 if (!this.hover && !this._dockPill.hover && !this._openMenusCount && !menu?.isOpen && !Main.overview.visible) {
                     this._hideDock();
                 }
@@ -1371,7 +1371,7 @@ export const ArreraDock = GObject.registerClass(
         }
 
         toggleAppLauncher() {
-            const appMenu = global.arreraAppMenu || Main.arreraAppMenu;
+            const appMenu = globalThis.arreraAppMenu;
             if (appMenu && typeof appMenu.toggle === 'function')
                 appMenu.toggle();
         }
