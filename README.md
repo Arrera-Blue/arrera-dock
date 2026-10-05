@@ -15,8 +15,7 @@ Il remplace le dash natif de l'aperçu par une pilule flottante au design soign�
 * **Modes de thème** :
   * *Expressif* : Surface de couleur teintée selon l'accentuation active.
   * *Contour noir* : Fond noir profond avec liseré contrasté de couleur d'accentuation.
-* **Lanceur d'applications intégré** : Panneau flottant avec recherche en temps réel et catégories.
-* **Gestion des favoris par clic droit** : Épingler ou détacher n'importe quelle application depuis le lanceur ou directement sur le dock.
+* **Gestion des favoris par clic droit** : Épingler ou détacher n'importe quelle application directement sur le dock.
 * **Intégration GNOME Settings** : Configuration directe via `gnome-control-center` et le schéma GSettings `org.gnome.shell.extensions.dock`.
 
 ---
@@ -86,7 +85,6 @@ Ce script prend en charge automatiquement :
 
 * **`dock.js`** : Cœur du dock (disposition adaptative, icônes, animations de vague, autohide intelligent, mode barre plein écran et info-bulles).
 * **`extension.js`** : Point d'entrée de l'extension (`enable()` et `disable()`), intégration avec les couches GNOME Shell et l'aperçu des activités.
-* **`appLauncher.js`** : Lanceur d'applications flottant avec recherche et catégories.
 * **`stylesheet.css`** : Styles visuels, thèmes (Expressif, Contour noir) et harmonie des 9 couleurs d'accentuation GNOME.
 * **`schemas/`** : Schéma GSettings de configuration (`org.gnome.shell.extensions.dock.gschema.xml`).
 * **`icons/`** : Icônes graphiques et symboliques de l'extension.

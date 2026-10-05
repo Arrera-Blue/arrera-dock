@@ -13,24 +13,13 @@ import * as Workspace from 'resource:///org/gnome/shell/ui/workspace.js';
 import * as WorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
 import Graphene from 'gi://Graphene';
 import { ArreraDock } from './dock.js';
-import { AppLaucher } from './appLauncher.js';
 
 export default class ArreraDockExtension extends Extension {
     enable() {
         this._settings = this.getSettings();
         const autohide = this._settings?.get_boolean('autohide') ?? false;
 
-        if (this._settings) {
-            this._settings.connectObject(
-                'changed::super-key-opens-launcher', () => this._syncSuperKey(),
-                this
-            );
-        }
-        this._syncSuperKey();
-
-        this._appLauncher = new AppLaucher(this);
         this._dock = new ArreraDock(this);
-        this._dock.bindAppLauncher(this._appLauncher);
 
         // Position and add dock as top chrome
         // affectsStruts: true ensures desktop windows maximize above the dock (when autohide is off)
@@ -53,27 +42,12 @@ export default class ArreraDockExtension extends Extension {
         // Ensure the wallpaper is displayed in its entirety in the Activities overview
         this._patchWorkspaceBackground();
 
-        // Configure Super key shortcut to open the application grid directly
-        this._patchOverviewToggle();
-
         // Always display workspace switcher / thumbnails bar in Activities (even with <= 2 workspaces)
         this._patchThumbnailsBox();
     }
 
-    get appLauncher() {
-        return this._appLauncher;
-    }
-
     get dock() {
         return this._dock;
-    }
-
-    toggleAppLauncher() {
-        if (Main.overview.visible)
-            Main.overview.hide();
-
-        if (this._appLauncher)
-            this._appLauncher.toggle();
     }
 
     _updateDockPosition() {
@@ -184,58 +158,6 @@ export default class ArreraDockExtension extends Extension {
             controls.queue_relayout();
     }
 
-    _syncSuperKey() {
-        this._superKeyOpensLauncher = this._settings?.get_boolean('super-key-opens-launcher') ?? true;
-    }
-
-    _patchOverviewToggle() {
-        let cornerOrButtonClicked = false;
-        const origShouldToggle = Main.overview.shouldToggleByCornerOrButton.bind(Main.overview);
-        this._origShouldToggle = origShouldToggle;
-        Main.overview.shouldToggleByCornerOrButton = () => {
-            const allowed = origShouldToggle();
-            if (allowed)
-                cornerOrButtonClicked = true;
-            return allowed;
-        };
-
-        const origToggle = Main.overview.toggle.bind(Main.overview);
-        this._origOverviewToggle = origToggle;
-
-        Main.overview.toggle = () => {
-            if (Main.overview.isDummy)
-                return;
-
-            const fromCornerOrButton = cornerOrButtonClicked;
-            cornerOrButtonClicked = false;
-
-            if (Main.overview.visible) {
-                Main.overview.hide();
-                return;
-            }
-
-            if (!fromCornerOrButton && this._superKeyOpensLauncher) {
-                // Super key (Windows key) shortcut opens the macOS Applications launcher
-                this.toggleAppLauncher();
-            } else {
-                // Top-left "Activités" button or Super key restored to GNOME default opens WINDOW_PICKER
-                Main.overview.show(OverviewControls.ControlsState.WINDOW_PICKER);
-            }
-        };
-    }
-
-    _restoreOverviewToggle() {
-        if (this._origShouldToggle) {
-            Main.overview.shouldToggleByCornerOrButton = this._origShouldToggle;
-            this._origShouldToggle = null;
-        }
-
-        if (this._origOverviewToggle) {
-            Main.overview.toggle = this._origOverviewToggle;
-            this._origOverviewToggle = null;
-        }
-    }
-
     _patchThumbnailsBox() {
         if (!WorkspaceThumbnail?.ThumbnailsBox)
             return;
@@ -281,20 +203,11 @@ export default class ArreraDockExtension extends Extension {
         // Restore workspace thumbnails visibility logic
         this._restoreThumbnailsBox();
 
-        // Restore overview toggle shortcut
-        this._restoreOverviewToggle();
-
         // Restore workspace background and layout patches
         this._restoreWorkspaceBackground();
 
         // Restore native dash
         this._restoreNativeDash();
-
-        // Destroy macOS app launcher
-        if (this._appLauncher) {
-            this._appLauncher.destroy();
-            this._appLauncher = null;
-        }
 
         // Remove dock from chrome and destroy
         if (this._dock) {

@@ -80,11 +80,8 @@ export const DockAppIcon = GObject.registerClass(
 
             // Hide tooltip when context menu opens & notify dock for autohide
             this.connect('menu-state-changed', (_actor, opened) => {
-                if (opened) {
+                if (opened)
                     this._hideTooltip();
-                    if (this._dock?._appLauncher?.isOpen)
-                        this._dock._appLauncher.close();
-                }
                 this._dock?._onMenuStateChanged?.(opened);
             });
 
@@ -318,9 +315,6 @@ export const DockAppIcon = GObject.registerClass(
 
             this._hideTooltip();
 
-            if (this._dock?._appLauncher?.isOpen)
-                this._dock._appLauncher.close();
-
             const event = Clutter.get_current_event();
             const modifiers = event ? event.get_state() : 0;
             const isMiddleButton = button && button === Clutter.BUTTON_MIDDLE;
@@ -446,7 +440,28 @@ export const ShowAppsButton = GObject.registerClass(
 
             this.connect('destroy', () => {
                 this._cleanupTooltip();
+                Main.overview.disconnectObject(this);
+                const controls = Main.overview._overview?._controls;
+                if (controls?._stateAdjustment)
+                    controls._stateAdjustment.disconnectObject(this);
             });
+
+            // Sync with overview state
+            Main.overview.connectObject(
+                'showing', () => this._updateState(),
+                'hiding', () => this._updateState(),
+                this
+            );
+
+            const controls = Main.overview._overview?._controls;
+            if (controls?._stateAdjustment) {
+                controls._stateAdjustment.connectObject(
+                    'notify::value', () => this._updateState(),
+                    this
+                );
+            }
+
+            this._updateState();
         }
 
         _createIcon(iconSize) {
@@ -503,7 +518,39 @@ export const ShowAppsButton = GObject.registerClass(
 
         _onClicked() {
             this._hideTooltip();
-            this._dock.toggleAppLauncher();
+
+            // Si l'extension Arrera App Menu est installée et activée, l'ouvrir
+            const appMenuExt = Main.extensionManager?.lookup('app-menu@linux.arrera-software.fr');
+            if (appMenuExt?.state === 1 /* ExtensionState.ENABLED */ && appMenuExt?.stateObj?.toggle) {
+                appMenuExt.stateObj.toggle();
+                return;
+            }
+
+            // Comportement standard : basculer l'aperçu GNOME Shell vers la grille d'applications
+            const controls = Main.overview._overview?._controls;
+            if (Main.overview.visible) {
+                if (controls && Math.round(controls._stateAdjustment.value) === OverviewControls.ControlsState.APP_GRID) {
+                    Main.overview.hide();
+                } else if (controls) {
+                    controls._stateAdjustment.ease(OverviewControls.ControlsState.APP_GRID);
+                } else {
+                    Main.overview.hide();
+                }
+            } else {
+                Main.overview.show(OverviewControls.ControlsState.APP_GRID);
+            }
+        }
+
+        _updateState() {
+            const controls = Main.overview._overview?._controls;
+            const isAppGrid = Main.overview.visible &&
+                controls &&
+                Math.round(controls._stateAdjustment.value) === OverviewControls.ControlsState.APP_GRID;
+
+            if (isAppGrid)
+                this.add_style_pseudo_class('checked');
+            else
+                this.remove_style_pseudo_class('checked');
         }
 
         updatePositionStyle(position) {
@@ -672,14 +719,6 @@ export const ArreraDock = GObject.registerClass(
                     return Clutter.EVENT_PROPAGATE;
 
                 this._resetWaveMagnification();
-                return Clutter.EVENT_PROPAGATE;
-            });
-
-            this._dockPill.connect('button-press-event', (_actor, event) => {
-                if (event.get_source() === this._dockPill && this._appLauncher?.isOpen) {
-                    this._appLauncher.close();
-                    return Clutter.EVENT_STOP;
-                }
                 return Clutter.EVENT_PROPAGATE;
             });
 
@@ -1099,27 +1138,6 @@ export const ArreraDock = GObject.registerClass(
                 this._redisplay();
         }
 
-        bindAppLauncher(appLauncher) {
-            this._appLauncher = appLauncher;
-            this._syncAccentColor();
-
-            appLauncher.connectObject(
-                'opened', () => {
-                    this._showAppsButton.add_style_pseudo_class('checked');
-                    if (Main.uiGroup.contains(this))
-                        Main.uiGroup.set_child_above_sibling(this, appLauncher);
-                    if (this._autohide)
-                        this._showDock();
-                },
-                'closed', () => {
-                    this._showAppsButton.remove_style_pseudo_class('checked');
-                    if (this._autohide && !this.hover && !this._dockPill.hover)
-                        this._onLeave();
-                },
-                this
-            );
-        }
-
         _onMenuStateChanged(opened) {
             if (opened) {
                 this._openMenusCount++;
@@ -1149,7 +1167,7 @@ export const ArreraDock = GObject.registerClass(
             if (!this._autohide)
                 return;
 
-            if (Main.overview.visible || this._appLauncher?.isOpen || this._openMenusCount > 0)
+            if (Main.overview.visible || this._openMenusCount > 0)
                 return;
 
             if (this._autohideTimeoutId)
@@ -1157,7 +1175,7 @@ export const ArreraDock = GObject.registerClass(
 
             this._autohideTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 350, () => {
                 this._autohideTimeoutId = 0;
-                if (!this.hover && !this._dockPill.hover && !this._openMenusCount && !this._appLauncher?.isOpen && !Main.overview.visible) {
+                if (!this.hover && !this._dockPill.hover && !this._openMenusCount && !Main.overview.visible) {
                     this._hideDock();
                 }
                 return GLib.SOURCE_REMOVE;
@@ -1327,18 +1345,10 @@ export const ArreraDock = GObject.registerClass(
             for (const c of allColors) {
                 this.remove_style_class_name(`accent-${c}`);
                 this._dockPill?.remove_style_class_name(`accent-${c}`);
-                if (this._appLauncher)
-                    this._appLauncher.remove_style_class_name(`accent-${c}`);
             }
 
             this.add_style_class_name(`accent-${colorName}`);
             this._dockPill?.add_style_class_name(`accent-${colorName}`);
-            if (this._appLauncher)
-                this._appLauncher.add_style_class_name(`accent-${colorName}`);
-        }
-
-        toggleAppLauncher() {
-            this._extension?.toggleAppLauncher?.();
         }
 
         getPreferredThickness() {
@@ -1684,9 +1694,6 @@ export const ArreraDock = GObject.registerClass(
             }
 
             this._resetWaveMagnification();
-
-            if (this._extension?.appLauncher)
-                this._extension.appLauncher.disconnectObject(this);
 
             Main.overview.disconnectObject(this);
             const controls = Main.overview._overview?._controls;

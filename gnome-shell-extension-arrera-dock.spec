@@ -28,9 +28,7 @@ Fonctionnalités :
 - Effet d'agrandissement en vague au survol des icônes
 - Masquage automatique intelligent (autohide) avec bande d'activation
 - Intégration dynamique des 9 couleurs d'accentuation de GNOME
-- Lanceur d'applications flottant avec recherche instantanée
 - Prise en charge complète du clic droit (épingler/détacher du dock)
-- Raccourci touche Super personnalisable
 - Clés GSettings et intégration native dans GNOME Settings
 
 %prep
@@ -53,7 +51,6 @@ install -d -m 0755 %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/schema
 install -p -m 0644 metadata.json %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
 install -p -m 0644 extension.js %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
 install -p -m 0644 dock.js %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
-install -p -m 0644 appLauncher.js %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
 install -p -m 0644 stylesheet.css %{buildroot}%{_datadir}/gnome-shell/extensions/%{uuid}/
 
 # Icônes

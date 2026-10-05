@@ -156,26 +156,9 @@
     color: #ffffff;
 }
 
-.accent-orange .mac-app-launcher-window {
-    background-color: rgba(48, 20, 6, 0.94);
-    border-color: rgba(255, 140, 60, 0.35);
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(237, 91, 0, 0.22);
-}
 
-.accent-orange .mac-launcher-title-icon {
-    color: #ff9d42;
-}
 
-.accent-orange .mac-launcher-search-entry:focus {
-    border-color: rgba(255, 140, 60, 0.80);
-    box-shadow: 0 0 0 2px rgba(237, 91, 0, 0.30);
-    caret-color: #ff9d42;
-}
 
-.accent-orange .mac-app-item:hover {
-    background-color: rgba(255, 150, 75, 0.18);
-    box-shadow: inset 0 0 0 1px rgba(255, 160, 90, 0.38);
-}
 
 /* --- Blue --- */
 .accent-blue.arrera-dock {
@@ -218,26 +201,9 @@
     color: #ffffff;
 }
 
-.accent-blue .mac-app-launcher-window {
-    background-color: rgba(12, 28, 56, 0.94);
-    border-color: rgba(100, 175, 255, 0.35);
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(53, 132, 228, 0.22);
-}
 
-.accent-blue .mac-launcher-title-icon {
-    color: #62a0ea;
-}
 
-.accent-blue .mac-launcher-search-entry:focus {
-    border-color: rgba(100, 175, 255, 0.80);
-    box-shadow: 0 0 0 2px rgba(53, 132, 228, 0.30);
-    caret-color: #62a0ea;
-}
 
-.accent-blue .mac-app-item:hover {
-    background-color: rgba(100, 175, 255, 0.18);
-    box-shadow: inset 0 0 0 1px rgba(110, 185, 255, 0.38);
-}
 
 /* --- Teal --- */
 .accent-teal.arrera-dock {
@@ -280,26 +246,9 @@
     color: #ffffff;
 }
 
-.accent-teal .mac-app-launcher-window {
-    background-color: rgba(8, 34, 40, 0.94);
-    border-color: rgba(70, 195, 220, 0.35);
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(33, 144, 164, 0.22);
-}
 
-.accent-teal .mac-launcher-title-icon {
-    color: #4dc4db;
-}
 
-.accent-teal .mac-launcher-search-entry:focus {
-    border-color: rgba(70, 195, 220, 0.80);
-    box-shadow: 0 0 0 2px rgba(33, 144, 164, 0.30);
-    caret-color: #4dc4db;
-}
 
-.accent-teal .mac-app-item:hover {
-    background-color: rgba(70, 195, 220, 0.18);
-    box-shadow: inset 0 0 0 1px rgba(80, 205, 230, 0.38);
-}
 
 /* --- Green --- */
 .accent-green.arrera-dock {
@@ -342,26 +291,9 @@
     color: #ffffff;
 }
 
-.accent-green .mac-app-launcher-window {
-    background-color: rgba(10, 34, 16, 0.94);
-    border-color: rgba(105, 210, 125, 0.35);
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(58, 148, 74, 0.22);
-}
 
-.accent-green .mac-launcher-title-icon {
-    color: #57ab5a;
-}
 
-.accent-green .mac-launcher-search-entry:focus {
-    border-color: rgba(105, 210, 125, 0.80);
-    box-shadow: 0 0 0 2px rgba(58, 148, 74, 0.30);
-    caret-color: #57ab5a;
-}
 
-.accent-green .mac-app-item:hover {
-    background-color: rgba(105, 210, 125, 0.18);
-    box-shadow: inset 0 0 0 1px rgba(115, 220, 135, 0.38);
-}
 
 /* --- Yellow --- */
 .accent-yellow.arrera-dock {
@@ -404,26 +336,9 @@
     color: #ffffff;
 }
 
-.accent-yellow .mac-app-launcher-window {
-    background-color: rgba(44, 30, 4, 0.94);
-    border-color: rgba(250, 195, 55, 0.35);
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(200, 136, 0, 0.22);
-}
 
-.accent-yellow .mac-launcher-title-icon {
-    color: #f6c144;
-}
 
-.accent-yellow .mac-launcher-search-entry:focus {
-    border-color: rgba(250, 195, 55, 0.80);
-    box-shadow: 0 0 0 2px rgba(200, 136, 0, 0.30);
-    caret-color: #f6c144;
-}
 
-.accent-yellow .mac-app-item:hover {
-    background-color: rgba(250, 195, 55, 0.18);
-    box-shadow: inset 0 0 0 1px rgba(255, 205, 65, 0.38);
-}
 
 /* --- Red --- */
 .accent-red.arrera-dock {
@@ -466,26 +381,9 @@
     color: #ffffff;
 }
 
-.accent-red .mac-app-launcher-window {
-    background-color: rgba(50, 10, 16, 0.94);
-    border-color: rgba(255, 105, 125, 0.35);
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(230, 45, 66, 0.22);
-}
 
-.accent-red .mac-launcher-title-icon {
-    color: #f85166;
-}
 
-.accent-red .mac-launcher-search-entry:focus {
-    border-color: rgba(255, 105, 125, 0.80);
-    box-shadow: 0 0 0 2px rgba(230, 45, 66, 0.30);
-    caret-color: #f85166;
-}
 
-.accent-red .mac-app-item:hover {
-    background-color: rgba(255, 105, 125, 0.18);
-    box-shadow: inset 0 0 0 1px rgba(255, 115, 135, 0.38);
-}
 
 /* --- Pink --- */
 .accent-pink.arrera-dock {
@@ -528,26 +426,9 @@
     color: #ffffff;
 }
 
-.accent-pink .mac-app-launcher-window {
-    background-color: rgba(46, 14, 32, 0.94);
-    border-color: rgba(250, 135, 195, 0.35);
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(213, 97, 153, 0.22);
-}
 
-.accent-pink .mac-launcher-title-icon {
-    color: #e587b6;
-}
 
-.accent-pink .mac-launcher-search-entry:focus {
-    border-color: rgba(250, 135, 195, 0.80);
-    box-shadow: 0 0 0 2px rgba(213, 97, 153, 0.30);
-    caret-color: #e587b6;
-}
 
-.accent-pink .mac-app-item:hover {
-    background-color: rgba(250, 135, 195, 0.18);
-    box-shadow: inset 0 0 0 1px rgba(255, 145, 205, 0.38);
-}
 
 /* --- Purple --- */
 .accent-purple.arrera-dock {
@@ -590,26 +471,9 @@
     color: #ffffff;
 }
 
-.accent-purple .mac-app-launcher-window {
-    background-color: rgba(36, 12, 45, 0.94);
-    border-color: rgba(195, 110, 235, 0.35);
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(145, 65, 172, 0.22);
-}
 
-.accent-purple .mac-launcher-title-icon {
-    color: #b363d6;
-}
 
-.accent-purple .mac-launcher-search-entry:focus {
-    border-color: rgba(195, 110, 235, 0.80);
-    box-shadow: 0 0 0 2px rgba(145, 65, 172, 0.30);
-    caret-color: #b363d6;
-}
 
-.accent-purple .mac-app-item:hover {
-    background-color: rgba(195, 110, 235, 0.18);
-    box-shadow: inset 0 0 0 1px rgba(205, 120, 245, 0.38);
-}
 
 /* --- Slate --- */
 .accent-slate.arrera-dock {
@@ -652,130 +516,11 @@
     color: #ffffff;
 }
 
-.accent-slate .mac-app-launcher-window {
-    background-color: rgba(25, 32, 40, 0.94);
-    border-color: rgba(160, 185, 205, 0.35);
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7), 0 0 32px rgba(111, 131, 150, 0.22);
-}
 
-.accent-slate .mac-launcher-title-icon {
-    color: #9cb2c6;
-}
 
-.accent-slate .mac-launcher-search-entry:focus {
-    border-color: rgba(160, 185, 205, 0.80);
-    box-shadow: 0 0 0 2px rgba(111, 131, 150, 0.30);
-    caret-color: #9cb2c6;
-}
 
-.accent-slate .mac-app-item:hover {
-    background-color: rgba(160, 185, 205, 0.18);
-    box-shadow: inset 0 0 0 1px rgba(170, 195, 215, 0.38);
-}
 
 /* ==========================================================================
-   Applications Launcher Panel
-   ========================================================================== */
-
-/* Fullscreen transparent backdrop catching dismiss clicks */
-.mac-app-launcher-root {
-    background-color: rgba(0, 0, 0, 0.35);
-}
-
-/* Floating Material 3 acrylic window */
-.mac-app-launcher-window {
-    background-color: rgba(22, 22, 26, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 28px;
-    box-shadow: 0 28px 64px rgba(0, 0, 0, 0.7);
-    padding: 18px 24px;
-}
-
-/* Header bar */
-.mac-launcher-header {
-    spacing: 12px;
-    margin-bottom: 20px;
-}
-
-.mac-launcher-title-icon {
-    color: -st-accent-color;
-    margin-right: 4px;
-}
-
-/* Search input entry */
-.mac-launcher-search-entry {
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 14px;
-    padding: 7px 16px;
-    color: #ffffff;
-    font-size: 11pt;
-    font-weight: 500;
-    caret-color: -st-accent-color;
-}
-
-.mac-launcher-search-entry:focus {
-    background-color: rgba(255, 255, 255, 0.12);
-    border-color: -st-accent-color;
-    box-shadow: 0 0 0 2px st-transparentize(-st-accent-color, 0.6);
-}
-
-/* Header close button */
-.mac-launcher-close-btn {
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 14px;
-    padding: 5px;
-    color: #94a3b8;
-    transition-duration: 150ms;
-}
-
-.mac-launcher-close-btn:hover {
-    background-color: rgba(255, 255, 255, 0.18);
-    color: #ffffff;
-}
-
-/* 7-column scrollable grid */
-.mac-launcher-scroll {
-    padding: 2px;
-}
-
-.mac-launcher-grid {
-    padding: 4px 2px;
-    spacing: 16px;
-}
-
-/* Individual application card item */
-.mac-app-item {
-    padding: 8px 4px;
-    border-radius: 16px;
-    transition-duration: 150ms;
-}
-
-.mac-app-item:hover {
-    background-color: rgba(255, 255, 255, 0.12);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
-}
-
-.mac-app-item:active {
-    background-color: rgba(255, 255, 255, 0.22);
-}
-
-.mac-app-item-box {
-    spacing: 6px;
-}
-
-.mac-app-icon-bin {
-    margin-bottom: 2px;
-}
-
-.mac-app-label {
-    color: #f1f5f9;
-    font-size: 9pt;
-    font-weight: 500;
-    text-align: center;
-}
-
 /* ==========================================================================
    Dock Dynamic Icon Sizing (Small, Medium, Large)
    ========================================================================== */

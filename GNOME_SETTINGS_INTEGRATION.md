@@ -37,18 +37,7 @@ Ce document décrit en détail les clés **GSettings** du dock, leurs types, leu
 
 ---
 
-### 3. Touche Super pour le lanceur d'applications (`super-key-opens-launcher`)
-* **Clé** : `super-key-opens-launcher`
-* **Type** : `b` (Booléen / `gboolean`)
-* **Valeur par défaut** : `true`
-* **Valeurs possibles** :
-  * `true` : Appuyer sur la touche Super (touche Windows) ouvre le lanceur d'applications Arrera (style macOS).
-  * `false` : Rétablit le comportement d'origine de GNOME Shell : la touche Super ouvre l'aperçu des activités (*Activities Overview* / sélectionneur de fenêtres).
-* **Widget Libadwaita recommandé** : `AdwSwitchRow`
-
----
-
-### 4. Taille des icônes du dock (`icon-size`)
+### 3. Taille des icônes du dock (`icon-size`)
 * **Clé** : `icon-size`
 * **Type** : `s` (Chaîne de caractères / `gchar*`)
 * **Valeur par défaut** : `'medium'`
@@ -113,14 +102,6 @@ Ce document décrit en détail les clés **GSettings** du dock, leurs types, leu
           <object class="AdwSwitchRow" id="wave_row">
             <property name="title" translatable="yes">Effet d'agrandissement en vague</property>
             <property name="subtitle" translatable="yes">Agrandit les icônes au passage du pointeur</property>
-          </object>
-        </child>
-
-        <!-- Touche Super -->
-        <child>
-          <object class="AdwSwitchRow" id="super_key_row">
-            <property name="title" translatable="yes">Ouvrir le lanceur avec la touche Super</property>
-            <property name="subtitle" translatable="yes">Désactiver pour rétablir l'aperçu des activités GNOME d'origine</property>
           </object>
         </child>
       </object>
@@ -295,14 +276,10 @@ gsettings set org.gnome.shell.extensions.dock icon-size 'large'
 # Modifier le thème ('expressive' | 'black-outline')
 gsettings set org.gnome.shell.extensions.dock theme-mode 'black-outline'
 
-# Modifier l'action de la touche Super (true = lanceur Arrera, false = GNOME d'origine)
-gsettings set org.gnome.shell.extensions.dock super-key-opens-launcher false
-
 # Réinitialiser toutes les options à leurs valeurs par défaut
 gsettings reset org.gnome.shell.extensions.dock position
 gsettings reset org.gnome.shell.extensions.dock autohide
 gsettings reset org.gnome.shell.extensions.dock enable-wave-effect
-gsettings reset org.gnome.shell.extensions.dock super-key-opens-launcher
 gsettings reset org.gnome.shell.extensions.dock icon-size
 gsettings reset org.gnome.shell.extensions.dock theme-mode
 ```
