@@ -15,13 +15,6 @@
     </key>
 
 
-    <key name="enable-wave-effect" type="b">
-      <default>true</default>
-      <summary>Effet de vague (agrandissement au survol)</summary>
-      <description>Active ou désactive l'effet de vague et d'agrandissement dynamique des icônes au survol de la souris.</description>
-    </key>
-
-
     <key name="icon-size" type="s">
       <choices>
         <choice value="small"/>

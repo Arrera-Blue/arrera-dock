@@ -26,31 +26,19 @@ export const SIZES = {
     small: {
         iconSize: 28,
         dockHeight: 46,
-        waveMaxScale: 2.0,
-        waveRadius: 140,
-        waveMaxShift: 22,
     },
     medium: {
         iconSize: 36,
         dockHeight: 56,
-        waveMaxScale: 2.1,
-        waveRadius: 165,
-        waveMaxShift: 28,
     },
     large: {
         iconSize: 48,
         dockHeight: 72,
-        waveMaxScale: 1.9,
-        waveRadius: 200,
-        waveMaxShift: 34,
     },
 };
 
 const DEFAULT_ICON_SIZE = SIZES.medium.iconSize;
 const DOCK_HEIGHT = SIZES.medium.dockHeight;
-const WAVE_MAX_SCALE = SIZES.medium.waveMaxScale;
-const WAVE_RADIUS = SIZES.medium.waveRadius;
-const WAVE_MAX_SHIFT = SIZES.medium.waveMaxShift;
 
 /**
  * DockAppIcon represents an individual application launcher inside Arrera Dock.
@@ -683,12 +671,6 @@ export const ArreraDock = GObject.registerClass(
             this._sizeName = 'medium';
             this._iconSize = SIZES.medium.iconSize;
             this._dockHeight = SIZES.medium.dockHeight;
-            this._waveMaxScale = SIZES.medium.waveMaxScale;
-            this._waveRadius = SIZES.medium.waveRadius;
-            this._waveMaxShift = SIZES.medium.waveMaxShift;
-
-            // Wave effect
-            this._enableWaveEffect = true;
 
             // Position: bottom, left, right
             this._position = 'bottom';
@@ -718,21 +700,6 @@ export const ArreraDock = GObject.registerClass(
             this._dockPill._delegate = this;
             this.add_child(this._dockPill);
 
-            this._dockPill.connect('motion-event', (_actor, event) => {
-                const [stageX, stageY] = event.get_coords();
-                this._applyWaveMagnification(stageX, stageY);
-                return Clutter.EVENT_PROPAGATE;
-            });
-
-            this._dockPill.connect('leave-event', (_actor, event) => {
-                const related = event.get_related();
-                if (related && this._dockPill.contains(related))
-                    return Clutter.EVENT_PROPAGATE;
-
-                this._resetWaveMagnification();
-                return Clutter.EVENT_PROPAGATE;
-            });
-
             this._dockPill.connect('button-press-event', (_actor, event) => {
                 const appMenu = globalThis.arreraAppMenu;
                 if (event.get_source() === this._dockPill && appMenu?.isOpen) {
@@ -746,7 +713,6 @@ export const ArreraDock = GObject.registerClass(
                 if (this._dockPill.hover) {
                     this._onEnter();
                 } else {
-                    this._resetWaveMagnification();
                     this._onLeave();
                 }
             });
@@ -829,7 +795,6 @@ export const ArreraDock = GObject.registerClass(
                 this._settings.connectObject(
                     'changed::autohide', () => this._syncAutohide(),
                     'changed::extend-on-maximize', () => this._syncExtendOnMaximize(),
-                    'changed::enable-wave-effect', () => this._syncWaveEffect(),
                     'changed::icon-size', () => this._syncIconSize(true),
                     'changed::theme-mode', () => this._syncThemeMode(),
                     'changed::position', () => this._syncPosition(),
@@ -846,7 +811,6 @@ export const ArreraDock = GObject.registerClass(
             // Initial synchronization of settings
             this._syncIconSize(false);
             this._syncPosition();
-            this._syncWaveEffect();
             this._syncThemeMode();
             this._syncExtendOnMaximize();
             this._syncAutohide();
@@ -892,7 +856,6 @@ export const ArreraDock = GObject.registerClass(
             this._dockPill.translation_x = 0;
             this._dockPill.translation_y = 0;
             this._dockPill.reactive = true;
-            this._resetWaveMagnification();
             this._updateBarMode();
 
             if (this._autohide && !this.hover && !this._dockPill.hover)
@@ -972,184 +935,6 @@ export const ArreraDock = GObject.registerClass(
             this._showAppsButton?._hideTooltip?.();
         }
 
-        _getAllDockItems() {
-            const items = [];
-            if (this._showAppsButton)
-                items.push(this._showAppsButton);
-            for (const child of this._iconsBox.get_children()) {
-                if (child instanceof DockAppIcon)
-                    items.push(child);
-            }
-            return items;
-        }
-
-        _applyWaveMagnification(stageX, stageY) {
-            if (!this._enableWaveEffect)
-                return;
-
-            const items = this._getAllDockItems();
-            if (items.length === 0)
-                return;
-
-            const maxScale = this._waveMaxScale || WAVE_MAX_SCALE;
-            const radius = this._waveRadius || WAVE_RADIUS;
-            const maxShift = this._waveMaxShift || WAVE_MAX_SHIFT;
-            const pos = this._position || 'bottom';
-            const isVertical = pos === 'left' || pos === 'right';
-
-            let peakScale = 1.0;
-
-            for (const item of items) {
-                item.remove_all_transitions();
-
-                if (isVertical) {
-                    const [, itemY] = item.get_transformed_position();
-                    const [, itemH] = item.get_transformed_size();
-                    const itemBaseHeight = item.height || itemH;
-                    const itemCenterY = itemY + itemBaseHeight / 2 - (item.translation_y || 0);
-
-                    const dy = Math.abs(stageY - itemCenterY);
-
-                    if (dy < radius) {
-                        const factor = 0.5 * (1 + Math.cos((Math.PI * dy) / radius));
-                        const scale = 1.0 + (maxScale - 1.0) * factor;
-                        if (scale > peakScale) peakScale = scale;
-
-                        const direction = itemCenterY >= stageY ? 1 : -1;
-                        const shiftFactor = Math.sin((Math.PI * dy) / radius);
-                        const shiftY = direction * maxShift * shiftFactor;
-
-                        if (pos === 'left')
-                            item.set_pivot_point(0.0, 0.5);
-                        else
-                            item.set_pivot_point(1.0, 0.5);
-
-                        item.set_scale(scale, scale);
-                        item.translation_y = Math.round(shiftY);
-                        item.translation_x = 0;
-                    } else {
-                        item.set_scale(1.0, 1.0);
-                        item.translation_y = 0;
-                        item.translation_x = 0;
-                    }
-                } else {
-                    const [itemX] = item.get_transformed_position();
-                    const [itemW] = item.get_transformed_size();
-                    const itemBaseWidth = item.width || itemW;
-                    const itemCenterX = itemX + itemBaseWidth / 2 - (item.translation_x || 0);
-
-                    const dx = Math.abs(stageX - itemCenterX);
-
-                    if (dx < radius) {
-                        const factor = 0.5 * (1 + Math.cos((Math.PI * dx) / radius));
-                        const scale = 1.0 + (maxScale - 1.0) * factor;
-                        if (scale > peakScale) peakScale = scale;
-
-                        const direction = itemCenterX >= stageX ? 1 : -1;
-                        const shiftFactor = Math.sin((Math.PI * dx) / radius);
-                        const shiftX = direction * maxShift * shiftFactor;
-
-                        item.set_pivot_point(0.5, 1.0);
-                        item.set_scale(scale, scale);
-                        item.translation_x = Math.round(shiftX);
-                        item.translation_y = 0;
-                    } else {
-                        item.set_scale(1.0, 1.0);
-                        item.translation_x = 0;
-                        item.translation_y = 0;
-                    }
-                }
-
-                item.updateTooltipPosition?.();
-            }
-
-            // macOS-style: grow the dock pill to envelop magnified icons
-            this._applyDockPillGrowth(peakScale, isVertical, pos);
-        }
-
-        _resetWaveMagnification() {
-            const items = this._getAllDockItems();
-            for (const item of items) {
-                item.ease({
-                    scale_x: 1.0,
-                    scale_y: 1.0,
-                    translation_x: 0,
-                    translation_y: 0,
-                    duration: 220,
-                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                });
-                item.updateTooltipPosition?.();
-            }
-
-            // Animate dock pill back to its resting size
-            this._resetDockPillGrowth();
-        }
-
-        /**
-         * Dynamically grow the dock pill to match the tallest magnified icon,
-         * keeping the dock anchored to its screen edge (like macOS).
-         * Uses direct height/width changes instead of scale to avoid distorting children.
-         */
-        _applyDockPillGrowth(peakScale, isVertical, pos) {
-            if (this._isBarMode)
-                return;
-
-            // How much extra thickness the pill needs (proportional to icon growth, dampened)
-            const extraPx = Math.round(this._iconSize * (peakScale - 1.0) * 0.5);
-
-            if (extraPx <= 0) {
-                // No growth needed, reset to natural size
-                if (isVertical)
-                    this._dockPill.width = -1;
-                else
-                    this._dockPill.height = -1;
-                return;
-            }
-
-            const baseThickness = this._dockHeight || DOCK_HEIGHT;
-
-            if (isVertical) {
-                // Left/right: grow wider
-                this._dockPill.width = baseThickness + extraPx;
-            } else {
-                // Bottom: grow taller (upward, since pill is y_align=END)
-                this._dockPill.height = baseThickness + extraPx;
-            }
-        }
-
-        /**
-         * Animate the dock pill back to its default (resting) dimensions.
-         */
-        _resetDockPillGrowth() {
-            if (this._isBarMode)
-                return;
-
-            const pos = this._position || 'bottom';
-            const isVertical = pos === 'left' || pos === 'right';
-
-            // Animate back to natural size (-1 = natural)
-            if (isVertical) {
-                this._dockPill.ease({
-                    width: this._dockHeight || DOCK_HEIGHT,
-                    duration: 220,
-                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                    onComplete: () => {
-                        if (!this._isBarMode)
-                            this._dockPill.width = -1;
-                    },
-                });
-            } else {
-                this._dockPill.ease({
-                    height: this._dockHeight || DOCK_HEIGHT,
-                    duration: 220,
-                    mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-                    onComplete: () => {
-                        if (!this._isBarMode)
-                            this._dockPill.height = -1;
-                    },
-                });
-            }
-        }
 
         _queueRedisplay() {
             if (this._workId)
@@ -1161,7 +946,6 @@ export const ArreraDock = GObject.registerClass(
         _onMenuStateChanged(opened) {
             if (opened) {
                 this._openMenusCount++;
-                this._resetWaveMagnification();
                 if (this._autohide)
                     this._showDock();
             } else {
@@ -1220,7 +1004,6 @@ export const ArreraDock = GObject.registerClass(
 
         _hideDock() {
             this._isDockHidden = true;
-            this._resetWaveMagnification();
             this._hideTooltips();
 
             const thickness = this.getPreferredThickness();
@@ -1272,12 +1055,6 @@ export const ArreraDock = GObject.registerClass(
             this._updateBarMode();
         }
 
-        _syncWaveEffect() {
-            this._enableWaveEffect = this._settings?.get_boolean('enable-wave-effect') ?? true;
-            if (!this._enableWaveEffect)
-                this._resetWaveMagnification();
-        }
-
         _syncIconSize(redisplay = true) {
             const sizeName = this._settings?.get_string('icon-size') || 'medium';
             const config = SIZES[sizeName] || SIZES.medium;
@@ -1285,9 +1062,6 @@ export const ArreraDock = GObject.registerClass(
             this._sizeName = sizeName;
             this._iconSize = config.iconSize;
             this._dockHeight = config.dockHeight;
-            this._waveMaxScale = config.waveMaxScale;
-            this._waveRadius = config.waveRadius;
-            this._waveMaxShift = config.waveMaxShift;
 
             for (const s of ['small', 'medium', 'large']) {
                 this.remove_style_class_name(`size-${s}`);
@@ -1397,12 +1171,6 @@ export const ArreraDock = GObject.registerClass(
             const topY = monitor.y + panelHeight;
             const availableHeight = Math.max(0, monitor.height - panelHeight);
 
-            // Pre-allocate extra room for the wave magnification effect
-            // so the dock pill has space to grow into without clipping
-            const waveRoom = this._enableWaveEffect
-                ? Math.round(this._iconSize * ((this._waveMaxScale || WAVE_MAX_SCALE) - 1.0) * 0.5)
-                : 0;
-
             if (pos === 'left') {
                 if (this._autohide && this._isDockHidden) {
                     this.set_position(monitor.x, topY);
@@ -1425,8 +1193,8 @@ export const ArreraDock = GObject.registerClass(
                     this.set_position(monitor.x, monitor.y + monitor.height - 4);
                     this.set_size(monitor.width, 4);
                 } else {
-                    this.set_position(monitor.x, monitor.y + monitor.height - thickness - waveRoom);
-                    this.set_size(monitor.width, thickness + waveRoom);
+                    this.set_position(monitor.x, monitor.y + monitor.height - thickness);
+                    this.set_size(monitor.width, thickness);
                 }
             }
 
@@ -1719,8 +1487,6 @@ export const ArreraDock = GObject.registerClass(
                 GLib.source_remove(this._autohideTimeoutId);
                 this._autohideTimeoutId = 0;
             }
-
-            this._resetWaveMagnification();
 
             Main.overview.disconnectObject(this);
             const controls = Main.overview._overview?._controls;

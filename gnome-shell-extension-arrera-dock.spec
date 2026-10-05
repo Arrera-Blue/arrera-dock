@@ -25,7 +25,6 @@ flottante au design inspiré de Material 3 Expressive et d'Android 16 QPR2.
 
 Fonctionnalités :
 - Disposition dynamique et responsive (en bas, à gauche ou à droite de l'écran)
-- Effet d'agrandissement en vague au survol des icônes
 - Masquage automatique intelligent (autohide) avec bande d'activation
 - Intégration dynamique des 9 couleurs d'accentuation de GNOME
 - Prise en charge complète du clic droit (épingler/détacher du dock)

@@ -26,18 +26,7 @@ Ce document décrit en détail les clés **GSettings** du dock, leurs types, leu
 
 ---
 
-### 2. Effet de vague / Agrandissement au survol (`enable-wave-effect`)
-* **Clé** : `enable-wave-effect`
-* **Type** : `b` (Booléen / `gboolean`)
-* **Valeur par défaut** : `true`
-* **Valeurs possibles** :
-  * `true` : Les icônes s'agrandissent de manière fluide avec un effet de vague (style macOS / dock dynamique) au passage de la souris.
-  * `false` : Les icônes restent à leur taille fixe. Seul le calque d'interaction (state layer) au survol s'affiche.
-* **Widget Libadwaita recommandé** : `AdwSwitchRow`
-
----
-
-### 3. Taille des icônes du dock (`icon-size`)
+### 2. Taille des icônes du dock (`icon-size`)
 * **Clé** : `icon-size`
 * **Type** : `s` (Chaîne de caractères / `gchar*`)
 * **Valeur par défaut** : `'medium'`
@@ -52,14 +41,14 @@ Ce document décrit en détail les clés **GSettings** du dock, leurs types, leu
 
 ---
 
-### 4. Style du thème de couleur (`theme-mode`)
+### 3. Style du thème de couleur (`theme-mode`)
 * **Clé** : `theme-mode`
 * **Type** : `s` (Chaîne de caractères / `gchar*`)
 * **Valeur par défaut** : `'expressive'`
 * **Valeurs possibles** :
   * `'expressive'` : Style **Android 16 QPR2 / Material 3 Expressive**. Le conteneur du dock s'imprègne de la couleur d'accentuation choisie dans GNOME (ex: surface ambrée riche si orange).
   * `'black-outline'` : Style **Fond noir avec contour couleur**. Le conteneur du dock est noir profond (`#0c0c0f`), avec une bordure nette de 2px et un halo lumineux de la couleur d'accentuation active.
-### 5. Position du dock sur l'écran (`position`)
+### 4. Position du dock sur l'écran (`position`)
 * **Clé** : `position`
 * **Type** : `s` (Chaîne de caractères / `gchar*`)
 * **Valeur par défaut** : `'bottom'`
@@ -94,14 +83,6 @@ Ce document décrit en détail les clés **GSettings** du dock, leurs types, leu
           <object class="AdwSwitchRow" id="autohide_row">
             <property name="title" translatable="yes">Masquer automatiquement le dock</property>
             <property name="subtitle" translatable="yes">Révèle le dock quand la souris touche le bord inférieur</property>
-          </object>
-        </child>
-
-        <!-- Effet de vague -->
-        <child>
-          <object class="AdwSwitchRow" id="wave_row">
-            <property name="title" translatable="yes">Effet d'agrandissement en vague</property>
-            <property name="subtitle" translatable="yes">Agrandit les icônes au passage du pointeur</property>
           </object>
         </child>
       </object>
@@ -179,7 +160,6 @@ setup_dock_settings (AdwPreferencesPage *page, GtkBuilder *builder)
     GSettings *settings = g_settings_new ("org.gnome.shell.extensions.dock");
 
     GtkWidget *autohide_row  = GTK_WIDGET (gtk_builder_get_object (builder, "autohide_row"));
-    GtkWidget *wave_row      = GTK_WIDGET (gtk_builder_get_object (builder, "wave_row"));
     AdwComboRow *position_row = ADW_COMBO_ROW (gtk_builder_get_object (builder, "position_row"));
     AdwComboRow *size_row    = ADW_COMBO_ROW (gtk_builder_get_object (builder, "size_row"));
     AdwComboRow *theme_row   = ADW_COMBO_ROW (gtk_builder_get_object (builder, "theme_row"));
@@ -187,10 +167,6 @@ setup_dock_settings (AdwPreferencesPage *page, GtkBuilder *builder)
     /* 1. Lier les switchs booléens simples */
     g_settings_bind (settings, "autohide",
                      autohide_row, "active",
-                     G_SETTINGS_BIND_DEFAULT);
-
-    g_settings_bind (settings, "enable-wave-effect",
-                     wave_row, "active",
                      G_SETTINGS_BIND_DEFAULT);
 
     /* 2. Lier la position (Index <-> Chaîne) */
@@ -262,9 +238,6 @@ gsettings set org.gnome.shell.extensions.dock position 'bottom'
 # Modifier le masquage automatique (true / false)
 gsettings set org.gnome.shell.extensions.dock autohide true
 
-# Modifier l'effet de vague (true / false)
-gsettings set org.gnome.shell.extensions.dock enable-wave-effect false
-
 # Modifier la taille des icônes ('small' | 'medium' | 'large')
 gsettings set org.gnome.shell.extensions.dock icon-size 'large'
 
@@ -274,7 +247,6 @@ gsettings set org.gnome.shell.extensions.dock theme-mode 'black-outline'
 # Réinitialiser toutes les options à leurs valeurs par défaut
 gsettings reset org.gnome.shell.extensions.dock position
 gsettings reset org.gnome.shell.extensions.dock autohide
-gsettings reset org.gnome.shell.extensions.dock enable-wave-effect
 gsettings reset org.gnome.shell.extensions.dock icon-size
 gsettings reset org.gnome.shell.extensions.dock theme-mode
 ```

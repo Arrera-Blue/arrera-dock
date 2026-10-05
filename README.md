@@ -9,7 +9,6 @@ Il remplace le dash natif de l'aperçu par une pilule flottante au design soign�
 ## Fonctionnalités
 
 * **Disposition adaptative** : Positionnement au choix en bas (horizontal), à gauche ou à droite de l'écran (vertical).
-* **Effet de vague dynamique** : Agrandissement fluide des icônes au survol du curseur.
 * **Masquage automatique intelligent (Autohide)** : Rentre et sort avec une bande d'activation au bord de l'écran.
 * **Harmonie des couleurs** : S'accorde automatiquement avec les 9 couleurs d'accentuation officielles de GNOME.
 * **Modes de thème** :
@@ -83,7 +82,7 @@ Ce script prend en charge automatiquement :
 
 ### Structure du projet
 
-* **`dock.js`** : Cœur du dock (disposition adaptative, icônes, animations de vague, autohide intelligent, mode barre plein écran et info-bulles).
+* **`dock.js`** : Cœur du dock (disposition adaptative, icônes, autohide intelligent, mode barre plein écran et info-bulles).
 * **`extension.js`** : Point d'entrée de l'extension (`enable()` et `disable()`), intégration avec les couches GNOME Shell et l'aperçu des activités.
 * **`stylesheet.css`** : Styles visuels, thèmes (Expressif, Contour noir) et harmonie des 9 couleurs d'accentuation GNOME.
 * **`schemas/`** : Schéma GSettings de configuration (`org.gnome.shell.extensions.dock.gschema.xml`).
