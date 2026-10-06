@@ -1,306 +1,79 @@
-# Guide d'intégration GNOME Settings pour Arrera Dock
+# Configuration GSettings - Arrera Dock
 
-Ce document décrit en détail les clés **GSettings** du dock, leurs types, leurs valeurs possibles et comment les intégrer proprement dans l'application **Paramètres de GNOME** (`gnome-control-center`) sous forme de widgets **GTK4 / Libadwaita**.
-
----
-
-## 1. Informations générales du schéma GSettings
-
-* **ID du schéma** : `org.gnome.shell.extensions.dock`
-* **Chemin (path)** : `/org/gnome/shell/extensions/dock/`
-* **Fichier source XML** : `schemas/org.gnome.shell.extensions.dock.gschema.xml`
-* **Installation système** : `/usr/share/glib-2.0/schemas/` ou `~/.local/share/glib-2.0/schemas/`
+* **Schéma** : `org.gnome.shell.extensions.dock`
+* **Chemin** : `/org/gnome/shell/extensions/dock/`
 
 ---
 
-## 2. Référence complète des paramètres
-
-### 1. Masquage automatique du dock (`autohide`)
-* **Clé** : `autohide`
-* **Type** : `b` (Booléen / `gboolean`)
-* **Valeur par défaut** : `false`
+### `autohide` (booléen)
+* **Description** : Masque automatiquement le dock quand il n'est pas survolé ou quand une fenêtre le chevauche.
 * **Valeurs possibles** :
-  * `false` : Le dock est fixé de façon permanente en bas de l'écran et réserve son espace (`affectsStruts = true`). Les fenêtres maximisées s'arrêtent au-dessus du dock.
-  * `true` : Le dock se masque automatiquement dès que la souris quitte la zone ou lorsqu'une fenêtre est active. Il glisse vers le bas et laisse les fenêtres occuper tout l'écran. Il réapparaît immédiatement dès que le pointeur touche le bord inférieur de l'écran.
-* **Widget Libadwaita recommandé** : `AdwSwitchRow`
+  * `false` *(défaut)* : Dock toujours visible.
+  * `true` : Dock masqué automatiquement.
 
 ---
 
-### 2. Taille des icônes du dock (`icon-size`)
-* **Clé** : `icon-size`
-* **Type** : `s` (Chaîne de caractères / `gchar*`)
-* **Valeur par défaut** : `'medium'`
+### `extend-on-maximize` (booléen)
+* **Description** : Transforme le dock en barre pleine largeur (ou pleine hauteur) si une fenêtre est maximisée ou en plein écran.
 * **Valeurs possibles** :
-  * `'small'` : Format compact (icônes de **28px**, hauteur totale du dock de **46px**). Idéal pour petits écrans.
-  * `'medium'` : Format standard actuel (icônes de **36px**, hauteur totale de **56px**).
-  * `'large'` : Grand format bien visible (icônes de **48px**, hauteur totale de **72px**).
-* **Widget Libadwaita recommandé** : `AdwComboRow` avec un modèle de chaînes (`GtkStringList`) contenant :
-  1. Petit (28 px)
-  2. Moyen (36 px)
-  3. Grand (48 px)
+  * `true` *(défaut)* : S'étend en barre si une fenêtre est maximisée.
+  * `false` : Reste en pilule flottante.
 
 ---
 
-### 3. Style du thème de couleur (`theme-mode`)
-* **Clé** : `theme-mode`
-* **Type** : `s` (Chaîne de caractères / `gchar*`)
-* **Valeur par défaut** : `'expressive'`
+### `always-bar-mode` (booléen)
+* **Description** : Force le dock à rester en mode barre pleine largeur (ou pleine hauteur) en permanence.
 * **Valeurs possibles** :
-  * `'expressive'` : Style **Android 16 QPR2 / Material 3 Expressive**. Le conteneur du dock s'imprègne de la couleur d'accentuation choisie dans GNOME (ex: surface ambrée riche si orange).
-  * `'black-outline'` : Style **Fond noir avec contour couleur**. Le conteneur du dock est noir profond (`#0c0c0f`), avec une bordure nette de 2px et un halo lumineux de la couleur d'accentuation active.
-  * `'vanilla-gnome'` : Style **Vanilla GNOME / Dash standard**. Même couleur grise (`#38383b`), sans bordure de couleur, avec points d'application blancs discrets, identique au dash natif de GNOME Shell.
-### 4. Position du dock sur l'écran (`position`)
-* **Clé** : `position`
-* **Type** : `s` (Chaîne de caractères / `gchar*`)
-* **Valeur par défaut** : `'bottom'`
+  * `false` *(défaut)* : Mode pilule flottante.
+  * `true` : Mode barre permanent.
+
+---
+
+### `bar-icons-alignment` (chaîne)
+* **Description** : Position des icônes lorsque le dock est en mode barre.
 * **Valeurs possibles** :
-  * `'bottom'` : Le dock est positionné horizontalement en bas de l'écran (standard).
-  * `'left'` : Le dock pivote à la verticale et se place le long du bord gauche de l'écran.
-  * `'right'` : Le dock pivote à la verticale et se place le long du bord droit de l'écran.
-* **Widget Libadwaita recommandé** : `AdwComboRow` avec un modèle de chaînes (`GtkStringList`) contenant :
-  1. En bas
-  2. À gauche
-  3. À droite
+  * `'center'` *(défaut)* : Icônes centrées.
+  * `'left'` : Icônes alignées à gauche (ou en haut si vertical).
 
 ---
 
-### 5. Mode barre permanente (`always-bar-mode`)
-* **Clé** : `always-bar-mode`
-* **Type** : `b` (Booléen / `gboolean`)
-* **Valeur par défaut** : `false`
+### `icon-size` (chaîne)
+* **Description** : Taille des icônes d'application dans le dock.
 * **Valeurs possibles** :
-  * `false` : Le dock conserve sa forme de pilule flottante normale (sauf si `extend-on-maximize` est activé et qu'une fenêtre est maximisée).
-  * `true` : Le dock est forcé en permanence en mode barre pleine largeur (ou pleine hauteur si à gauche/droite).
-* **Widget Libadwaita recommandé** : `AdwSwitchRow`
+  * `'small'` : Petit (icônes 28px).
+  * `'medium'` *(défaut)* : Moyen (icônes 36px).
+  * `'large'` : Grand (icônes 48px).
 
 ---
 
-### 6. Alignement des icônes en mode barre (`bar-icons-alignment`)
-* **Clé** : `bar-icons-alignment`
-* **Type** : `s` (Chaîne de caractères / `gchar*`)
-* **Valeur par défaut** : `'center'`
+### `theme-mode` (chaîne)
+* **Description** : Style visuel et couleur du dock.
 * **Valeurs possibles** :
-  * `'center'` : Les icônes et le bouton d'applications sont centrés au milieu de la barre.
-  * `'left'` : Les icônes et le bouton d'applications sont calés sur la gauche (ou en haut si position verticale).
-* **Widget Libadwaita recommandé** : `AdwComboRow` avec un modèle de chaînes (`GtkStringList`) contenant :
-  1. Centré
-  2. À gauche
+  * `'expressive'` *(défaut)* : Fond teinté selon la couleur d'accentuation active de GNOME (Material 3 Expressive).
+  * `'black-outline'` : Fond noir profond avec bordure de la couleur d'accentuation.
+  * `'vanilla-gnome'` : Fond gris sombre (`#38383b`) sans bordure, identique au dock natif GNOME.
 
 ---
 
-## 3. Exemple d'implémentation dans GNOME Settings (C / GTK4)
-
-### Interface utilisateur en Blueprint (`.blp`) ou GTK UI (`.ui`)
-
-```xml
-<interface>
-  <object class="AdwPreferencesPage" id="dock_page">
-    <property name="title" translatable="yes">Dock</property>
-    <property name="icon-name">view-app-grid-symbolic</property>
-
-    <!-- Groupe 1 : Comportement -->
-    <child>
-      <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Comportement</property>
-
-        <!-- Masquage automatique -->
-        <child>
-          <object class="AdwSwitchRow" id="autohide_row">
-            <property name="title" translatable="yes">Masquer automatiquement le dock</property>
-            <property name="subtitle" translatable="yes">Révèle le dock quand la souris touche le bord inférieur</property>
-          </object>
-        </child>
-
-        <!-- Mode barre permanente -->
-        <child>
-          <object class="AdwSwitchRow" id="always_bar_mode_row">
-            <property name="title" translatable="yes">Mode barre permanente</property>
-            <property name="subtitle" translatable="yes">Transforme le dock en barre pleine largeur/hauteur en permanence</property>
-          </object>
-        </child>
-
-        <!-- Alignement des icônes en mode barre -->
-        <child>
-          <object class="AdwComboRow" id="bar_icons_alignment_row">
-            <property name="title" translatable="yes">Alignement des icônes (mode barre)</property>
-            <property name="model">
-              <object class="GtkStringList">
-                <items>
-                  <item translatable="yes">Centré</item>
-                  <item translatable="yes">À gauche</item>
-                </items>
-              </object>
-            </property>
-          </object>
-        </child>
-      </object>
-    </child>
-
-    <!-- Groupe 2 : Apparence -->
-    <child>
-      <object class="AdwPreferencesGroup">
-        <property name="title" translatable="yes">Apparence</property>
-
-        <!-- Position du dock à l'écran -->
-        <child>
-          <object class="AdwComboRow" id="position_row">
-            <property name="title" translatable="yes">Position à l'écran</property>
-            <property name="model">
-              <object class="GtkStringList">
-                <items>
-                  <item translatable="yes">En bas</item>
-                  <item translatable="yes">À gauche</item>
-                  <item translatable="yes">À droite</item>
-                </items>
-              </object>
-            </property>
-          </object>
-        </child>
-
-        <!-- Taille des icônes -->
-        <child>
-          <object class="AdwComboRow" id="size_row">
-            <property name="title" translatable="yes">Taille des icônes</property>
-            <property name="model">
-              <object class="GtkStringList">
-                <items>
-                  <item translatable="yes">Petite (28 px)</item>
-                  <item translatable="yes">Moyenne (36 px)</item>
-                  <item translatable="yes">Grande (48 px)</item>
-                </items>
-              </object>
-            </property>
-          </object>
-        </child>
-
-        <!-- Thème visuel -->
-        <child>
-          <object class="AdwComboRow" id="theme_row">
-            <property name="title" translatable="yes">Style visuel</property>
-            <property name="model">
-              <object class="GtkStringList">
-                <items>
-                  <item translatable="yes">Matériel Expressif (fond teinté)</item>
-                  <item translatable="yes">Noir avec contour coloré</item>
-                </items>
-              </object>
-            </property>
-          </object>
-        </child>
-      </object>
-    </child>
-
-  </object>
-</interface>
-```
+### `position` (chaîne)
+* **Description** : Position du dock sur l'écran.
+* **Valeurs possibles** :
+  * `'bottom'` *(défaut)* : En bas de l'écran (horizontal).
+  * `'left'` : À gauche de l'écran (vertical).
+  * `'right'` : À droite de l'écran (vertical).
 
 ---
 
-### Code C pour `gnome-control-center`
-
-```c
-#include <adwaita.h>
-#include <gio/gio.h>
-
-static void
-setup_dock_settings (AdwPreferencesPage *page, GtkBuilder *builder)
-{
-    GSettings *settings = g_settings_new ("org.gnome.shell.extensions.dock");
-
-    GtkWidget *autohide_row  = GTK_WIDGET (gtk_builder_get_object (builder, "autohide_row"));
-    AdwComboRow *position_row = ADW_COMBO_ROW (gtk_builder_get_object (builder, "position_row"));
-    AdwComboRow *size_row    = ADW_COMBO_ROW (gtk_builder_get_object (builder, "size_row"));
-    AdwComboRow *theme_row   = ADW_COMBO_ROW (gtk_builder_get_object (builder, "theme_row"));
-
-    /* 1. Lier les switchs booléens simples */
-    g_settings_bind (settings, "autohide",
-                     autohide_row, "active",
-                     G_SETTINGS_BIND_DEFAULT);
-
-    /* 2. Lier la position (Index <-> Chaîne) */
-    /* Valeurs : 0 = "bottom", 1 = "left", 2 = "right" */
-    const gchar *current_pos = g_settings_get_string (settings, "position");
-    if (g_strcmp0 (current_pos, "left") == 0)
-        adw_combo_row_set_selected (position_row, 1);
-    else if (g_strcmp0 (current_pos, "right") == 0)
-        adw_combo_row_set_selected (position_row, 2);
-    else
-        adw_combo_row_set_selected (position_row, 0);
-
-    g_signal_connect_swapped (position_row, "notify::selected",
-        G_CALLBACK (+[](GSettings *s, AdwComboRow *row) {
-            guint sel = adw_combo_row_get_selected (row);
-            const gchar *val = (sel == 1) ? "left" : (sel == 2 ? "right" : "bottom");
-            g_settings_set_string (s, "position", val);
-        }), settings);
-
-    /* 3. Lier la taille des icônes (Index <-> Chaîne) */
-    /* Valeurs : 0 = "small", 1 = "medium", 2 = "large" */
-    const gchar *current_size = g_settings_get_string (settings, "icon-size");
-    if (g_strcmp0 (current_size, "small") == 0)
-        adw_combo_row_set_selected (size_row, 0);
-    else if (g_strcmp0 (current_size, "large") == 0)
-        adw_combo_row_set_selected (size_row, 2);
-    else
-        adw_combo_row_set_selected (size_row, 1);
-
-    g_signal_connect_swapped (size_row, "notify::selected",
-        G_CALLBACK (+[](GSettings *s, AdwComboRow *row) {
-            guint sel = adw_combo_row_get_selected (row);
-            const gchar *val = (sel == 0) ? "small" : (sel == 2 ? "large" : "medium");
-            g_settings_set_string (s, "icon-size", val);
-        }), settings);
-
-    /* 4. Lier le thème (Index <-> Chaîne) */
-    /* Valeurs : 0 = "expressive", 1 = "black-outline" */
-    const gchar *current_theme = g_settings_get_string (settings, "theme-mode");
-    if (g_strcmp0 (current_theme, "black-outline") == 0)
-        adw_combo_row_set_selected (theme_row, 1);
-    else
-        adw_combo_row_set_selected (theme_row, 0);
-
-    g_signal_connect_swapped (theme_row, "notify::selected",
-        G_CALLBACK (+[](GSettings *s, AdwComboRow *row) {
-            guint sel = adw_combo_row_get_selected (row);
-            const gchar *val = (sel == 1) ? "black-outline" : "expressive";
-            g_settings_set_string (s, "theme-mode", val);
-        }), settings);
-}
-```
+### `show-quick-settings` (booléen)
+* **Description** : Intègre les paramètres rapides (Wi-Fi, volume, batterie, etc.) directement dans le dock.
+* **Valeurs possibles** :
+  * `false` *(défaut)* : Reste dans la barre supérieure.
+  * `true` : Déplacé dans le dock.
 
 ---
 
-## 4. Commandes de test et de débogage (CLI)
-
-Pour vérifier l'état ou modifier manuellement les réglages depuis un terminal :
-
-```bash
-# Consulter toutes les valeurs actuelles
-gsettings list-recursively org.gnome.shell.extensions.dock
-
-# Modifier la position ('bottom' | 'left' | 'right')
-gsettings set org.gnome.shell.extensions.dock position 'left'
-gsettings set org.gnome.shell.extensions.dock position 'right'
-gsettings set org.gnome.shell.extensions.dock position 'bottom'
-
-# Modifier le masquage automatique (true / false)
-gsettings set org.gnome.shell.extensions.dock autohide true
-
-# Activer le mode barre permanente (true / false)
-gsettings set org.gnome.shell.extensions.dock always-bar-mode true
-
-# Modifier l'alignement des icônes en mode barre ('center' | 'left')
-gsettings set org.gnome.shell.extensions.dock bar-icons-alignment 'left'
-
-# Modifier la taille des icônes ('small' | 'medium' | 'large')
-gsettings set org.gnome.shell.extensions.dock icon-size 'large'
-
-# Modifier le thème ('expressive' | 'black-outline')
-gsettings set org.gnome.shell.extensions.dock theme-mode 'black-outline'
-
-# Réinitialiser toutes les options à leurs valeurs par défaut
-gsettings reset org.gnome.shell.extensions.dock position
-gsettings reset org.gnome.shell.extensions.dock autohide
-gsettings reset org.gnome.shell.extensions.dock icon-size
-gsettings reset org.gnome.shell.extensions.dock theme-mode
-```
+### `show-date-menu` (booléen)
+* **Description** : Intègre la date, l'horloge et le calendrier directement dans le dock.
+* **Valeurs possibles** :
+  * `false` *(défaut)* : Reste dans la barre supérieure.
+  * `true` : Déplacé dans le dock.
