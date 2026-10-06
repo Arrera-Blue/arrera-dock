@@ -20,7 +20,7 @@
     background-color: st-mix(-st-accent-color, rgba(20, 20, 24, 0.90), 38%);
     border: 1.5px solid st-transparentize(-st-accent-color, 0.40);
     border-radius: 36px;
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 24px st-transparentize(-st-accent-color, 0.65);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55);
     padding: 5px 16px;
     margin-bottom: 0;
     spacing: 10px;
@@ -32,19 +32,40 @@
 }
 
 /* Individual application icon button - Material 3 State Layer */
-.dock-app-icon {
-    padding: 4px 6px;
+.dock-app-icon,
+.dock-app-icon:focus,
+.dock-app-icon:focused {
+    padding: 3px 6px;
     border-radius: 20px;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
     transition-duration: 200ms;
 }
 
-.dock-app-icon:hover {
+.dock-app-icon:hover,
+.dock-app-icon:focus:hover,
+.dock-app-icon:focused:hover {
     background-color: st-transparentize(-st-accent-color, 0.80);
     box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.60);
 }
 
-.dock-app-icon:active {
+.dock-app-icon:active,
+.dock-app-icon:focus:active,
+.dock-app-icon:focused:active {
     background-color: st-transparentize(-st-accent-color, 0.65);
+}
+
+.dock-app-icon .overview-icon {
+    padding: 0;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+}
+
+.dock-app-icon-content {
+    spacing: 2px;
 }
 
 /* Running indicator dot (underneath icon) - Material 3 Capsule */
@@ -53,7 +74,7 @@
     height: 3.5px;
     background-color: rgba(255, 255, 255, 0.60);
     border-radius: 2px;
-    margin-bottom: 1px;
+    margin: 0;
     transition-duration: 220ms;
 }
 
@@ -64,6 +85,7 @@
     background-color: -st-accent-color;
     border-radius: 2px;
     box-shadow: 0 0 12px -st-accent-color;
+    margin: 0;
 }
 
 /* Android 16 Expressive vertical separator */
@@ -77,7 +99,7 @@
 
 /* Show applications launcher button */
 .show-apps-button {
-    padding: 4px 6px;
+    padding: 3px 6px;
     border-radius: 20px;
     background-color: transparent;
     border: none;
@@ -119,7 +141,7 @@
 .accent-orange.arrera-dock {
     background-color: rgba(92, 38, 8, 0.88);
     border-color: rgba(255, 140, 60, 0.48);
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(237, 91, 0, 0.38);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55);
 }
 
 .accent-orange .dock-app-icon:hover {
@@ -164,7 +186,7 @@
 .accent-blue.arrera-dock {
     background-color: rgba(18, 48, 92, 0.88);
     border-color: rgba(100, 175, 255, 0.48);
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(53, 132, 228, 0.38);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55);
 }
 
 .accent-blue .dock-app-icon:hover {
@@ -209,7 +231,7 @@
 .accent-teal.arrera-dock {
     background-color: rgba(12, 54, 64, 0.88);
     border-color: rgba(70, 195, 220, 0.48);
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(33, 144, 164, 0.38);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55);
 }
 
 .accent-teal .dock-app-icon:hover {
@@ -254,7 +276,7 @@
 .accent-green.arrera-dock {
     background-color: rgba(18, 56, 26, 0.88);
     border-color: rgba(105, 210, 125, 0.48);
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(58, 148, 74, 0.38);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55);
 }
 
 .accent-green .dock-app-icon:hover {
@@ -299,7 +321,7 @@
 .accent-yellow.arrera-dock {
     background-color: rgba(82, 58, 8, 0.88);
     border-color: rgba(250, 195, 55, 0.48);
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(200, 136, 0, 0.38);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55);
 }
 
 .accent-yellow .dock-app-icon:hover {
@@ -344,7 +366,7 @@
 .accent-red.arrera-dock {
     background-color: rgba(96, 18, 28, 0.88);
     border-color: rgba(255, 105, 125, 0.48);
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(230, 45, 66, 0.38);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55);
 }
 
 .accent-red .dock-app-icon:hover {
@@ -389,7 +411,7 @@
 .accent-pink.arrera-dock {
     background-color: rgba(88, 28, 62, 0.88);
     border-color: rgba(250, 135, 195, 0.48);
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(213, 97, 153, 0.38);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55);
 }
 
 .accent-pink .dock-app-icon:hover {
@@ -434,7 +456,7 @@
 .accent-purple.arrera-dock {
     background-color: rgba(64, 24, 80, 0.88);
     border-color: rgba(195, 110, 235, 0.48);
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(145, 65, 172, 0.38);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55);
 }
 
 .accent-purple .dock-app-icon:hover {
@@ -479,7 +501,7 @@
 .accent-slate.arrera-dock {
     background-color: rgba(45, 56, 68, 0.88);
     border-color: rgba(160, 185, 205, 0.48);
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55), 0 0 28px rgba(111, 131, 150, 0.38);
+    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55);
 }
 
 .accent-slate .dock-app-icon:hover {
@@ -537,7 +559,7 @@
 }
 
 .size-small .dock-app-icon {
-    padding: 2px 4px 7px 4px;
+    padding: 2px 4px;
     border-radius: 14px;
 }
 
@@ -572,7 +594,7 @@
 }
 
 .size-medium .dock-app-icon {
-    padding: 4px 6px 9px 6px;
+    padding: 3px 6px;
     border-radius: 20px;
 }
 
@@ -581,7 +603,7 @@
 }
 
 .size-medium .show-apps-button {
-    padding: 4px 6px;
+    padding: 3px 6px;
     border-radius: 20px;
 }
 
@@ -607,7 +629,7 @@
 }
 
 .size-large .dock-app-icon {
-    padding: 6px 8px 12px 8px;
+    padding: 4px 8px;
     border-radius: 24px;
 }
 
@@ -616,7 +638,7 @@
 }
 
 .size-large .show-apps-button {
-    padding: 6px 8px;
+    padding: 4px 8px;
     border-radius: 24px;
 }
 
@@ -637,10 +659,12 @@
 .theme-black-outline.arrera-dock {
     background-color: rgba(10, 10, 14, 0.95);
     border: 2px solid -st-accent-color;
-    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 22px st-transparentize(-st-accent-color, 0.55);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75);
 }
 
-.theme-black-outline .dock-app-icon:hover {
+.theme-black-outline .dock-app-icon:hover,
+.theme-black-outline .dock-app-icon:focus:hover,
+.theme-black-outline .dock-app-icon:focused:hover {
     background-color: rgba(255, 255, 255, 0.12);
     box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.60);
 }
@@ -658,10 +682,12 @@
 .theme-black-outline.accent-orange.arrera-dock {
     background-color: rgba(12, 12, 15, 0.95);
     border: 2px solid #ed5b00;
-    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(237, 91, 0, 0.50);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75);
 }
 
-.theme-black-outline.accent-orange .dock-app-icon:hover {
+.theme-black-outline.accent-orange .dock-app-icon:hover,
+.theme-black-outline.accent-orange .dock-app-icon:focus:hover,
+.theme-black-outline.accent-orange .dock-app-icon:focused:hover {
     background-color: rgba(237, 91, 0, 0.18);
     box-shadow: inset 0 0 0 1px rgba(237, 91, 0, 0.50);
 }
@@ -670,10 +696,12 @@
 .theme-black-outline.accent-blue.arrera-dock {
     background-color: rgba(12, 12, 15, 0.95);
     border: 2px solid #3584e4;
-    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(53, 132, 228, 0.50);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75);
 }
 
-.theme-black-outline.accent-blue .dock-app-icon:hover {
+.theme-black-outline.accent-blue .dock-app-icon:hover,
+.theme-black-outline.accent-blue .dock-app-icon:focus:hover,
+.theme-black-outline.accent-blue .dock-app-icon:focused:hover {
     background-color: rgba(53, 132, 228, 0.18);
     box-shadow: inset 0 0 0 1px rgba(53, 132, 228, 0.50);
 }
@@ -682,10 +710,12 @@
 .theme-black-outline.accent-teal.arrera-dock {
     background-color: rgba(12, 12, 15, 0.95);
     border: 2px solid #2190a4;
-    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(33, 144, 164, 0.50);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75);
 }
 
-.theme-black-outline.accent-teal .dock-app-icon:hover {
+.theme-black-outline.accent-teal .dock-app-icon:hover,
+.theme-black-outline.accent-teal .dock-app-icon:focus:hover,
+.theme-black-outline.accent-teal .dock-app-icon:focused:hover {
     background-color: rgba(33, 144, 164, 0.18);
     box-shadow: inset 0 0 0 1px rgba(33, 144, 164, 0.50);
 }
@@ -694,10 +724,12 @@
 .theme-black-outline.accent-green.arrera-dock {
     background-color: rgba(12, 12, 15, 0.95);
     border: 2px solid #3a944a;
-    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(58, 148, 74, 0.50);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75);
 }
 
-.theme-black-outline.accent-green .dock-app-icon:hover {
+.theme-black-outline.accent-green .dock-app-icon:hover,
+.theme-black-outline.accent-green .dock-app-icon:focus:hover,
+.theme-black-outline.accent-green .dock-app-icon:focused:hover {
     background-color: rgba(58, 148, 74, 0.18);
     box-shadow: inset 0 0 0 1px rgba(58, 148, 74, 0.50);
 }
@@ -706,10 +738,12 @@
 .theme-black-outline.accent-yellow.arrera-dock {
     background-color: rgba(12, 12, 15, 0.95);
     border: 2px solid #c88800;
-    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(200, 136, 0, 0.50);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75);
 }
 
-.theme-black-outline.accent-yellow .dock-app-icon:hover {
+.theme-black-outline.accent-yellow .dock-app-icon:hover,
+.theme-black-outline.accent-yellow .dock-app-icon:focus:hover,
+.theme-black-outline.accent-yellow .dock-app-icon:focused:hover {
     background-color: rgba(200, 136, 0, 0.18);
     box-shadow: inset 0 0 0 1px rgba(200, 136, 0, 0.50);
 }
@@ -718,10 +752,12 @@
 .theme-black-outline.accent-red.arrera-dock {
     background-color: rgba(12, 12, 15, 0.95);
     border: 2px solid #e62d42;
-    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(230, 45, 66, 0.50);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75);
 }
 
-.theme-black-outline.accent-red .dock-app-icon:hover {
+.theme-black-outline.accent-red .dock-app-icon:hover,
+.theme-black-outline.accent-red .dock-app-icon:focus:hover,
+.theme-black-outline.accent-red .dock-app-icon:focused:hover {
     background-color: rgba(230, 45, 66, 0.18);
     box-shadow: inset 0 0 0 1px rgba(230, 45, 66, 0.50);
 }
@@ -730,10 +766,12 @@
 .theme-black-outline.accent-pink.arrera-dock {
     background-color: rgba(12, 12, 15, 0.95);
     border: 2px solid #d56199;
-    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(213, 97, 153, 0.50);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75);
 }
 
-.theme-black-outline.accent-pink .dock-app-icon:hover {
+.theme-black-outline.accent-pink .dock-app-icon:hover,
+.theme-black-outline.accent-pink .dock-app-icon:focus:hover,
+.theme-black-outline.accent-pink .dock-app-icon:focused:hover {
     background-color: rgba(213, 97, 153, 0.18);
     box-shadow: inset 0 0 0 1px rgba(213, 97, 153, 0.50);
 }
@@ -742,10 +780,12 @@
 .theme-black-outline.accent-purple.arrera-dock {
     background-color: rgba(12, 12, 15, 0.95);
     border: 2px solid #9141ac;
-    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(145, 65, 172, 0.50);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75);
 }
 
-.theme-black-outline.accent-purple .dock-app-icon:hover {
+.theme-black-outline.accent-purple .dock-app-icon:hover,
+.theme-black-outline.accent-purple .dock-app-icon:focus:hover,
+.theme-black-outline.accent-purple .dock-app-icon:focused:hover {
     background-color: rgba(145, 65, 172, 0.18);
     box-shadow: inset 0 0 0 1px rgba(145, 65, 172, 0.50);
 }
@@ -754,10 +794,12 @@
 .theme-black-outline.accent-slate.arrera-dock {
     background-color: rgba(12, 12, 15, 0.95);
     border: 2px solid #6f8396;
-    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75), 0 0 24px rgba(111, 131, 150, 0.50);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, 0.75);
 }
 
-.theme-black-outline.accent-slate .dock-app-icon:hover {
+.theme-black-outline.accent-slate .dock-app-icon:hover,
+.theme-black-outline.accent-slate .dock-app-icon:focus:hover,
+.theme-black-outline.accent-slate .dock-app-icon:focused:hover {
     background-color: rgba(111, 131, 150, 0.18);
     box-shadow: inset 0 0 0 1px rgba(111, 131, 150, 0.50);
 }
@@ -781,38 +823,22 @@
 
 .position-bottom .dock-app-icon,
 .dock-app-icon.position-bottom {
-    padding: 4px 6px 9px 6px;
+    padding: 3px 6px;
 }
 
 .position-bottom .show-apps-button,
 .show-apps-button.position-bottom {
-    padding: 4px 6px;
-}
-
-.position-bottom .dock-app-icon .app-grid-running-dot,
-.dock-app-icon.position-bottom .app-grid-running-dot {
-    offset-y: 8.5px;
-    margin-bottom: 0px;
+    padding: 3px 6px;
 }
 
 .position-bottom.size-small .dock-app-icon,
 .size-small .dock-app-icon.position-bottom {
-    padding: 2px 4px 7px 4px;
-}
-
-.position-bottom.size-small .dock-app-icon .app-grid-running-dot,
-.size-small .dock-app-icon.position-bottom .app-grid-running-dot {
-    offset-y: 6.5px;
+    padding: 2px 4px;
 }
 
 .position-bottom.size-large .dock-app-icon,
 .size-large .dock-app-icon.position-bottom {
-    padding: 6px 8px 12px 8px;
-}
-
-.position-bottom.size-large .dock-app-icon .app-grid-running-dot,
-.size-large .dock-app-icon.position-bottom .app-grid-running-dot {
-    offset-y: 11px;
+    padding: 4px 8px;
 }
 
 /* Left Position */
@@ -830,12 +856,12 @@
 
 .position-left .dock-app-icon,
 .dock-app-icon.position-left {
-    padding: 6px 4px 6px 10px;
+    padding: 4px 5px;
 }
 
 .position-left .show-apps-button,
 .show-apps-button.position-left {
-    padding: 6px 4px 6px 10px;
+    padding: 4px 5px;
 }
 
 .position-left .dock-app-icon .app-grid-running-dot,
@@ -843,18 +869,14 @@
     width: 3.5px;
     height: 8px;
     border-radius: 2px;
-    offset-x: 8.5px;
-    offset-y: 0px;
     margin: 0px;
 }
 
 .position-left .dock-app-icon .app-grid-running-dot.focused,
 .dock-app-icon.position-left .app-grid-running-dot.focused {
     width: 4px;
-    height: 18px;
+    height: 22px;
     border-radius: 2px;
-    offset-x: 8.5px;
-    offset-y: 0px;
     margin: 0px;
 }
 
@@ -873,12 +895,12 @@
 
 .position-right .dock-app-icon,
 .dock-app-icon.position-right {
-    padding: 6px 10px 6px 4px;
+    padding: 4px 5px;
 }
 
 .position-right .show-apps-button,
 .show-apps-button.position-right {
-    padding: 6px 10px 6px 4px;
+    padding: 4px 5px;
 }
 
 .position-right .dock-app-icon .app-grid-running-dot,
@@ -886,18 +908,14 @@
     width: 3.5px;
     height: 8px;
     border-radius: 2px;
-    offset-x: 8.5px;
-    offset-y: 0px;
     margin: 0px;
 }
 
 .position-right .dock-app-icon .app-grid-running-dot.focused,
 .dock-app-icon.position-right .app-grid-running-dot.focused {
     width: 4px;
-    height: 18px;
+    height: 22px;
     border-radius: 2px;
-    offset-x: 8.5px;
-    offset-y: 0px;
     margin: 0px;
 }
 
@@ -917,14 +935,14 @@
 .position-left.size-small .show-apps-button,
 .size-small .dock-app-icon.position-left,
 .size-small .show-apps-button.position-left {
-    padding: 4px 3px 4px 7.5px;
+    padding: 3px 4px;
 }
 
 .position-right.size-small .dock-app-icon,
 .position-right.size-small .show-apps-button,
 .size-small .dock-app-icon.position-right,
 .size-small .show-apps-button.position-right {
-    padding: 4px 7.5px 4px 3px;
+    padding: 3px 4px;
 }
 
 .position-left.size-small .dock-app-icon .app-grid-running-dot,
@@ -934,8 +952,6 @@
     width: 3px;
     height: 6px;
     border-radius: 1.5px;
-    offset-x: 6.5px;
-    offset-y: 0px;
     margin: 0px;
 }
 
@@ -944,10 +960,8 @@
 .size-small .dock-app-icon.position-left .app-grid-running-dot.focused,
 .size-small .dock-app-icon.position-right .app-grid-running-dot.focused {
     width: 3.5px;
-    height: 12px;
+    height: 16px;
     border-radius: 1.5px;
-    offset-x: 6.5px;
-    offset-y: 0px;
     margin: 0px;
 }
 
@@ -967,14 +981,14 @@
 .position-left.size-medium .show-apps-button,
 .size-medium .dock-app-icon.position-left,
 .size-medium .show-apps-button.position-left {
-    padding: 6px 4px 6px 10px;
+    padding: 4px 5px;
 }
 
 .position-right.size-medium .dock-app-icon,
 .position-right.size-medium .show-apps-button,
 .size-medium .dock-app-icon.position-right,
 .size-medium .show-apps-button.position-right {
-    padding: 6px 10px 6px 4px;
+    padding: 4px 5px;
 }
 
 .position-left.size-medium .dock-app-icon .app-grid-running-dot,
@@ -984,8 +998,6 @@
     width: 3.5px;
     height: 8px;
     border-radius: 2px;
-    offset-x: 8.5px;
-    offset-y: 0px;
     margin: 0px;
 }
 
@@ -994,10 +1006,8 @@
 .size-medium .dock-app-icon.position-left .app-grid-running-dot.focused,
 .size-medium .dock-app-icon.position-right .app-grid-running-dot.focused {
     width: 4px;
-    height: 18px;
+    height: 22px;
     border-radius: 2px;
-    offset-x: 8.5px;
-    offset-y: 0px;
     margin: 0px;
 }
 
@@ -1017,14 +1027,14 @@
 .position-left.size-large .show-apps-button,
 .size-large .dock-app-icon.position-left,
 .size-large .show-apps-button.position-left {
-    padding: 8px 6px 8px 13px;
+    padding: 6px 7px;
 }
 
 .position-right.size-large .dock-app-icon,
 .position-right.size-large .show-apps-button,
 .size-large .dock-app-icon.position-right,
 .size-large .show-apps-button.position-right {
-    padding: 8px 13px 8px 6px;
+    padding: 6px 7px;
 }
 
 .position-left.size-large .dock-app-icon .app-grid-running-dot,
@@ -1034,8 +1044,6 @@
     width: 4px;
     height: 10px;
     border-radius: 2px;
-    offset-x: 10.5px;
-    offset-y: 0px;
     margin: 0px;
 }
 
@@ -1044,10 +1052,8 @@
 .size-large .dock-app-icon.position-left .app-grid-running-dot.focused,
 .size-large .dock-app-icon.position-right .app-grid-running-dot.focused {
     width: 5px;
-    height: 24px;
+    height: 26px;
     border-radius: 2.5px;
-    offset-x: 10.5px;
-    offset-y: 0px;
     margin: 0px;
 }
 

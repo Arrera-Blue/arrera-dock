@@ -53,11 +53,36 @@ export const DockAppIcon = GObject.registerClass(
             this._iconSize = iconSize;
             this.icon.setIconSize(iconSize);
             this.label_actor = null;
+
+            // Remove overview-tile and overview-icon to prevent GNOME Shell's overview focus ring and padding from applying
+            this.remove_style_class_name('overview-tile');
+            if (this.icon) {
+                this.icon.remove_style_class_name('overview-icon');
+                this.icon.remove_style_class_name('overview-icon-with-label');
+            }
+
             this.add_style_class_name('dock-app-icon');
             this._tooltip = null;
             const sizeName = this._dock?._sizeName || (iconSize <= 28 ? 'small' : (iconSize >= 48 ? 'large' : 'medium'));
             this.add_style_class_name(`size-${sizeName}`);
+
+            // Unparent _dot from _iconContainer so it is not superimposed on top of the icon texture
+            if (this._dot && this._iconContainer && this._dot.get_parent() === this._iconContainer) {
+                this._iconContainer.remove_child(this._dot);
+            }
+
+            // Create dedicated BoxLayout container for clean, adjacent layout of icon and indicator
+            this._contentBox = new St.BoxLayout({
+                style_class: 'dock-app-icon-content',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+                x_expand: true,
+                y_expand: true,
+            });
+            this.set_child(this._contentBox);
+
             this.updatePositionStyle(this._dock?._position || 'bottom');
+
             this.set_x_expand(false);
             this.set_y_expand(false);
             if (this._iconContainer) {
@@ -67,6 +92,7 @@ export const DockAppIcon = GObject.registerClass(
             if (this._dot) {
                 this._dot.set_x_expand(false);
                 this._dot.set_y_expand(false);
+                this._dot.show();
             }
             if (this.icon) {
                 this.icon.set_x_expand(false);
@@ -76,6 +102,8 @@ export const DockAppIcon = GObject.registerClass(
                     this.icon._box.set_y_expand(false);
                 }
             }
+
+            this._updateRunningStyle();
 
             this.connect('notify::hover', () => {
                 if (this.hover && (!this._menu || !this._menu.isOpen)) {
@@ -154,25 +182,26 @@ export const DockAppIcon = GObject.registerClass(
             }
         }
 
+        _updateRunningStyle() {
+            if (!this._dot || !this.app)
+                return;
+
+            const isRunning = this.app.state !== Shell.AppState.STOPPED;
+            this._dot.opacity = isRunning ? 255 : 0;
+            if (isRunning)
+                this.add_style_pseudo_class('running');
+            else
+                this.remove_style_pseudo_class('running');
+        }
+
         _updateDotStyle() {
             if (!this._dot)
                 return;
 
-            const pos = this._dock?._position || 'bottom';
-            if (pos === 'left' || pos === 'right') {
-                this._dot.translation_y = 0;
-                const defaultShift = this._iconSize <= 28 ? 6.5 : (this._iconSize >= 48 ? 11 : 8.5);
-                const themeNode = this.get_stage() ? this._dot.get_theme_node() : null;
-                const cssShift = themeNode ? themeNode.get_length('offset-x') : 0;
-                const shift = cssShift || defaultShift;
-                this._dot.translation_x = pos === 'left' ? -shift : shift;
-            } else {
-                this._dot.translation_x = 0;
-                const defaultShift = this._iconSize <= 28 ? 6.5 : (this._iconSize >= 48 ? 11 : 8.5);
-                const themeNode = this.get_stage() ? this._dot.get_theme_node() : null;
-                const cssShift = themeNode ? themeNode.get_length('offset-y') : 0;
-                this._dot.translation_y = cssShift || defaultShift;
-            }
+            this._dot.translation_x = 0;
+            this._dot.translation_y = 0;
+            this._dot.x_align = Clutter.ActorAlign.CENTER;
+            this._dot.y_align = Clutter.ActorAlign.CENTER;
         }
 
         updatePositionStyle(position) {
@@ -180,28 +209,56 @@ export const DockAppIcon = GObject.registerClass(
                 this.remove_style_class_name(`position-${p}`);
             this.add_style_class_name(`position-${position}`);
 
-            if (position === 'left') {
-                this.set_pivot_point(0.0, 0.5);
-                this._popupMenuSide = St.Side.LEFT;
-                if (this._dot) {
-                    this._dot.x_align = Clutter.ActorAlign.START;
-                    this._dot.y_align = Clutter.ActorAlign.CENTER;
+            if (this._contentBox) {
+                this._contentBox.remove_all_children();
+
+                const isVertical = position === 'bottom';
+                if ('orientation' in this._contentBox) {
+                    this._contentBox.orientation = isVertical
+                        ? Clutter.Orientation.VERTICAL
+                        : Clutter.Orientation.HORIZONTAL;
+                } else if ('is_vertical' in this._contentBox) {
+                    this._contentBox.is_vertical = isVertical;
+                } else {
+                    this._contentBox.vertical = isVertical;
                 }
-            } else if (position === 'right') {
-                this.set_pivot_point(1.0, 0.5);
-                this._popupMenuSide = St.Side.RIGHT;
-                if (this._dot) {
-                    this._dot.x_align = Clutter.ActorAlign.END;
-                    this._dot.y_align = Clutter.ActorAlign.CENTER;
-                }
-            } else {
-                this.set_pivot_point(0.5, 1.0);
-                this._popupMenuSide = St.Side.BOTTOM;
-                if (this._dot) {
-                    this._dot.x_align = Clutter.ActorAlign.CENTER;
-                    this._dot.y_align = Clutter.ActorAlign.END;
+
+                if (position === 'left') {
+                    this.set_pivot_point(0.0, 0.5);
+                    this._popupMenuSide = St.Side.LEFT;
+                    this._contentBox.spacing = 3;
+                    if (this._dot) {
+                        this._dot.x_align = Clutter.ActorAlign.CENTER;
+                        this._dot.y_align = Clutter.ActorAlign.CENTER;
+                        this._contentBox.add_child(this._dot);
+                    }
+                    if (this._iconContainer)
+                        this._contentBox.add_child(this._iconContainer);
+                } else if (position === 'right') {
+                    this.set_pivot_point(1.0, 0.5);
+                    this._popupMenuSide = St.Side.RIGHT;
+                    this._contentBox.spacing = 3;
+                    if (this._iconContainer)
+                        this._contentBox.add_child(this._iconContainer);
+                    if (this._dot) {
+                        this._dot.x_align = Clutter.ActorAlign.CENTER;
+                        this._dot.y_align = Clutter.ActorAlign.CENTER;
+                        this._contentBox.add_child(this._dot);
+                    }
+                } else {
+                    this.set_pivot_point(0.5, 1.0);
+                    this._popupMenuSide = St.Side.BOTTOM;
+                    this._contentBox.spacing = 2;
+                    if (this._iconContainer)
+                        this._contentBox.add_child(this._iconContainer);
+                    if (this._dot) {
+                        this._dot.x_align = Clutter.ActorAlign.CENTER;
+                        this._dot.y_align = Clutter.ActorAlign.CENTER;
+                        this._contentBox.add_child(this._dot);
+                    }
                 }
             }
+
             this._updateDotStyle();
 
             if (this._menu) {
@@ -411,14 +468,16 @@ export const DockAppIcon = GObject.registerClass(
             if (!this.app || !this._dot)
                 return;
 
-            if (this.app.state === Shell.AppState.STOPPED) {
-                this._dot.hide();
+            const isRunning = this.app.state !== Shell.AppState.STOPPED;
+            this._dot.opacity = isRunning ? 255 : 0;
+
+            if (!isRunning) {
                 this.remove_style_pseudo_class('running');
                 this.remove_style_pseudo_class('focused');
+                this._dot.remove_style_class_name('focused');
                 return;
             }
 
-            this._dot.show();
             this.add_style_pseudo_class('running');
 
             const windows = this.app.get_windows() || [];
@@ -1155,7 +1214,14 @@ export const ArreraDock = GObject.registerClass(
 
             const isVertical = this._position === 'left' || this._position === 'right';
 
-            if ('is_vertical' in this._dockPill) {
+            if ('orientation' in this._dockPill) {
+                this._dockPill.orientation = isVertical
+                    ? Clutter.Orientation.VERTICAL
+                    : Clutter.Orientation.HORIZONTAL;
+                this._iconsBox.orientation = isVertical
+                    ? Clutter.Orientation.VERTICAL
+                    : Clutter.Orientation.HORIZONTAL;
+            } else if ('is_vertical' in this._dockPill) {
                 this._dockPill.is_vertical = isVertical;
                 this._iconsBox.is_vertical = isVertical;
             } else {
