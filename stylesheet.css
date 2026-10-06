@@ -121,6 +121,142 @@
     color: #ffffff;
 }
 
+/* ==========================================================================
+   Android 16 / Material 3 Dock System Status Area (Quick Settings & Date)
+   ========================================================================== */
+
+.arrera-dock-system-box {
+    spacing: 4px;
+}
+
+.dock-system-item {
+    padding: 0;
+    margin: 0;
+}
+
+.dock-system-item .panel-button {
+    border-radius: 20px;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    color: #ffffff;
+    padding: 3px 8px;
+    font-weight: 500;
+    transition-duration: 200ms;
+}
+
+.dock-system-item .panel-button:hover,
+.dock-system-item .panel-button:focus:hover {
+    background-color: st-transparentize(-st-accent-color, 0.80);
+    box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.60);
+    color: #ffffff;
+}
+
+.dock-system-item .panel-button:active,
+.dock-system-item .panel-button:checked {
+    background-color: st-transparentize(-st-accent-color, 0.65);
+    box-shadow: 0 0 16px -st-accent-color;
+    color: #ffffff;
+}
+
+/* Clock label style inside dock */
+.dock-system-item.dock-date-menu-item .clock-display .clock {
+    font-weight: 600;
+    font-size: 10pt;
+    color: #ffffff;
+}
+
+/* Quick Settings status indicators sizing */
+.dock-system-item.dock-quick-settings-item .panel-status-indicators-box {
+    spacing: 5px;
+}
+
+.dock-system-item .system-status-icon,
+.dock-system-item .panel-status-indicators-box StIcon,
+.dock-system-item .panel-status-indicators-box > .system-status-icon,
+.dock-system-item StIcon {
+    icon-size: 16px;
+    padding: 0;
+    margin: 0;
+}
+
+.dock-system-item .power-status {
+    spacing: 4px;
+}
+
+.dock-system-item .power-status StLabel {
+    font-size: 9.5pt;
+    font-weight: 500;
+    margin-left: 2px;
+}
+
+/* Theme Black-Outline adaptation */
+.theme-black-outline .dock-system-item .panel-button:hover,
+.theme-black-outline .dock-system-item .panel-button:focus:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.60);
+}
+
+/* Sizing variations */
+.size-small .dock-system-item .panel-button {
+    padding: 2px 5px;
+    border-radius: 14px;
+}
+
+.size-small .dock-system-item.dock-date-menu-item .clock-display .clock {
+    font-size: 8.5pt;
+}
+
+.size-small .dock-system-item .system-status-icon,
+.size-small .dock-system-item .panel-status-indicators-box StIcon,
+.size-small .dock-system-item .panel-status-indicators-box > .system-status-icon,
+.size-small .dock-system-item StIcon {
+    icon-size: 13px;
+}
+
+.size-small .dock-system-item.dock-quick-settings-item .panel-status-indicators-box {
+    spacing: 4px;
+}
+
+.size-small .dock-system-item .power-status StLabel {
+    font-size: 8pt;
+}
+
+.size-large .dock-system-item .panel-button {
+    padding: 5px 12px;
+    border-radius: 24px;
+}
+
+.size-large .dock-system-item.dock-date-menu-item .clock-display .clock {
+    font-size: 11pt;
+}
+
+.size-large .dock-system-item .system-status-icon,
+.size-large .dock-system-item .panel-status-indicators-box StIcon,
+.size-large .dock-system-item .panel-status-indicators-box > .system-status-icon,
+.size-large .dock-system-item StIcon {
+    icon-size: 19px;
+}
+
+.size-large .dock-system-item.dock-quick-settings-item .panel-status-indicators-box {
+    spacing: 7px;
+}
+
+.size-large .dock-system-item .power-status StLabel {
+    font-size: 10.5pt;
+}
+
+/* Vertical dock positioning */
+.position-left .dock-system-item .panel-button,
+.position-right .dock-system-item .panel-button {
+    padding: 6px 3px;
+}
+
+.position-left .dock-system-item.dock-date-menu-item .clock-display .clock,
+.position-right .dock-system-item.dock-date-menu-item .clock-display .clock {
+    text-align: center;
+}
+
 /* Android 16 Plain Tooltip */
 .dock-tooltip {
     background-color: rgba(28, 28, 34, 0.96);

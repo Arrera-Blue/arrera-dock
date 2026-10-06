@@ -793,6 +793,15 @@ export const ArreraDock = GObject.registerClass(
             this._appIcons = new Map();
             this._separator = null;
 
+            // System status area state (Quick Settings & Date/Clock)
+            this._qsReparented = false;
+            this._dmReparented = false;
+            this._qsOrigParent = null;
+            this._qsOrigIndex = -1;
+            this._dmOrigParent = null;
+            this._dmOrigIndex = -1;
+            this._systemSeparator = null;
+
             // Floating pill container
             this._dockPill = new St.BoxLayout({
                 style_class: 'arrera-dock',
@@ -856,6 +865,19 @@ export const ArreraDock = GObject.registerClass(
             this._trailingSpacer = new Clutter.Actor({ visible: false, x_expand: false, y_expand: false });
             this._dockPill.add_child(this._trailingSpacer);
 
+            // System status box (Date/Clock & Quick Settings)
+            this._systemBox = new St.BoxLayout({
+                style_class: 'arrera-dock-system-box',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+                x_expand: false,
+                y_expand: false,
+                reactive: true,
+                visible: false,
+            });
+            this._systemBox._delegate = this;
+            this._dockPill.add_child(this._systemBox);
+
             // Deferred work to coalesce redisplay updates
             this._workId = Main.initializeDeferredWork(
                 this._iconsBox,
@@ -911,6 +933,8 @@ export const ArreraDock = GObject.registerClass(
                     'changed::icon-size', () => this._syncIconSize(true),
                     'changed::theme-mode', () => this._syncThemeMode(),
                     'changed::position', () => this._syncPosition(),
+                    'changed::show-quick-settings', () => this._syncSystemStatusArea(),
+                    'changed::show-date-menu', () => this._syncSystemStatusArea(),
                     this
                 );
             }
@@ -929,6 +953,7 @@ export const ArreraDock = GObject.registerClass(
             this._syncAlwaysBarMode();
             this._syncBarIconsAlignment();
             this._syncAutohide();
+            this._syncSystemStatusArea();
             this._trackWorkspaceWindows();
             this._updateBarMode();
 
@@ -1229,6 +1254,23 @@ export const ArreraDock = GObject.registerClass(
                 this._iconsBox.vertical = isVertical;
             }
 
+            if (this._systemBox) {
+                if ('orientation' in this._systemBox) {
+                    this._systemBox.orientation = isVertical
+                        ? Clutter.Orientation.VERTICAL
+                        : Clutter.Orientation.HORIZONTAL;
+                } else if ('is_vertical' in this._systemBox) {
+                    this._systemBox.is_vertical = isVertical;
+                } else {
+                    this._systemBox.vertical = isVertical;
+                }
+            }
+
+            if (this._qsReparented)
+                this._updateMenuSide(Main.panel?.statusArea?.quickSettings?.menu, this._position);
+            if (this._dmReparented)
+                this._updateMenuSide(Main.panel?.statusArea?.dateMenu?.menu, this._position);
+
             if (this._position === 'bottom') {
                 this._dockPill.x_align = Clutter.ActorAlign.CENTER;
                 this._dockPill.y_align = Clutter.ActorAlign.END;
@@ -1248,6 +1290,270 @@ export const ArreraDock = GObject.registerClass(
             this.updatePosition();
             this._applyBarMode();
             this._extension?.updateChromeStruts?.(!this._autohide);
+        }
+
+        _syncSystemStatusArea() {
+            const showQs = this._settings?.get_boolean('show-quick-settings') ?? false;
+            const showDm = this._settings?.get_boolean('show-date-menu') ?? false;
+
+            // Handle DateMenu
+            if (showDm && !this._dmReparented) {
+                this._reparentDateMenu();
+            } else if (!showDm && this._dmReparented) {
+                this._restoreDateMenu();
+            }
+
+            // Handle QuickSettings
+            if (showQs && !this._qsReparented) {
+                this._reparentQuickSettings();
+            } else if (!showQs && this._qsReparented) {
+                this._restoreQuickSettings();
+            }
+
+            const hasSystemItems = this._dmReparented || this._qsReparented;
+
+            if (hasSystemItems) {
+                if (!this._systemSeparator) {
+                    this._systemSeparator = new St.Widget({
+                        style_class: 'dock-separator system-separator',
+                        x_align: Clutter.ActorAlign.CENTER,
+                        y_align: Clutter.ActorAlign.CENTER,
+                    });
+                    this._dockPill.insert_child_below(this._systemSeparator, this._systemBox);
+                }
+                this._systemSeparator.visible = true;
+                this._systemBox.visible = true;
+            } else {
+                if (this._systemSeparator)
+                    this._systemSeparator.visible = false;
+                this._systemBox.visible = false;
+            }
+
+            this._syncPosition();
+        }
+
+        _reparentQuickSettings() {
+            const qs = Main.panel?.statusArea?.quickSettings;
+            if (!qs || !qs.container)
+                return;
+
+            const container = qs.container;
+            this._qsOrigParent = container.get_parent();
+            if (!this._qsOrigParent)
+                return;
+
+            this._qsOrigIndex = this._qsOrigParent.get_children().indexOf(container);
+            this._qsOrigParent.remove_child(container);
+
+            this._qsOrigYAlign = container.y_align;
+            this._qsOrigXAlign = container.x_align;
+            this._qsOrigYExpand = container.y_expand;
+            this._qsOrigXExpand = container.x_expand;
+            container.y_align = Clutter.ActorAlign.CENTER;
+            container.x_align = Clutter.ActorAlign.CENTER;
+            container.y_expand = false;
+            container.x_expand = false;
+
+            this._qsBtnOrigYAlign = qs.y_align;
+            this._qsBtnOrigXAlign = qs.x_align;
+            this._qsBtnOrigYExpand = qs.y_expand;
+            this._qsBtnOrigXExpand = qs.x_expand;
+            qs.y_align = Clutter.ActorAlign.CENTER;
+            qs.x_align = Clutter.ActorAlign.CENTER;
+            qs.y_expand = false;
+            qs.x_expand = false;
+
+            container.add_style_class_name('dock-system-item');
+            container.add_style_class_name('dock-quick-settings-item');
+            this._systemBox.add_child(container);
+            this._qsReparented = true;
+
+            this._updateMenuSide(qs.menu, this._position);
+
+            if (qs.menu) {
+                qs.menu.connectObject?.(
+                    'open-state-changed', (_m, open) => this._onMenuStateChanged(open),
+                    this
+                );
+            }
+        }
+
+        _restoreQuickSettings() {
+            const qs = Main.panel?.statusArea?.quickSettings;
+            if (!this._qsReparented || !qs?.container)
+                return;
+
+            const container = qs.container;
+            container.remove_style_class_name('dock-system-item');
+            container.remove_style_class_name('dock-quick-settings-item');
+
+            if (this._qsOrigYAlign !== undefined) container.y_align = this._qsOrigYAlign;
+            if (this._qsOrigXAlign !== undefined) container.x_align = this._qsOrigXAlign;
+            if (this._qsOrigYExpand !== undefined) container.y_expand = this._qsOrigYExpand;
+            if (this._qsOrigXExpand !== undefined) container.x_expand = this._qsOrigXExpand;
+
+            if (this._qsBtnOrigYAlign !== undefined) qs.y_align = this._qsBtnOrigYAlign;
+            if (this._qsBtnOrigXAlign !== undefined) qs.x_align = this._qsBtnOrigXAlign;
+            if (this._qsBtnOrigYExpand !== undefined) qs.y_expand = this._qsBtnOrigYExpand;
+            if (this._qsBtnOrigXExpand !== undefined) qs.x_expand = this._qsBtnOrigXExpand;
+
+            if (container.get_parent() === this._systemBox)
+                this._systemBox.remove_child(container);
+
+            this._restoreMenuSide(qs.menu);
+            qs.menu?.disconnectObject?.(this);
+
+            if (this._qsOrigParent) {
+                const nChildren = this._qsOrigParent.get_n_children();
+                if (this._qsOrigIndex >= 0 && this._qsOrigIndex < nChildren)
+                    this._qsOrigParent.insert_child_at_index(container, this._qsOrigIndex);
+                else
+                    this._qsOrigParent.add_child(container);
+            }
+
+            this._qsReparented = false;
+            this._qsOrigParent = null;
+            this._qsOrigIndex = -1;
+        }
+
+        _reparentDateMenu() {
+            const dm = Main.panel?.statusArea?.dateMenu;
+            if (!dm || !dm.container)
+                return;
+
+            const container = dm.container;
+            this._dmOrigParent = container.get_parent();
+            if (!this._dmOrigParent)
+                return;
+
+            this._dmOrigIndex = this._dmOrigParent.get_children().indexOf(container);
+            this._dmOrigParent.remove_child(container);
+
+            this._dmOrigYAlign = container.y_align;
+            this._dmOrigXAlign = container.x_align;
+            this._dmOrigYExpand = container.y_expand;
+            this._dmOrigXExpand = container.x_expand;
+            container.y_align = Clutter.ActorAlign.CENTER;
+            container.x_align = Clutter.ActorAlign.CENTER;
+            container.y_expand = false;
+            container.x_expand = false;
+
+            this._dmBtnOrigYAlign = dm.y_align;
+            this._dmBtnOrigXAlign = dm.x_align;
+            this._dmBtnOrigYExpand = dm.y_expand;
+            this._dmBtnOrigXExpand = dm.x_expand;
+            dm.y_align = Clutter.ActorAlign.CENTER;
+            dm.x_align = Clutter.ActorAlign.CENTER;
+            dm.y_expand = false;
+            dm.x_expand = false;
+
+            container.add_style_class_name('dock-system-item');
+            container.add_style_class_name('dock-date-menu-item');
+
+            const qsContainer = Main.panel?.statusArea?.quickSettings?.container;
+            if (qsContainer && this._systemBox.contains(qsContainer))
+                this._systemBox.insert_child_below(container, qsContainer);
+            else
+                this._systemBox.add_child(container);
+
+            this._dmReparented = true;
+
+            this._updateMenuSide(dm.menu, this._position);
+
+            if (dm.menu) {
+                dm.menu.connectObject?.(
+                    'open-state-changed', (_m, open) => this._onMenuStateChanged(open),
+                    this
+                );
+            }
+        }
+
+        _restoreDateMenu() {
+            const dm = Main.panel?.statusArea?.dateMenu;
+            if (!this._dmReparented || !dm?.container)
+                return;
+
+            const container = dm.container;
+            container.remove_style_class_name('dock-system-item');
+            container.remove_style_class_name('dock-date-menu-item');
+
+            if (this._dmOrigYAlign !== undefined) container.y_align = this._dmOrigYAlign;
+            if (this._dmOrigXAlign !== undefined) container.x_align = this._dmOrigXAlign;
+            if (this._dmOrigYExpand !== undefined) container.y_expand = this._dmOrigYExpand;
+            if (this._dmOrigXExpand !== undefined) container.x_expand = this._dmOrigXExpand;
+
+            if (this._dmBtnOrigYAlign !== undefined) dm.y_align = this._dmBtnOrigYAlign;
+            if (this._dmBtnOrigXAlign !== undefined) dm.x_align = this._dmBtnOrigXAlign;
+            if (this._dmBtnOrigYExpand !== undefined) dm.y_expand = this._dmBtnOrigYExpand;
+            if (this._dmBtnOrigXExpand !== undefined) dm.x_expand = this._dmBtnOrigXExpand;
+
+            if (container.get_parent() === this._systemBox)
+                this._systemBox.remove_child(container);
+
+            this._restoreMenuSide(dm.menu);
+            dm.menu?.disconnectObject?.(this);
+
+            if (this._dmOrigParent) {
+                const nChildren = this._dmOrigParent.get_n_children();
+                if (this._dmOrigIndex >= 0 && this._dmOrigIndex < nChildren)
+                    this._dmOrigParent.insert_child_at_index(container, this._dmOrigIndex);
+                else
+                    this._dmOrigParent.add_child(container);
+            }
+
+            this._dmReparented = false;
+            this._dmOrigParent = null;
+            this._dmOrigIndex = -1;
+        }
+
+        _updateMenuSide(menu, position) {
+            if (!menu)
+                return;
+
+            let side;
+            switch (position) {
+            case 'left':
+                side = St.Side.LEFT;
+                break;
+            case 'right':
+                side = St.Side.RIGHT;
+                break;
+            default: // 'bottom'
+                side = St.Side.BOTTOM;
+                break;
+            }
+
+            if (menu._boxPointer?.updateArrowSide)
+                menu._boxPointer.updateArrowSide(side);
+            else if (menu._boxPointer)
+                menu._boxPointer._arrowSide = side;
+            menu._arrowSide = side;
+        }
+
+        _restoreMenuSide(menu) {
+            if (!menu)
+                return;
+
+            if (menu._boxPointer?.updateArrowSide)
+                menu._boxPointer.updateArrowSide(St.Side.TOP);
+            else if (menu._boxPointer)
+                menu._boxPointer._arrowSide = St.Side.TOP;
+            menu._arrowSide = St.Side.TOP;
+        }
+
+        _cleanupSystemStatusArea() {
+            this._restoreQuickSettings();
+            this._restoreDateMenu();
+
+            if (this._systemSeparator) {
+                this._systemSeparator.destroy();
+                this._systemSeparator = null;
+            }
+
+            if (this._systemBox) {
+                this._systemBox.remove_all_children();
+                this._systemBox.visible = false;
+            }
         }
 
         _syncThemeMode() {
@@ -1734,6 +2040,13 @@ export const ArreraDock = GObject.registerClass(
             if (this._separator) {
                 this._separator.destroy();
                 this._separator = null;
+            }
+
+            this._cleanupSystemStatusArea();
+
+            if (this._systemBox) {
+                this._systemBox.destroy();
+                this._systemBox = null;
             }
 
             if (this._interfaceSettings) {

@@ -63,5 +63,17 @@
       <description>Position du dock à l'écran : bottom (en bas), left (à gauche), right (à droite).</description>
     </key>
 
+    <key name="show-quick-settings" type="b">
+      <default>false</default>
+      <summary>Afficher les paramètres rapides dans le dock</summary>
+      <description>Intègre les paramètres rapides (Wi-Fi, son, batterie, etc.) directement dans le dock.</description>
+    </key>
+
+    <key name="show-date-menu" type="b">
+      <default>false</default>
+      <summary>Afficher la date et l'horloge dans le dock</summary>
+      <description>Intègre la date, l'horloge et le calendrier dans le dock.</description>
+    </key>
+
   </schema>
 </schemalist>
