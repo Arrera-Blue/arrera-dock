@@ -1558,10 +1558,12 @@ export const ArreraDock = GObject.registerClass(
 
         _syncThemeMode() {
             const mode = this._settings?.get_string('theme-mode') || 'expressive';
-            this.remove_style_class_name('theme-expressive');
-            this.remove_style_class_name('theme-black-outline');
-            this._dockPill?.remove_style_class_name('theme-expressive');
-            this._dockPill?.remove_style_class_name('theme-black-outline');
+            const allModes = ['expressive', 'black-outline', 'vanilla-gnome'];
+
+            for (const m of allModes) {
+                this.remove_style_class_name(`theme-${m}`);
+                this._dockPill?.remove_style_class_name(`theme-${m}`);
+            }
 
             this.add_style_class_name(`theme-${mode}`);
             this._dockPill?.add_style_class_name(`theme-${mode}`);

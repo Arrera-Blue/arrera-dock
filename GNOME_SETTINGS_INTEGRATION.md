@@ -48,6 +48,7 @@ Ce document décrit en détail les clés **GSettings** du dock, leurs types, leu
 * **Valeurs possibles** :
   * `'expressive'` : Style **Android 16 QPR2 / Material 3 Expressive**. Le conteneur du dock s'imprègne de la couleur d'accentuation choisie dans GNOME (ex: surface ambrée riche si orange).
   * `'black-outline'` : Style **Fond noir avec contour couleur**. Le conteneur du dock est noir profond (`#0c0c0f`), avec une bordure nette de 2px et un halo lumineux de la couleur d'accentuation active.
+  * `'vanilla-gnome'` : Style **Vanilla GNOME / Dash standard**. Même couleur grise (`#38383b`), sans bordure de couleur, avec points d'application blancs discrets, identique au dash natif de GNOME Shell.
 ### 4. Position du dock sur l'écran (`position`)
 * **Clé** : `position`
 * **Type** : `s` (Chaîne de caractères / `gchar*`)

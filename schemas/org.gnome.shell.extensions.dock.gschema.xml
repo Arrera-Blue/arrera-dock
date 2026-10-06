@@ -46,10 +46,11 @@
       <choices>
         <choice value="expressive"/>
         <choice value="black-outline"/>
+        <choice value="vanilla-gnome"/>
       </choices>
       <default>'expressive'</default>
       <summary>Mode du thème de couleur</summary>
-      <description>Style d'application de la couleur : expressive (fond du dock teinté) ou black-outline (fond noir avec contour de la couleur d'accentuation).</description>
+      <description>Style d'application de la couleur : expressive (fond du dock teinté), black-outline (fond noir avec contour de la couleur d'accentuation) ou vanilla-gnome (couleur #38383b et style du dock GNOME standard).</description>
     </key>
 
     <key name="position" type="s">

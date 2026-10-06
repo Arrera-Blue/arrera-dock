@@ -93,10 +93,12 @@ while true; do
             echo " Thème visuel :"
             echo "   1) Expressif / Tonal (expressive)"
             echo "   2) Noir avec contour couleur (black-outline)"
-            read -p " Choix [1-2] : " THEME_CHOIX
+            echo "   3) Vanilla GNOME / Dash standard (vanilla-gnome)"
+            read -p " Choix [1-3] : " THEME_CHOIX
             case "$THEME_CHOIX" in
                 1) gsettings set $SCHEMA theme-mode "expressive" ;;
                 2) gsettings set $SCHEMA theme-mode "black-outline" ;;
+                3) gsettings set $SCHEMA theme-mode "vanilla-gnome" ;;
             esac
             ;;
         7)

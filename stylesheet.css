@@ -941,6 +941,70 @@
 }
 
 /* ==========================================================================
+   Theme Mode: Vanilla GNOME (theme-vanilla-gnome)
+   Identical to the native GNOME Shell dash surface, color and style (#38383b)
+   ========================================================================== */
+
+.theme-vanilla-gnome.arrera-dock {
+    background-color: #38383b !important;
+    border: none !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.40);
+}
+
+.theme-vanilla-gnome .dock-app-icon:hover,
+.theme-vanilla-gnome .dock-app-icon:focus:hover,
+.theme-vanilla-gnome .dock-app-icon:focused:hover {
+    background-color: rgba(255, 255, 255, 0.10) !important;
+    box-shadow: none !important;
+}
+
+.theme-vanilla-gnome .dock-app-icon:active {
+    background-color: rgba(255, 255, 255, 0.16) !important;
+    box-shadow: none !important;
+}
+
+.theme-vanilla-gnome .dock-app-icon:focus,
+.theme-vanilla-gnome .dock-app-icon:focused {
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35) !important;
+}
+
+.theme-vanilla-gnome .dock-app-icon .app-grid-running-dot {
+    background-color: #ffffff !important;
+}
+
+.theme-vanilla-gnome .dock-app-icon .app-grid-running-dot.focused {
+    background-color: #ffffff !important;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.60) !important;
+}
+
+.theme-vanilla-gnome .dock-separator {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+.theme-vanilla-gnome .show-apps-button:hover {
+    background-color: rgba(255, 255, 255, 0.10) !important;
+    box-shadow: none !important;
+}
+
+.theme-vanilla-gnome .show-apps-button:checked,
+.theme-vanilla-gnome .show-apps-button:active {
+    background-color: rgba(255, 255, 255, 0.16) !important;
+    box-shadow: none !important;
+}
+
+.theme-vanilla-gnome .dock-system-item .panel-button:hover,
+.theme-vanilla-gnome .dock-system-item .panel-button:focus:hover {
+    background-color: rgba(255, 255, 255, 0.10) !important;
+    box-shadow: none !important;
+}
+
+.theme-vanilla-gnome .dock-system-item .panel-button:active,
+.theme-vanilla-gnome .dock-system-item .panel-button:checked {
+    background-color: rgba(255, 255, 255, 0.16) !important;
+    box-shadow: none !important;
+}
+
+/* ==========================================================================
    Dock Position Adaptations (Bottom, Left, Right)
    ========================================================================== */
 

@@ -8,9 +8,6 @@
 
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as Workspace from 'resource:///org/gnome/shell/ui/workspace.js';
-import * as WorkspaceThumbnail from 'resource:///org/gnome/shell/ui/workspaceThumbnail.js';
-import Graphene from 'gi://Graphene';
 import { ArreraDock } from './dock.js';
 
 export default class ArreraDockExtension extends Extension {
@@ -38,12 +35,6 @@ export default class ArreraDockExtension extends Extension {
 
         // Totally replace the native dash in the overview
         this._replaceNativeDash();
-
-        // Ensure the wallpaper is displayed in its entirety in the Activities overview
-        this._patchWorkspaceBackground();
-
-        // Always display workspace switcher / thumbnails bar in Activities (even with <= 2 workspaces)
-        this._patchThumbnailsBox();
     }
 
     get dock() {
@@ -118,94 +109,7 @@ export default class ArreraDockExtension extends Extension {
             controls.queue_relayout();
     }
 
-    _patchWorkspaceBackground() {
-        if (!Workspace?.WorkspaceBackground)
-            return;
-
-        // Ensure full un-cropped wallpaper in the workspace thumbnail card
-        // by clipping to the full monitor dimensions instead of the reduced dock workarea
-        const origUpdateRoundedClipBounds = Workspace.WorkspaceBackground.prototype._updateRoundedClipBounds;
-        this._origUpdateRoundedClipBounds = origUpdateRoundedClipBounds;
-        Workspace.WorkspaceBackground.prototype._updateRoundedClipBounds = function () {
-            const monitor = Main.layoutManager.monitors[this._monitorIndex];
-            if (!monitor || !this._bgManager?.backgroundActor?.content) {
-                origUpdateRoundedClipBounds.call(this);
-                return;
-            }
-
-            const rect = new Graphene.Rect();
-            rect.origin.x = 0;
-            rect.origin.y = 0;
-            rect.size.width = monitor.width;
-            rect.size.height = monitor.height;
-
-            this._bgManager.backgroundActor.content.set_rounded_clip_bounds(rect);
-        };
-
-        const controls = Main.overview._overview?._controls;
-        if (controls)
-            controls.queue_relayout();
-    }
-
-    _restoreWorkspaceBackground() {
-        if (this._origUpdateRoundedClipBounds) {
-            Workspace.WorkspaceBackground.prototype._updateRoundedClipBounds = this._origUpdateRoundedClipBounds;
-            this._origUpdateRoundedClipBounds = null;
-        }
-
-        const controls = Main.overview._overview?._controls;
-        if (controls)
-            controls.queue_relayout();
-    }
-
-    _patchThumbnailsBox() {
-        if (!WorkspaceThumbnail?.ThumbnailsBox)
-            return;
-
-        const origUpdateShouldShow = WorkspaceThumbnail.ThumbnailsBox.prototype._updateShouldShow;
-        this._origUpdateShouldShow = origUpdateShouldShow;
-
-        // Force workspace thumbnails to always be visible in Activities ("h24")
-        WorkspaceThumbnail.ThumbnailsBox.prototype._updateShouldShow = function () {
-            const shouldShow = true;
-            if (this._shouldShow === shouldShow)
-                return;
-
-            this._shouldShow = shouldShow;
-            this.notify('should-show');
-        };
-
-        const controls = Main.overview._overview?._controls;
-        const thumbnailsBox = controls?._thumbnailsBox;
-        if (thumbnailsBox) {
-            thumbnailsBox._updateShouldShow();
-            controls._updateThumbnailsBox?.();
-            controls.layout_manager?.layout_changed();
-        }
-    }
-
-    _restoreThumbnailsBox() {
-        if (this._origUpdateShouldShow) {
-            WorkspaceThumbnail.ThumbnailsBox.prototype._updateShouldShow = this._origUpdateShouldShow;
-            this._origUpdateShouldShow = null;
-        }
-
-        const controls = Main.overview._overview?._controls;
-        const thumbnailsBox = controls?._thumbnailsBox;
-        if (thumbnailsBox) {
-            thumbnailsBox._updateShouldShow();
-            controls._updateThumbnailsBox?.();
-            controls.layout_manager?.layout_changed();
-        }
-    }
-
     disable() {
-        // Restore workspace thumbnails visibility logic
-        this._restoreThumbnailsBox();
-
-        // Restore workspace background and layout patches
-        this._restoreWorkspaceBackground();
-
         // Restore native dash
         this._restoreNativeDash();
 
