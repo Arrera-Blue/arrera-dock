@@ -63,6 +63,30 @@ Ce document décrit en détail les clés **GSettings** du dock, leurs types, leu
 
 ---
 
+### 5. Mode barre permanente (`always-bar-mode`)
+* **Clé** : `always-bar-mode`
+* **Type** : `b` (Booléen / `gboolean`)
+* **Valeur par défaut** : `false`
+* **Valeurs possibles** :
+  * `false` : Le dock conserve sa forme de pilule flottante normale (sauf si `extend-on-maximize` est activé et qu'une fenêtre est maximisée).
+  * `true` : Le dock est forcé en permanence en mode barre pleine largeur (ou pleine hauteur si à gauche/droite).
+* **Widget Libadwaita recommandé** : `AdwSwitchRow`
+
+---
+
+### 6. Alignement des icônes en mode barre (`bar-icons-alignment`)
+* **Clé** : `bar-icons-alignment`
+* **Type** : `s` (Chaîne de caractères / `gchar*`)
+* **Valeur par défaut** : `'center'`
+* **Valeurs possibles** :
+  * `'center'` : Les icônes et le bouton d'applications sont centrés au milieu de la barre.
+  * `'left'` : Les icônes et le bouton d'applications sont calés sur la gauche (ou en haut si position verticale).
+* **Widget Libadwaita recommandé** : `AdwComboRow` avec un modèle de chaînes (`GtkStringList`) contenant :
+  1. Centré
+  2. À gauche
+
+---
+
 ## 3. Exemple d'implémentation dans GNOME Settings (C / GTK4)
 
 ### Interface utilisateur en Blueprint (`.blp`) ou GTK UI (`.ui`)
@@ -83,6 +107,29 @@ Ce document décrit en détail les clés **GSettings** du dock, leurs types, leu
           <object class="AdwSwitchRow" id="autohide_row">
             <property name="title" translatable="yes">Masquer automatiquement le dock</property>
             <property name="subtitle" translatable="yes">Révèle le dock quand la souris touche le bord inférieur</property>
+          </object>
+        </child>
+
+        <!-- Mode barre permanente -->
+        <child>
+          <object class="AdwSwitchRow" id="always_bar_mode_row">
+            <property name="title" translatable="yes">Mode barre permanente</property>
+            <property name="subtitle" translatable="yes">Transforme le dock en barre pleine largeur/hauteur en permanence</property>
+          </object>
+        </child>
+
+        <!-- Alignement des icônes en mode barre -->
+        <child>
+          <object class="AdwComboRow" id="bar_icons_alignment_row">
+            <property name="title" translatable="yes">Alignement des icônes (mode barre)</property>
+            <property name="model">
+              <object class="GtkStringList">
+                <items>
+                  <item translatable="yes">Centré</item>
+                  <item translatable="yes">À gauche</item>
+                </items>
+              </object>
+            </property>
           </object>
         </child>
       </object>
@@ -237,6 +284,12 @@ gsettings set org.gnome.shell.extensions.dock position 'bottom'
 
 # Modifier le masquage automatique (true / false)
 gsettings set org.gnome.shell.extensions.dock autohide true
+
+# Activer le mode barre permanente (true / false)
+gsettings set org.gnome.shell.extensions.dock always-bar-mode true
+
+# Modifier l'alignement des icônes en mode barre ('center' | 'left')
+gsettings set org.gnome.shell.extensions.dock bar-icons-alignment 'left'
 
 # Modifier la taille des icônes ('small' | 'medium' | 'large')
 gsettings set org.gnome.shell.extensions.dock icon-size 'large'

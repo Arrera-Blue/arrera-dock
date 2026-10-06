@@ -537,7 +537,7 @@
 }
 
 .size-small .dock-app-icon {
-    padding: 2px 4px;
+    padding: 2px 4px 7px 4px;
     border-radius: 14px;
 }
 
@@ -572,7 +572,7 @@
 }
 
 .size-medium .dock-app-icon {
-    padding: 4px 6px;
+    padding: 4px 6px 9px 6px;
     border-radius: 20px;
 }
 
@@ -607,7 +607,7 @@
 }
 
 .size-large .dock-app-icon {
-    padding: 6px 8px;
+    padding: 6px 8px 12px 8px;
     border-radius: 24px;
 }
 
@@ -767,6 +767,7 @@
    ========================================================================== */
 
 /* Bottom Position (Default) */
+/* Bottom Position */
 .position-bottom.arrera-dock {
     padding: 5px 16px;
     margin-bottom: 0;
@@ -778,12 +779,40 @@
     margin: 3px 6px;
 }
 
-.position-bottom .dock-app-icon {
+.position-bottom .dock-app-icon,
+.dock-app-icon.position-bottom {
+    padding: 4px 6px 9px 6px;
+}
+
+.position-bottom .show-apps-button,
+.show-apps-button.position-bottom {
     padding: 4px 6px;
 }
 
-.position-bottom .show-apps-button {
-    padding: 4px 6px;
+.position-bottom .dock-app-icon .app-grid-running-dot,
+.dock-app-icon.position-bottom .app-grid-running-dot {
+    offset-y: 8.5px;
+    margin-bottom: 0px;
+}
+
+.position-bottom.size-small .dock-app-icon,
+.size-small .dock-app-icon.position-bottom {
+    padding: 2px 4px 7px 4px;
+}
+
+.position-bottom.size-small .dock-app-icon .app-grid-running-dot,
+.size-small .dock-app-icon.position-bottom .app-grid-running-dot {
+    offset-y: 6.5px;
+}
+
+.position-bottom.size-large .dock-app-icon,
+.size-large .dock-app-icon.position-bottom {
+    padding: 6px 8px 12px 8px;
+}
+
+.position-bottom.size-large .dock-app-icon .app-grid-running-dot,
+.size-large .dock-app-icon.position-bottom .app-grid-running-dot {
+    offset-y: 11px;
 }
 
 /* Left Position */
@@ -799,26 +828,32 @@
     margin: 6px 3px;
 }
 
-.position-left .dock-app-icon {
-    padding: 6px 4px 6px 8px;
+.position-left .dock-app-icon,
+.dock-app-icon.position-left {
+    padding: 6px 4px 6px 10px;
 }
 
-.position-left .show-apps-button {
-    padding: 6px 4px 6px 8px;
+.position-left .show-apps-button,
+.show-apps-button.position-left {
+    padding: 6px 4px 6px 10px;
 }
 
-.position-left .dock-app-icon .app-grid-running-dot {
+.position-left .dock-app-icon .app-grid-running-dot,
+.dock-app-icon.position-left .app-grid-running-dot {
     width: 3.5px;
-    height: 6px;
+    height: 8px;
     border-radius: 2px;
+    offset-x: 8.5px;
     offset-y: 0px;
     margin: 0px;
 }
 
-.position-left .dock-app-icon .app-grid-running-dot.focused {
+.position-left .dock-app-icon .app-grid-running-dot.focused,
+.dock-app-icon.position-left .app-grid-running-dot.focused {
     width: 4px;
-    height: 14px;
+    height: 18px;
     border-radius: 2px;
+    offset-x: 8.5px;
     offset-y: 0px;
     margin: 0px;
 }
@@ -836,26 +871,32 @@
     margin: 6px 3px;
 }
 
-.position-right .dock-app-icon {
-    padding: 6px 8px 6px 4px;
+.position-right .dock-app-icon,
+.dock-app-icon.position-right {
+    padding: 6px 10px 6px 4px;
 }
 
-.position-right .show-apps-button {
-    padding: 6px 8px 6px 4px;
+.position-right .show-apps-button,
+.show-apps-button.position-right {
+    padding: 6px 10px 6px 4px;
 }
 
-.position-right .dock-app-icon .app-grid-running-dot {
+.position-right .dock-app-icon .app-grid-running-dot,
+.dock-app-icon.position-right .app-grid-running-dot {
     width: 3.5px;
-    height: 6px;
+    height: 8px;
     border-radius: 2px;
+    offset-x: 8.5px;
     offset-y: 0px;
     margin: 0px;
 }
 
-.position-right .dock-app-icon .app-grid-running-dot.focused {
+.position-right .dock-app-icon .app-grid-running-dot.focused,
+.dock-app-icon.position-right .app-grid-running-dot.focused {
     width: 4px;
-    height: 14px;
+    height: 18px;
     border-radius: 2px;
+    offset-x: 8.5px;
     offset-y: 0px;
     margin: 0px;
 }
@@ -873,29 +914,89 @@
 }
 
 .position-left.size-small .dock-app-icon,
-.position-left.size-small .show-apps-button {
-    padding: 4px 3px 4px 6px;
+.position-left.size-small .show-apps-button,
+.size-small .dock-app-icon.position-left,
+.size-small .show-apps-button.position-left {
+    padding: 4px 3px 4px 7.5px;
 }
 
 .position-right.size-small .dock-app-icon,
-.position-right.size-small .show-apps-button {
-    padding: 4px 6px 4px 3px;
+.position-right.size-small .show-apps-button,
+.size-small .dock-app-icon.position-right,
+.size-small .show-apps-button.position-right {
+    padding: 4px 7.5px 4px 3px;
 }
 
 .position-left.size-small .dock-app-icon .app-grid-running-dot,
-.position-right.size-small .dock-app-icon .app-grid-running-dot {
+.position-right.size-small .dock-app-icon .app-grid-running-dot,
+.size-small .dock-app-icon.position-left .app-grid-running-dot,
+.size-small .dock-app-icon.position-right .app-grid-running-dot {
     width: 3px;
-    height: 5px;
+    height: 6px;
     border-radius: 1.5px;
+    offset-x: 6.5px;
     offset-y: 0px;
     margin: 0px;
 }
 
 .position-left.size-small .dock-app-icon .app-grid-running-dot.focused,
-.position-right.size-small .dock-app-icon .app-grid-running-dot.focused {
-    width: 3px;
-    height: 11px;
+.position-right.size-small .dock-app-icon .app-grid-running-dot.focused,
+.size-small .dock-app-icon.position-left .app-grid-running-dot.focused,
+.size-small .dock-app-icon.position-right .app-grid-running-dot.focused {
+    width: 3.5px;
+    height: 12px;
     border-radius: 1.5px;
+    offset-x: 6.5px;
+    offset-y: 0px;
+    margin: 0px;
+}
+
+/* Vertical Sizing: Medium (36px - Default) */
+.position-left.size-medium.arrera-dock,
+.position-right.size-medium.arrera-dock {
+    padding: 16px 5px;
+}
+
+.position-left.size-medium .dock-separator,
+.position-right.size-medium .dock-separator {
+    width: 26px;
+    height: 2px;
+}
+
+.position-left.size-medium .dock-app-icon,
+.position-left.size-medium .show-apps-button,
+.size-medium .dock-app-icon.position-left,
+.size-medium .show-apps-button.position-left {
+    padding: 6px 4px 6px 10px;
+}
+
+.position-right.size-medium .dock-app-icon,
+.position-right.size-medium .show-apps-button,
+.size-medium .dock-app-icon.position-right,
+.size-medium .show-apps-button.position-right {
+    padding: 6px 10px 6px 4px;
+}
+
+.position-left.size-medium .dock-app-icon .app-grid-running-dot,
+.position-right.size-medium .dock-app-icon .app-grid-running-dot,
+.size-medium .dock-app-icon.position-left .app-grid-running-dot,
+.size-medium .dock-app-icon.position-right .app-grid-running-dot {
+    width: 3.5px;
+    height: 8px;
+    border-radius: 2px;
+    offset-x: 8.5px;
+    offset-y: 0px;
+    margin: 0px;
+}
+
+.position-left.size-medium .dock-app-icon .app-grid-running-dot.focused,
+.position-right.size-medium .dock-app-icon .app-grid-running-dot.focused,
+.size-medium .dock-app-icon.position-left .app-grid-running-dot.focused,
+.size-medium .dock-app-icon.position-right .app-grid-running-dot.focused {
+    width: 4px;
+    height: 18px;
+    border-radius: 2px;
+    offset-x: 8.5px;
     offset-y: 0px;
     margin: 0px;
 }
@@ -913,29 +1014,39 @@
 }
 
 .position-left.size-large .dock-app-icon,
-.position-left.size-large .show-apps-button {
-    padding: 8px 5px 8px 10px;
+.position-left.size-large .show-apps-button,
+.size-large .dock-app-icon.position-left,
+.size-large .show-apps-button.position-left {
+    padding: 8px 6px 8px 13px;
 }
 
 .position-right.size-large .dock-app-icon,
-.position-right.size-large .show-apps-button {
-    padding: 8px 10px 8px 5px;
+.position-right.size-large .show-apps-button,
+.size-large .dock-app-icon.position-right,
+.size-large .show-apps-button.position-right {
+    padding: 8px 13px 8px 6px;
 }
 
 .position-left.size-large .dock-app-icon .app-grid-running-dot,
-.position-right.size-large .dock-app-icon .app-grid-running-dot {
-    width: 4.5px;
-    height: 8px;
+.position-right.size-large .dock-app-icon .app-grid-running-dot,
+.size-large .dock-app-icon.position-left .app-grid-running-dot,
+.size-large .dock-app-icon.position-right .app-grid-running-dot {
+    width: 4px;
+    height: 10px;
     border-radius: 2px;
+    offset-x: 10.5px;
     offset-y: 0px;
     margin: 0px;
 }
 
 .position-left.size-large .dock-app-icon .app-grid-running-dot.focused,
-.position-right.size-large .dock-app-icon .app-grid-running-dot.focused {
-    width: 4.5px;
-    height: 18px;
-    border-radius: 2px;
+.position-right.size-large .dock-app-icon .app-grid-running-dot.focused,
+.size-large .dock-app-icon.position-left .app-grid-running-dot.focused,
+.size-large .dock-app-icon.position-right .app-grid-running-dot.focused {
+    width: 5px;
+    height: 24px;
+    border-radius: 2.5px;
+    offset-x: 10.5px;
     offset-y: 0px;
     margin: 0px;
 }

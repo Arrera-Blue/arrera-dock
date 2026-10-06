@@ -55,7 +55,27 @@ export const DockAppIcon = GObject.registerClass(
             this.label_actor = null;
             this.add_style_class_name('dock-app-icon');
             this._tooltip = null;
+            const sizeName = this._dock?._sizeName || (iconSize <= 28 ? 'small' : (iconSize >= 48 ? 'large' : 'medium'));
+            this.add_style_class_name(`size-${sizeName}`);
             this.updatePositionStyle(this._dock?._position || 'bottom');
+            this.set_x_expand(false);
+            this.set_y_expand(false);
+            if (this._iconContainer) {
+                this._iconContainer.set_x_expand(false);
+                this._iconContainer.set_y_expand(false);
+            }
+            if (this._dot) {
+                this._dot.set_x_expand(false);
+                this._dot.set_y_expand(false);
+            }
+            if (this.icon) {
+                this.icon.set_x_expand(false);
+                this.icon.set_y_expand(false);
+                if (this.icon._box) {
+                    this.icon._box.set_x_expand(false);
+                    this.icon._box.set_y_expand(false);
+                }
+            }
 
             this.connect('notify::hover', () => {
                 if (this.hover && (!this._menu || !this._menu.isOpen)) {
@@ -92,6 +112,10 @@ export const DockAppIcon = GObject.registerClass(
             rightClickGesture.connect('recognize', () => this.popupMenu());
             this.add_action(rightClickGesture);
 
+            this.connect('notify::stage', () => {
+                this._updateDotStyle();
+            });
+
             this.connect('destroy', () => {
                 this._cleanupTooltip();
             });
@@ -108,6 +132,10 @@ export const DockAppIcon = GObject.registerClass(
         setIconSize(size) {
             this._iconSize = size;
             this.icon.setIconSize(size);
+            for (const s of ['small', 'medium', 'large'])
+                this.remove_style_class_name(`size-${s}`);
+            const sizeName = this._dock?._sizeName || (size <= 28 ? 'small' : (size >= 48 ? 'large' : 'medium'));
+            this.add_style_class_name(`size-${sizeName}`);
             this._updateDotStyle();
         }
 
@@ -133,20 +161,25 @@ export const DockAppIcon = GObject.registerClass(
             const pos = this._dock?._position || 'bottom';
             if (pos === 'left' || pos === 'right') {
                 this._dot.translation_y = 0;
-                const shift = this._iconSize <= 28 ? 5 : (this._iconSize >= 48 ? 8 : 6.5);
+                const defaultShift = this._iconSize <= 28 ? 6.5 : (this._iconSize >= 48 ? 11 : 8.5);
+                const themeNode = this.get_stage() ? this._dot.get_theme_node() : null;
+                const cssShift = themeNode ? themeNode.get_length('offset-x') : 0;
+                const shift = cssShift || defaultShift;
                 this._dot.translation_x = pos === 'left' ? -shift : shift;
             } else {
                 this._dot.translation_x = 0;
-                if (!this.get_stage()) {
-                    this._dot.translation_y = 0;
-                    return;
-                }
-                const themeNode = this._dot.get_theme_node();
-                this._dot.translation_y = themeNode ? themeNode.get_length('offset-y') : 0;
+                const defaultShift = this._iconSize <= 28 ? 6.5 : (this._iconSize >= 48 ? 11 : 8.5);
+                const themeNode = this.get_stage() ? this._dot.get_theme_node() : null;
+                const cssShift = themeNode ? themeNode.get_length('offset-y') : 0;
+                this._dot.translation_y = cssShift || defaultShift;
             }
         }
 
         updatePositionStyle(position) {
+            for (const p of ['bottom', 'left', 'right'])
+                this.remove_style_class_name(`position-${p}`);
+            this.add_style_class_name(`position-${position}`);
+
             if (position === 'left') {
                 this.set_pivot_point(0.0, 0.5);
                 this._popupMenuSide = St.Side.LEFT;
@@ -398,6 +431,8 @@ export const DockAppIcon = GObject.registerClass(
                 this._dot.remove_style_class_name('focused');
                 this.remove_style_pseudo_class('focused');
             }
+
+            this._updateDotStyle();
         }
 
         destroy() {
@@ -498,6 +533,10 @@ export const ShowAppsButton = GObject.registerClass(
             this._iconSize = size;
             if (this._icon)
                 this._icon.icon_size = size;
+            for (const s of ['small', 'medium', 'large'])
+                this.remove_style_class_name(`size-${s}`);
+            const sizeName = this._dock?._sizeName || (size <= 28 ? 'small' : (size >= 48 ? 'large' : 'medium'));
+            this.add_style_class_name(`size-${sizeName}`);
         }
 
         _cleanupTooltip() {
@@ -553,6 +592,10 @@ export const ShowAppsButton = GObject.registerClass(
         }
 
         updatePositionStyle(position) {
+            for (const p of ['bottom', 'left', 'right'])
+                this.remove_style_class_name(`position-${p}`);
+            this.add_style_class_name(`position-${position}`);
+
             if (position === 'left') {
                 this.set_pivot_point(0.0, 0.5);
             } else if (position === 'right') {
@@ -684,6 +727,8 @@ export const ArreraDock = GObject.registerClass(
             // Bar mode state (full width/height when a window is maximized/fullscreen & always shown)
             this._isBarMode = false;
             this._extendOnMaximize = true;
+            this._alwaysBarMode = false;
+            this._barIconsAlignment = "center";
             this._trackedWindows = new Set();
 
             this._appIcons = new Map();
@@ -724,25 +769,32 @@ export const ArreraDock = GObject.registerClass(
                     this._onLeave();
             });
 
+            this._barModeUpdateId = 0;
+
             // Leading spacer for bar mode (centers icons when dock spans full screen)
-            this._leadingSpacer = new Clutter.Actor({ visible: false });
+            this._leadingSpacer = new Clutter.Actor({ visible: false, x_expand: false, y_expand: false });
             this._dockPill.add_child(this._leadingSpacer);
 
             // Show Apps Button (placed on the left)
             this._showAppsButton = new ShowAppsButton(this, this._iconSize);
+            this._showAppsButton.set_x_expand(false);
+            this._showAppsButton.set_y_expand(false);
             this._dockPill.add_child(this._showAppsButton);
 
             // Icons box (favorites and running apps)
             this._iconsBox = new St.BoxLayout({
                 style_class: 'arrera-dock-icons',
+                x_align: Clutter.ActorAlign.CENTER,
                 y_align: Clutter.ActorAlign.CENTER,
+                x_expand: false,
+                y_expand: false,
                 reactive: true,
             });
             this._iconsBox._delegate = this;
             this._dockPill.add_child(this._iconsBox);
 
             // Trailing spacer for bar mode (centers icons when dock spans full screen)
-            this._trailingSpacer = new Clutter.Actor({ visible: false });
+            this._trailingSpacer = new Clutter.Actor({ visible: false, x_expand: false, y_expand: false });
             this._dockPill.add_child(this._trailingSpacer);
 
             // Deferred work to coalesce redisplay updates
@@ -763,20 +815,20 @@ export const ArreraDock = GObject.registerClass(
             );
 
             global.window_manager.connectObject(
-                'size-change', () => this._updateBarMode(),
-                'minimize', () => this._updateBarMode(),
-                'unminimize', () => this._updateBarMode(),
-                'destroy', () => this._updateBarMode(),
+                'size-change', () => this._scheduleBarModeUpdate(),
+                'minimize', () => this._scheduleBarModeUpdate(),
+                'unminimize', () => this._scheduleBarModeUpdate(),
+                'destroy', () => this._scheduleBarModeUpdate(),
                 this
             );
 
             global.display.connectObject(
                 'notify::focus-window', () => {
                     this._updateActiveWindow();
-                    this._updateBarMode();
+                    this._scheduleBarModeUpdate();
                 },
                 'window-created', (_d, win) => this._onWindowCreated(win),
-                'restacked', () => this._updateBarMode(),
+                'restacked', () => this._scheduleBarModeUpdate(),
                 this
             );
 
@@ -795,6 +847,8 @@ export const ArreraDock = GObject.registerClass(
                 this._settings.connectObject(
                     'changed::autohide', () => this._syncAutohide(),
                     'changed::extend-on-maximize', () => this._syncExtendOnMaximize(),
+                    'changed::always-bar-mode', () => this._syncAlwaysBarMode(),
+                    'changed::bar-icons-alignment', () => this._syncBarIconsAlignment(),
                     'changed::icon-size', () => this._syncIconSize(true),
                     'changed::theme-mode', () => this._syncThemeMode(),
                     'changed::position', () => this._syncPosition(),
@@ -813,6 +867,8 @@ export const ArreraDock = GObject.registerClass(
             this._syncPosition();
             this._syncThemeMode();
             this._syncExtendOnMaximize();
+            this._syncAlwaysBarMode();
+            this._syncBarIconsAlignment();
             this._syncAutohide();
             this._trackWorkspaceWindows();
             this._updateBarMode();
@@ -1236,6 +1292,8 @@ export const ArreraDock = GObject.registerClass(
                 } else {
                     icon.setIconSize(this._iconSize);
                 }
+                icon.set_x_expand(false);
+                icon.set_y_expand(false);
                 icon.updatePositionStyle?.(this._position || 'bottom');
                 this._iconsBox.add_child(icon);
             }
@@ -1247,6 +1305,8 @@ export const ArreraDock = GObject.registerClass(
                         style_class: 'dock-separator',
                     });
                 }
+                this._separator.set_x_expand(false);
+                this._separator.set_y_expand(false);
                 if (this._position === 'left' || this._position === 'right') {
                     this._separator.x_align = Clutter.ActorAlign.CENTER;
                     this._separator.y_align = Clutter.ActorAlign.FILL;
@@ -1267,11 +1327,18 @@ export const ArreraDock = GObject.registerClass(
                 } else {
                     icon.setIconSize(this._iconSize);
                 }
+                icon.set_x_expand(false);
+                icon.set_y_expand(false);
                 icon.updatePositionStyle?.(this._position || 'bottom');
                 this._iconsBox.add_child(icon);
             }
 
             this._updateActiveWindow();
+            this._scheduleBarModeUpdate();
+            if (this._isBarMode)
+                this._applyBarMode();
+            this._iconsBox.queue_relayout();
+            this._dockPill.queue_relayout();
         }
 
         _updateActiveWindow() {
@@ -1283,18 +1350,31 @@ export const ArreraDock = GObject.registerClass(
 
         _syncExtendOnMaximize() {
             this._extendOnMaximize = this._settings?.get_boolean('extend-on-maximize') ?? true;
-            this._updateBarMode();
+            this._scheduleBarModeUpdate();
+        }
+
+        _syncAlwaysBarMode() {
+            this._alwaysBarMode = this._settings?.get_boolean('always-bar-mode') ?? false;
+            this._scheduleBarModeUpdate();
+        }
+
+        _syncBarIconsAlignment() {
+            const alignment = this._settings?.get_string('bar-icons-alignment') || 'center';
+            const valid = ['center', 'left'];
+            this._barIconsAlignment = valid.includes(alignment) ? alignment : 'center';
+            if (this._isBarMode)
+                this._applyBarMode();
         }
 
         _onWorkspaceChanged() {
             this._trackWorkspaceWindows();
             this._updateActiveWindow();
-            this._updateBarMode();
+            this._scheduleBarModeUpdate();
         }
 
         _onWindowCreated(win) {
             this._trackWindow(win);
-            this._updateBarMode();
+            this._scheduleBarModeUpdate();
         }
 
         _trackWorkspaceWindows() {
@@ -1323,13 +1403,13 @@ export const ArreraDock = GObject.registerClass(
 
             this._trackedWindows.add(win);
             win.connectObject(
-                'notify::maximized-horizontally', () => this._updateBarMode(),
-                'notify::maximized-vertically', () => this._updateBarMode(),
-                'notify::fullscreen', () => this._updateBarMode(),
-                'notify::minimized', () => this._updateBarMode(),
+                'notify::maximized-horizontally', () => this._scheduleBarModeUpdate(),
+                'notify::maximized-vertically', () => this._scheduleBarModeUpdate(),
+                'notify::fullscreen', () => this._scheduleBarModeUpdate(),
+                'notify::minimized', () => this._scheduleBarModeUpdate(),
                 'unmanaged', () => {
                     this._trackedWindows?.delete(win);
-                    this._updateBarMode();
+                    this._scheduleBarModeUpdate();
                 },
                 this
             );
@@ -1343,6 +1423,13 @@ export const ArreraDock = GObject.registerClass(
 
             const windows = ws.list_windows();
             for (const win of windows) {
+                if (!win)
+                    continue;
+
+                // Ignorer les fenêtres en cours de fermeture / destruction
+                if (win.unmanaging || !win.get_compositor_private?.())
+                    continue;
+
                 // Uniquement les fenêtres sur l'écran principal où se trouve le dock
                 if (win.get_monitor() !== primaryMonitorIndex)
                     continue;
@@ -1372,8 +1459,19 @@ export const ArreraDock = GObject.registerClass(
             return false;
         }
 
+        _scheduleBarModeUpdate() {
+            if (this._barModeUpdateId)
+                return;
+
+            this._barModeUpdateId = GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                this._barModeUpdateId = 0;
+                this._updateBarMode();
+                return GLib.SOURCE_REMOVE;
+            });
+        }
+
         _updateBarMode() {
-            const shouldBeBar = !this._autohide && this._extendOnMaximize && this._hasMaximizedOrFullscreenWindow();
+            const shouldBeBar = !this._autohide && (this._alwaysBarMode || (this._extendOnMaximize && this._hasMaximizedOrFullscreenWindow()));
             if (this._isBarMode === shouldBeBar)
                 return;
 
@@ -1412,13 +1510,42 @@ export const ArreraDock = GObject.registerClass(
                     this._dockPill.set_style('border-radius: 0px !important; border-right: none !important; border-top: none !important; border-bottom: none !important; margin: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important;');
                 }
 
-                this._leadingSpacer.visible = true;
-                this._leadingSpacer.x_expand = !isVertical;
-                this._leadingSpacer.y_expand = isVertical;
+                const alignment = this._barIconsAlignment || 'center';
 
-                this._trailingSpacer.visible = true;
-                this._trailingSpacer.x_expand = !isVertical;
-                this._trailingSpacer.y_expand = isVertical;
+                if (alignment === 'center') {
+                    this._leadingSpacer.visible = true;
+                    this._leadingSpacer.x_expand = !isVertical;
+                    this._leadingSpacer.y_expand = isVertical;
+                    this._leadingSpacer.width = 0;
+                    this._leadingSpacer.height = 0;
+
+                    this._trailingSpacer.visible = true;
+                    this._trailingSpacer.x_expand = !isVertical;
+                    this._trailingSpacer.y_expand = isVertical;
+                    this._trailingSpacer.width = 0;
+                    this._trailingSpacer.height = 0;
+
+                    this._iconsBox.x_align = Clutter.ActorAlign.CENTER;
+                } else if (alignment === 'left') {
+                    this._leadingSpacer.visible = true;
+                    this._leadingSpacer.x_expand = false;
+                    this._leadingSpacer.y_expand = false;
+                    if (isVertical) {
+                        this._leadingSpacer.height = 8;
+                        this._leadingSpacer.width = 0;
+                    } else {
+                        this._leadingSpacer.width = 8;
+                        this._leadingSpacer.height = 0;
+                    }
+
+                    this._trailingSpacer.visible = true;
+                    this._trailingSpacer.x_expand = !isVertical;
+                    this._trailingSpacer.y_expand = isVertical;
+                    this._trailingSpacer.width = 0;
+                    this._trailingSpacer.height = 0;
+
+                    this._iconsBox.x_align = Clutter.ActorAlign.START;
+                }
             } else {
                 this.remove_style_class_name('mode-bar');
                 this._dockPill.remove_style_class_name('mode-bar');
@@ -1430,10 +1557,14 @@ export const ArreraDock = GObject.registerClass(
                 this._leadingSpacer.visible = false;
                 this._leadingSpacer.x_expand = false;
                 this._leadingSpacer.y_expand = false;
+                this._leadingSpacer.width = 0;
+                this._leadingSpacer.height = 0;
 
                 this._trailingSpacer.visible = false;
                 this._trailingSpacer.x_expand = false;
                 this._trailingSpacer.y_expand = false;
+                this._trailingSpacer.width = 0;
+                this._trailingSpacer.height = 0;
 
                 if (this._position === 'bottom') {
                     this._dockPill.x_align = Clutter.ActorAlign.CENTER;
@@ -1445,7 +1576,18 @@ export const ArreraDock = GObject.registerClass(
                     this._dockPill.x_align = Clutter.ActorAlign.END;
                     this._dockPill.y_align = Clutter.ActorAlign.CENTER;
                 }
+
+                this._iconsBox.x_align = Clutter.ActorAlign.CENTER;
             }
+
+            this._showAppsButton?.set_x_expand(false);
+            this._showAppsButton?.set_y_expand(false);
+            this._iconsBox.set_x_expand(false);
+            this._iconsBox.set_y_expand(false);
+
+            this._iconsBox.queue_relayout();
+            this._dockPill.queue_relayout();
+            this.queue_relayout();
         }
 
         // Drag-and-drop support: reorder favorites inside Arrera Dock
@@ -1486,6 +1628,11 @@ export const ArreraDock = GObject.registerClass(
             if (this._autohideTimeoutId) {
                 GLib.source_remove(this._autohideTimeoutId);
                 this._autohideTimeoutId = 0;
+            }
+
+            if (this._barModeUpdateId) {
+                GLib.source_remove(this._barModeUpdateId);
+                this._barModeUpdateId = 0;
             }
 
             Main.overview.disconnectObject(this);

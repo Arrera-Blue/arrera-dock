@@ -14,6 +14,22 @@
       <description>En mode toujours affiché, transforme le dock en barre pleine largeur (ou pleine hauteur) si une fenêtre est maximisée ou en plein écran.</description>
     </key>
 
+    <key name="always-bar-mode" type="b">
+      <default>false</default>
+      <summary>Mode barre permanente</summary>
+      <description>Force le dock à rester en mode barre pleine largeur (ou pleine hauteur) en permanence, sans dépendre d'une fenêtre maximisée.</description>
+    </key>
+
+    <key name="bar-icons-alignment" type="s">
+      <choices>
+        <choice value="center"/>
+        <choice value="left"/>
+      </choices>
+      <default>'center'</default>
+      <summary>Alignement des icônes en mode barre</summary>
+      <description>Position des icônes lorsque le dock est en mode barre : center (au centre par défaut) ou left (à gauche / début).</description>
+    </key>
+
 
     <key name="icon-size" type="s">
       <choices>
