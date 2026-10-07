@@ -23,6 +23,7 @@ while true; do
     POS=$(gsettings get $SCHEMA position 2>/dev/null | tr -d "'" || echo "bottom")
     SHOW_QS=$(gsettings get $SCHEMA show-quick-settings 2>/dev/null || echo "false")
     SHOW_DATE=$(gsettings get $SCHEMA show-date-menu 2>/dev/null || echo "false")
+    SHOW_ACT=$(gsettings get $SCHEMA show-activities-button 2>/dev/null || echo "false")
 
     echo "=========================================================="
     echo "            Arrera Dock - Configuration Rapide            "
@@ -36,11 +37,12 @@ while true; do
     echo " 7) Position sur l'écran (position)        : $POS"
     echo " 8) Paramètres rapides (quick-settings)   : $SHOW_QS"
     echo " 9) Date et horloge (date-menu)           : $SHOW_DATE"
+    echo "10) Bouton Activités (activities-button)  : $SHOW_ACT"
     echo "----------------------------------------------------------"
     echo " r) Réinitialiser toutes les options par défaut"
     echo " q) Quitter"
     echo "=========================================================="
-    read -p " Choisissez une option [1-9, r, q] : " CHOIX
+    read -p " Choisissez une option [1-10, r, q] : " CHOIX
 
     case "$CHOIX" in
         1)
@@ -128,6 +130,13 @@ while true; do
                 gsettings set $SCHEMA show-date-menu true
             fi
             ;;
+        10)
+            if [ "$SHOW_ACT" = "true" ]; then
+                gsettings set $SCHEMA show-activities-button false
+            else
+                gsettings set $SCHEMA show-activities-button true
+            fi
+            ;;
         r|R)
             echo ""
             read -p " Confirmer la réinitialisation par défaut ? [o/N] : " CONFIRM
@@ -141,6 +150,7 @@ while true; do
                 gsettings reset $SCHEMA position
                 gsettings reset $SCHEMA show-quick-settings
                 gsettings reset $SCHEMA show-date-menu
+                gsettings reset $SCHEMA show-activities-button
                 echo " Paramètres réinitialisés !"
                 sleep 1
             fi

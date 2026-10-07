@@ -56,7 +56,8 @@
     background-color: st-transparentize(-st-accent-color, 0.65);
 }
 
-.dock-app-icon .overview-icon {
+.dock-app-icon .overview-icon,
+.activities-button .activities-icon {
     padding: 0;
     margin: 0;
     border: none;

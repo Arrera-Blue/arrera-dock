@@ -76,5 +76,11 @@
       <description>Intègre la date, l'horloge et le calendrier dans le dock.</description>
     </key>
 
+    <key name="show-activities-button" type="b">
+      <default>false</default>
+      <summary>Afficher le bouton Activités dans le dock</summary>
+      <description>Intègre le bouton Activités (avec le logo Arrera) directement dans le dock et masque le bouton de la barre supérieure.</description>
+    </key>
+
   </schema>
 </schemalist>

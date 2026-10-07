@@ -77,3 +77,11 @@
 * **Valeurs possibles** :
   * `false` *(défaut)* : Reste dans la barre supérieure.
   * `true` : Déplacé dans le dock.
+
+---
+
+### `show-activities-button` (booléen)
+* **Description** : Intègre le bouton Activités (avec le logo Arrera) directement dans le dock et masque le bouton « Activités » de la barre supérieure.
+* **Valeurs possibles** :
+  * `false` *(défaut)* : Bouton Activités conservé dans la barre supérieure.
+  * `true` : Bouton Activités présent dans le dock avec le logo Arrera.

@@ -754,6 +754,217 @@ export const ShowAppsButton = GObject.registerClass(
     });
 
 /**
+ * ActivitiesButton triggers GNOME Shell's Activities overview
+ * and displays the Arrera logo.
+ */
+export const ActivitiesButton = GObject.registerClass(
+    class ActivitiesButton extends St.Button {
+        _init(dock, iconSize = DEFAULT_ICON_SIZE) {
+            super._init({
+                style_class: 'dock-app-icon activities-button',
+                reactive: true,
+                can_focus: false,
+                track_hover: true,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+
+            this._dock = dock;
+            this._iconSize = iconSize;
+            this._icon = this._createIcon(iconSize);
+            this.set_child(this._icon);
+            this._tooltip = null;
+            this.updatePositionStyle(this._dock?._position || 'bottom');
+
+            this.connect('clicked', () => this._onClicked());
+            this.connect('notify::hover', () => {
+                if (this.hover)
+                    this._showTooltip();
+                else
+                    this._hideTooltip();
+            });
+
+            this.connect('destroy', () => {
+                this._cleanupTooltip();
+            });
+        }
+
+        _createIcon(iconSize) {
+            const extPath = this._dock?._extension?.path;
+            if (extPath) {
+                const candidates = [
+                    'arrera-logo.svg',
+                    'arrera-logo.png',
+                    'arrera-symbolic.svg',
+                    'activities-symbolic.svg',
+                    'activities.svg',
+                    'activities.png',
+                    'logo.svg',
+                    'logo.png',
+                    'logo-symbolic.svg',
+                ];
+                for (const name of candidates) {
+                    const filePath = `${extPath}/icons/${name}`;
+                    const file = Gio.File.new_for_path(filePath);
+                    if (file.query_exists(null)) {
+                        return new St.Icon({
+                            gicon: new Gio.FileIcon({ file }),
+                            icon_size: iconSize,
+                            style_class: 'activities-icon',
+                        });
+                    }
+                }
+            }
+
+            return new St.Icon({
+                icon_name: 'view-activities-symbolic',
+                icon_size: iconSize,
+                style_class: 'activities-icon',
+            });
+        }
+
+        setIconSize(size) {
+            this._iconSize = size;
+            if (this._icon)
+                this._icon.icon_size = size;
+            for (const s of ['small', 'medium', 'large'])
+                this.remove_style_class_name(`size-${s}`);
+            const sizeName = this._dock?._sizeName || (size <= 28 ? 'small' : (size >= 48 ? 'large' : 'medium'));
+            this.add_style_class_name(`size-${sizeName}`);
+        }
+
+        _cleanupTooltip() {
+            if (!this._tooltip)
+                return;
+
+            try {
+                this._tooltip.remove_all_transitions();
+                Main.layoutManager.removeChrome(this._tooltip);
+                this._tooltip.destroy();
+            } catch (_e) {
+                // Already destroyed or disposed by parent during shutdown
+            } finally {
+                this._tooltip = null;
+            }
+        }
+
+        _onClicked() {
+            this._hideTooltip();
+            Main.overview.toggle();
+        }
+
+        updatePositionStyle(position) {
+            for (const p of ['bottom', 'left', 'right'])
+                this.remove_style_class_name(`position-${p}`);
+            this.add_style_class_name(`position-${position}`);
+
+            if (position === 'left') {
+                this.set_pivot_point(0.0, 0.5);
+            } else if (position === 'right') {
+                this.set_pivot_point(1.0, 0.5);
+            } else {
+                this.set_pivot_point(0.5, 1.0);
+            }
+        }
+
+        _showTooltip() {
+            if (!this.get_stage())
+                return;
+
+            if (!this._tooltip) {
+                this._tooltip = new St.Label({
+                    style_class: 'dock-tooltip',
+                    text: _('Activities'),
+                });
+                this._tooltip.connect('destroy', () => {
+                    this._tooltip = null;
+                });
+                Main.layoutManager.addTopChrome(this._tooltip);
+            }
+
+            this._tooltip.opacity = 0;
+            this._tooltip.show();
+            this.updateTooltipPosition();
+
+            this._tooltip.ease({
+                opacity: 255,
+                duration: 150,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        }
+
+        updateTooltipPosition() {
+            if (!this._tooltip || !this._tooltip.visible)
+                return;
+
+            const [stageX, stageY] = this.get_transformed_position();
+            const [w, h] = this.get_transformed_size();
+            const [, , natW, natH] = this._tooltip.get_preferred_size();
+            const tw = this._tooltip.width || natW;
+            const th = this._tooltip.height || natH;
+            const pos = this._dock?._position || 'bottom';
+
+            let x, y;
+            if (pos === 'left') {
+                const dockX = this._dock ? this._dock.x : stageX;
+                const dockW = this._dock ? this._dock.width : w;
+                x = Math.round(dockX + dockW + 10);
+                y = Math.round(stageY + (h - th) / 2);
+            } else if (pos === 'right') {
+                const dockX = this._dock ? this._dock.x : stageX;
+                x = Math.round(dockX - tw - 10);
+                y = Math.round(stageY + (h - th) / 2);
+            } else {
+                const dockY = this._dock ? this._dock.y : stageY;
+                x = Math.round(stageX + (w - tw) / 2);
+                y = Math.round(dockY - th - 10);
+            }
+
+            const monitor = Main.layoutManager.primaryMonitor;
+            if (monitor) {
+                const panelHeight = (Main.panel && Main.panel.visible) ? Main.panel.height : 0;
+                const minY = monitor.y + panelHeight + 4;
+                const maxY = monitor.y + monitor.height - th - 4;
+                const minX = monitor.x + 4;
+                const maxX = monitor.x + monitor.width - tw - 4;
+
+                x = Math.clamp(x, minX, maxX);
+                y = Math.clamp(y, minY, maxY);
+            }
+
+            this._tooltip.set_position(x, y);
+        }
+
+        _hideTooltip() {
+            if (!this._tooltip)
+                return;
+
+            this._tooltip.ease({
+                opacity: 0,
+                duration: 100,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => {
+                    if (this._tooltip)
+                        this._tooltip.hide();
+                },
+            });
+        }
+
+        handleDragOver(source, _actor, _x, _y, _time) {
+            if (Main.overview.shouldToggleByCornerOrButton?.() ?? true) {
+                Main.overview.show();
+            }
+            return DND.DragMotionResult.CONTINUE;
+        }
+
+        destroy() {
+            this._cleanupTooltip();
+            super.destroy();
+        }
+    }
+);
+
+/**
  * ArreraDock is the main dock widget container added to GNOME Shell's chrome.
  */
 export const ArreraDock = GObject.registerClass(
@@ -842,6 +1053,12 @@ export const ArreraDock = GObject.registerClass(
             // Leading spacer for bar mode (centers icons when dock spans full screen)
             this._leadingSpacer = new Clutter.Actor({ visible: false, x_expand: false, y_expand: false });
             this._dockPill.add_child(this._leadingSpacer);
+
+            // Activities Button (placed on the left, with Arrera logo)
+            this._activitiesButton = new ActivitiesButton(this, this._iconSize);
+            this._activitiesButton.set_x_expand(false);
+            this._activitiesButton.set_y_expand(false);
+            this._dockPill.add_child(this._activitiesButton);
 
             // Show Apps Button (placed on the left)
             this._showAppsButton = new ShowAppsButton(this, this._iconSize);
@@ -935,6 +1152,7 @@ export const ArreraDock = GObject.registerClass(
                     'changed::position', () => this._syncPosition(),
                     'changed::show-quick-settings', () => this._syncSystemStatusArea(),
                     'changed::show-date-menu', () => this._syncSystemStatusArea(),
+                    'changed::show-activities-button', () => this._syncActivitiesButton(),
                     this
                 );
             }
@@ -953,6 +1171,7 @@ export const ArreraDock = GObject.registerClass(
             this._syncAlwaysBarMode();
             this._syncBarIconsAlignment();
             this._syncAutohide();
+            this._syncActivitiesButton();
             this._syncSystemStatusArea();
             this._trackWorkspaceWindows();
             this._updateBarMode();
@@ -1213,6 +1432,7 @@ export const ArreraDock = GObject.registerClass(
             for (const icon of this._appIcons.values()) {
                 icon.setIconSize(this._iconSize);
             }
+            this._activitiesButton?.setIconSize(this._iconSize);
             this._showAppsButton?.setIconSize(this._iconSize);
 
             this.updatePosition();
@@ -1285,11 +1505,45 @@ export const ArreraDock = GObject.registerClass(
             for (const icon of this._appIcons.values()) {
                 icon.updatePositionStyle?.(this._position);
             }
+            this._activitiesButton?.updatePositionStyle?.(this._position);
             this._showAppsButton?.updatePositionStyle?.(this._position);
 
             this.updatePosition();
             this._applyBarMode();
             this._extension?.updateChromeStruts?.(!this._autohide);
+        }
+
+        _syncActivitiesButton() {
+            const showActivities = this._settings?.get_boolean('show-activities-button') ?? false;
+            if (this._activitiesButton)
+                this._activitiesButton.visible = showActivities;
+
+            const topActivities = Main.panel?.statusArea?.activities;
+            if (topActivities) {
+                const targetActor = topActivities.container || topActivities;
+                if (showActivities) {
+                    if (this._origTopActivitiesVisible === undefined)
+                        this._origTopActivitiesVisible = targetActor.visible;
+                    targetActor.visible = false;
+                } else {
+                    if (this._origTopActivitiesVisible !== undefined)
+                        targetActor.visible = this._origTopActivitiesVisible;
+                    else
+                        targetActor.visible = true;
+                }
+            }
+        }
+
+        _cleanupActivitiesButton() {
+            const topActivities = Main.panel?.statusArea?.activities;
+            if (topActivities) {
+                const targetActor = topActivities.container || topActivities;
+                if (this._origTopActivitiesVisible !== undefined)
+                    targetActor.visible = this._origTopActivitiesVisible;
+                else
+                    targetActor.visible = true;
+            }
+            this._origTopActivitiesVisible = undefined;
         }
 
         _syncSystemStatusArea() {
@@ -1954,6 +2208,8 @@ export const ArreraDock = GObject.registerClass(
                 this._iconsBox.x_align = Clutter.ActorAlign.CENTER;
             }
 
+            this._activitiesButton?.set_x_expand(false);
+            this._activitiesButton?.set_y_expand(false);
             this._showAppsButton?.set_x_expand(false);
             this._showAppsButton?.set_y_expand(false);
             this._iconsBox.set_x_expand(false);
@@ -2044,6 +2300,7 @@ export const ArreraDock = GObject.registerClass(
                 this._separator = null;
             }
 
+            this._cleanupActivitiesButton();
             this._cleanupSystemStatusArea();
 
             if (this._systemBox) {

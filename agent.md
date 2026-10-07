@@ -50,7 +50,8 @@ Ce document fournit aux agents de développement toutes les informations nécess
   * **Intégration Statut Système** : Reparentage dynamique de `Main.panel.statusArea.quickSettings` et `dateMenu` dans `_systemBox`, avec ajustement de la direction des menus déroulants (`updateArrowSide(St.Side.BOTTOM)` pour s'ouvrir vers le haut).
   * **Synchronisation Thèmes & Couleurs** : Écoute les changements de thème (`theme-mode`) et la couleur d'accentuation du bureau GNOME (`accent-color`).
 * **`DockAppIcon`** : Représente chaque lanceur d'application (favori ou active). Gère les indicateurs d'état d'exécution (points blancs ou colorés), les fenêtres actives, les clics, les menus contextuels et le drag-and-drop.
-* **`ShowAppsButton`** : Bouton 9 points ouvrant/fermant la grille d'applications de GNOME Shell.
+* **`ActivitiesButton`** : Bouton orné du logo Arrera (`icons/arrera-logo.svg`) ouvrant/fermant la vue Activités (`Main.overview.toggle()`), synchronisé avec l'état de l'aperçu et gérant le Drag-and-Drop.
+* **`ShowAppsButton`** : Bouton grille d'applications ouvrant Arrera App Menu ou la grille GNOME Shell.
 
 ### `stylesheet.css`
 * Feuille de style utilisant le moteur CSS de Clutter/St.
@@ -78,6 +79,7 @@ Toutes les options sont déclarées dans `schemas/org.gnome.shell.extensions.doc
 | `position` | `s` | `'bottom'`| `'bottom'`, `'left'`, `'right'` | Position sur l'écran (bas, gauche, droite) |
 | `show-quick-settings`| `b` | `false` | `true`, `false` | Place le bloc Wi-Fi/Volume/Batterie dans le dock |
 | `show-date-menu` | `b` | `false` | `true`, `false` | Place l'horloge/date/calendrier dans le dock |
+| `show-activities-button`| `b` | `false` | `true`, `false` | Intègre le bouton Activités avec logo Arrera dans le dock et masque le bouton natif |
 
 ---
 
