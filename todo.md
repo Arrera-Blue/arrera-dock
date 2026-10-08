@@ -47,12 +47,3 @@ Liste des fonctionnalités manquantes pour permettre la réalisation des 3 desig
   - Option permettant de rendre le fond du dock (`.arrera-dock`) 100 % transparent (sans bordure ni ombre globale), afin que seules les tuiles individuelles flottent sur le bord droit de l'écran.
 
 ---
-
-## 6. Intégration et détection inter-extensions (Pour les Designs 2 et 3)
-- [ ] **Détection de conflit avec `top-bar`** :
-  - S'assurer que le reparentage de `dateMenu` et `quickSettings` ne soit pas masqué lorsque `top-bar` active son option `hide-top-bar`.
-- [ ] **Support des Profils / Presets de disposition** :
-  - Ajouter une clé de réglage `layout-preset` ou une fonction d'application rapide :
-    - `float-bottom` (Design 1 : Dock flottant centré en bas)
-    - `panel-bottom` (Design 2 : Barre pleine largeur en bas)
-    - `panel-right` (Design 3 : Barre latérale droite en tuiles)
