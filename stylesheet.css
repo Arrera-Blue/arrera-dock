@@ -199,8 +199,9 @@
     color: #f4f4f5;
 }
 
-/* Quick Settings capsule / grey pill styling (Design 2 horizontal mode) */
-.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button {
+/* Quick Settings & GPaste capsule / grey pill styling (Design 2 horizontal mode) */
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button,
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-gpaste-item .panel-button {
     border-radius: 9999px;
     border: none;
     background-color: rgba(255, 255, 255, 0.12);
@@ -212,16 +213,51 @@
 }
 
 .position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button:hover,
-.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button:focus:hover {
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button:focus:hover,
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-gpaste-item .panel-button:hover,
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-gpaste-item .panel-button:focus:hover {
     background-color: rgba(255, 255, 255, 0.20);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
     color: #ffffff;
 }
 
 .position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button:active,
-.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button:checked {
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button:checked,
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-gpaste-item .panel-button:active,
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-gpaste-item .panel-button:checked {
     background-color: rgba(255, 255, 255, 0.28);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 0 12px rgba(255, 255, 255, 0.20);
+    color: #ffffff;
+}
+
+/* Systray Overflow Arrow Button (Windows / Chrome OS mode) */
+.position-bottom:not(.dark-tiles) .dock-tray-arrow-button {
+    border-radius: 9999px;
+    border: none;
+    background-color: rgba(255, 255, 255, 0.12);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    padding: 4px 8px;
+    min-width: 26px;
+    min-height: 26px;
+    transition-duration: 200ms;
+}
+
+.position-bottom:not(.dark-tiles) .dock-tray-arrow-button:hover {
+    background-color: rgba(255, 255, 255, 0.20);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
+.position-bottom:not(.dark-tiles) .dock-tray-arrow-button:active,
+.position-bottom:not(.dark-tiles) .dock-tray-arrow-button:checked {
+    background-color: rgba(255, 255, 255, 0.28);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 0 12px rgba(255, 255, 255, 0.20);
+    color: #ffffff;
+}
+
+.dock-tray-arrow-button .tray-arrow-icon {
+    icon-size: 13px;
     color: #ffffff;
 }
 
@@ -1454,7 +1490,9 @@
 .dark-tiles .show-apps-button,
 .dark-tiles .dock-clock-tile,
 .dark-tiles .dock-quick-settings-tile,
-.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button {
+.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button,
+.dark-tiles .dock-system-item.dock-gpaste-item .panel-button,
+.dark-tiles .dock-tray-arrow-button {
     background-color: rgba(255, 255, 255, 0.09);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
     border-radius: 16px;
@@ -1469,7 +1507,9 @@
 .dark-tiles .show-apps-button:hover,
 .dark-tiles .dock-clock-tile:hover,
 .dark-tiles .dock-quick-settings-tile:hover,
-.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:hover {
+.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:hover,
+.dark-tiles .dock-system-item.dock-gpaste-item .panel-button:hover,
+.dark-tiles .dock-tray-arrow-button:hover {
     background-color: st-transparentize(-st-accent-color, 0.75);
     box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.45), 0 2px 10px rgba(0, 0, 0, 0.35);
 }
@@ -1485,7 +1525,11 @@
 .dark-tiles .dock-quick-settings-tile:active,
 .dark-tiles .dock-quick-settings-tile:checked,
 .dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:active,
-.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:checked {
+.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:checked,
+.dark-tiles .dock-system-item.dock-gpaste-item .panel-button:active,
+.dark-tiles .dock-system-item.dock-gpaste-item .panel-button:checked,
+.dark-tiles .dock-tray-arrow-button:active,
+.dark-tiles .dock-tray-arrow-button:checked {
     background-color: st-transparentize(-st-accent-color, 0.58);
     box-shadow: 0 0 14px -st-accent-color;
 }
@@ -1687,4 +1731,41 @@
 .align-bottom.position-right.arrera-dock.mode-bar {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
+}
+
+/* ==========================================================================
+   Systray Overflow Flyout Popover & Indicators (Windows / Chrome OS mode)
+   ========================================================================== */
+
+.dock-tray-flyout-window {
+    background-color: st-mix(-st-accent-color, rgba(20, 20, 26, 0.95), 25%);
+    border: 1.5px solid st-transparentize(-st-accent-color, 0.50);
+    border-radius: 20px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.65);
+    padding: 8px 12px;
+}
+
+.dock-tray-flyout-icons {
+    spacing: 6px;
+}
+
+.dock-tray-indicator-item {
+    border-radius: 12px;
+    padding: 4px 6px;
+    transition-duration: 150ms;
+}
+
+.dock-tray-indicator-item:hover {
+    background-color: st-transparentize(-st-accent-color, 0.75);
+}
+
+.dock-tray-indicator-item:active,
+.dock-tray-indicator-item:checked {
+    background-color: st-transparentize(-st-accent-color, 0.60);
+}
+
+.dock-tray-empty-label {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 11.5pt;
+    padding: 4px 10px;
 }
