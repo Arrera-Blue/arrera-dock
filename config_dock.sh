@@ -24,6 +24,7 @@ while true; do
     SHOW_QS=$(gsettings get $SCHEMA show-quick-settings 2>/dev/null || echo "false")
     SHOW_DATE=$(gsettings get $SCHEMA show-date-menu 2>/dev/null || echo "false")
     SHOW_ACT=$(gsettings get $SCHEMA show-activities-button 2>/dev/null || echo "false")
+    CLOCK_POS=$(gsettings get $SCHEMA clock-position 2>/dev/null | tr -d "'" || echo "bottom")
 
     echo "=========================================================="
     echo "            Arrera Dock - Configuration Rapide            "
@@ -38,11 +39,12 @@ while true; do
     echo " 8) Paramètres rapides (quick-settings)   : $SHOW_QS"
     echo " 9) Date et horloge (date-menu)           : $SHOW_DATE"
     echo "10) Bouton Activités (activities-button)  : $SHOW_ACT"
+    echo "11) Position horloge (clock-position)     : $CLOCK_POS"
     echo "----------------------------------------------------------"
     echo " r) Réinitialiser toutes les options par défaut"
     echo " q) Quitter"
     echo "=========================================================="
-    read -p " Choisissez une option [1-10, r, q] : " CHOIX
+    read -p " Choisissez une option [1-11, r, q] : " CHOIX
 
     case "$CHOIX" in
         1)
@@ -137,6 +139,19 @@ while true; do
                 gsettings set $SCHEMA show-activities-button true
             fi
             ;;
+        11)
+            echo ""
+            echo " Emplacement de l'horloge :"
+            echo "   1) En haut / sous le logo (top)"
+            echo "   2) Entre le logo et les apps (between-logo-and-apps)"
+            echo "   3) En bas / fin de dock (bottom)"
+            read -p " Choix [1-3] : " CPOS_CHOIX
+            case "$CPOS_CHOIX" in
+                1) gsettings set $SCHEMA clock-position "top" ;;
+                2) gsettings set $SCHEMA clock-position "between-logo-and-apps" ;;
+                3) gsettings set $SCHEMA clock-position "bottom" ;;
+            esac
+            ;;
         r|R)
             echo ""
             read -p " Confirmer la réinitialisation par défaut ? [o/N] : " CONFIRM
@@ -151,6 +166,7 @@ while true; do
                 gsettings reset $SCHEMA show-quick-settings
                 gsettings reset $SCHEMA show-date-menu
                 gsettings reset $SCHEMA show-activities-button
+                gsettings reset $SCHEMA clock-position
                 echo " Paramètres réinitialisés !"
                 sleep 1
             fi

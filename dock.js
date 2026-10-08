@@ -1011,6 +1011,7 @@ export const ArreraDock = GObject.registerClass(
             this._qsOrigIndex = -1;
             this._dmOrigParent = null;
             this._dmOrigIndex = -1;
+            this._clockBox = null;
             this._systemSeparator = null;
 
             // Floating pill container
@@ -1048,23 +1049,20 @@ export const ArreraDock = GObject.registerClass(
                     this._onLeave();
             });
 
-            this._barModeUpdateId = 0;
+            this._clockPosition = this._settings?.get_string('clock-position') || 'bottom';
 
             // Leading spacer for bar mode (centers icons when dock spans full screen)
             this._leadingSpacer = new Clutter.Actor({ visible: false, x_expand: false, y_expand: false });
-            this._dockPill.add_child(this._leadingSpacer);
 
             // Activities Button (placed on the left, with Arrera logo)
             this._activitiesButton = new ActivitiesButton(this, this._iconSize);
             this._activitiesButton.set_x_expand(false);
             this._activitiesButton.set_y_expand(false);
-            this._dockPill.add_child(this._activitiesButton);
 
             // Show Apps Button (placed on the left)
             this._showAppsButton = new ShowAppsButton(this, this._iconSize);
             this._showAppsButton.set_x_expand(false);
             this._showAppsButton.set_y_expand(false);
-            this._dockPill.add_child(this._showAppsButton);
 
             // Icons box (favorites and running apps)
             this._iconsBox = new St.BoxLayout({
@@ -1076,13 +1074,23 @@ export const ArreraDock = GObject.registerClass(
                 reactive: true,
             });
             this._iconsBox._delegate = this;
-            this._dockPill.add_child(this._iconsBox);
+
+            // Clock status box (Date/Clock)
+            this._clockBox = new St.BoxLayout({
+                style_class: 'arrera-dock-clock-box',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+                x_expand: false,
+                y_expand: false,
+                reactive: true,
+                visible: false,
+            });
+            this._clockBox._delegate = this;
 
             // Trailing spacer for bar mode (centers icons when dock spans full screen)
             this._trailingSpacer = new Clutter.Actor({ visible: false, x_expand: false, y_expand: false });
-            this._dockPill.add_child(this._trailingSpacer);
 
-            // System status box (Date/Clock & Quick Settings)
+            // System status box (Quick Settings)
             this._systemBox = new St.BoxLayout({
                 style_class: 'arrera-dock-system-box',
                 x_align: Clutter.ActorAlign.CENTER,
@@ -1093,7 +1101,9 @@ export const ArreraDock = GObject.registerClass(
                 visible: false,
             });
             this._systemBox._delegate = this;
-            this._dockPill.add_child(this._systemBox);
+
+            // Build initial layout in _dockPill
+            this._updatePillLayout();
 
             // Deferred work to coalesce redisplay updates
             this._workId = Main.initializeDeferredWork(
@@ -1153,6 +1163,7 @@ export const ArreraDock = GObject.registerClass(
                     'changed::show-quick-settings', () => this._syncSystemStatusArea(),
                     'changed::show-date-menu', () => this._syncSystemStatusArea(),
                     'changed::show-activities-button', () => this._syncActivitiesButton(),
+                    'changed::clock-position', () => this._syncClockPosition(),
                     this
                 );
             }
@@ -1172,6 +1183,7 @@ export const ArreraDock = GObject.registerClass(
             this._syncBarIconsAlignment();
             this._syncAutohide();
             this._syncActivitiesButton();
+            this._syncClockPosition();
             this._syncSystemStatusArea();
             this._trackWorkspaceWindows();
             this._updateBarMode();
@@ -1474,6 +1486,18 @@ export const ArreraDock = GObject.registerClass(
                 this._iconsBox.vertical = isVertical;
             }
 
+            if (this._clockBox) {
+                if ('orientation' in this._clockBox) {
+                    this._clockBox.orientation = isVertical
+                        ? Clutter.Orientation.VERTICAL
+                        : Clutter.Orientation.HORIZONTAL;
+                } else if ('is_vertical' in this._clockBox) {
+                    this._clockBox.is_vertical = isVertical;
+                } else {
+                    this._clockBox.vertical = isVertical;
+                }
+            }
+
             if (this._systemBox) {
                 if ('orientation' in this._systemBox) {
                     this._systemBox.orientation = isVertical
@@ -1483,6 +1507,18 @@ export const ArreraDock = GObject.registerClass(
                     this._systemBox.is_vertical = isVertical;
                 } else {
                     this._systemBox.vertical = isVertical;
+                }
+            }
+
+            if (this._systemSeparator) {
+                this._systemSeparator.set_x_expand(false);
+                this._systemSeparator.set_y_expand(false);
+                if (isVertical) {
+                    this._systemSeparator.x_align = Clutter.ActorAlign.FILL;
+                    this._systemSeparator.y_align = Clutter.ActorAlign.CENTER;
+                } else {
+                    this._systemSeparator.y_align = Clutter.ActorAlign.FILL;
+                    this._systemSeparator.x_align = Clutter.ActorAlign.CENTER;
                 }
             }
 
@@ -1546,6 +1582,74 @@ export const ArreraDock = GObject.registerClass(
             this._origTopActivitiesVisible = undefined;
         }
 
+        _syncClockPosition() {
+            const pos = this._settings?.get_string('clock-position') || 'bottom';
+            const valid = ['top', 'between-logo-and-apps', 'bottom'];
+            this._clockPosition = valid.includes(pos) ? pos : 'bottom';
+            this._updatePillLayout();
+            this._syncPosition();
+        }
+
+        _updatePillLayout() {
+            if (!this._dockPill)
+                return;
+
+            const clockPos = this._clockPosition || 'bottom';
+
+            if (!this._systemSeparator) {
+                this._systemSeparator = new St.Widget({
+                    style_class: 'dock-separator system-separator',
+                    x_align: Clutter.ActorAlign.CENTER,
+                    y_align: Clutter.ActorAlign.CENTER,
+                });
+            }
+
+            const hasTrailingSystem = (clockPos === 'bottom')
+                ? (this._dmReparented || this._qsReparented)
+                : this._qsReparented;
+
+            this._systemSeparator.visible = hasTrailingSystem;
+
+            const desiredOrder = [];
+            desiredOrder.push(this._leadingSpacer);
+
+            if (clockPos === 'top') {
+                desiredOrder.push(this._activitiesButton);
+                desiredOrder.push(this._clockBox);
+                desiredOrder.push(this._showAppsButton);
+                desiredOrder.push(this._iconsBox);
+                desiredOrder.push(this._trailingSpacer);
+                desiredOrder.push(this._systemSeparator);
+                desiredOrder.push(this._systemBox);
+            } else if (clockPos === 'between-logo-and-apps') {
+                desiredOrder.push(this._activitiesButton);
+                desiredOrder.push(this._showAppsButton);
+                desiredOrder.push(this._clockBox);
+                desiredOrder.push(this._iconsBox);
+                desiredOrder.push(this._trailingSpacer);
+                desiredOrder.push(this._systemSeparator);
+                desiredOrder.push(this._systemBox);
+            } else { // 'bottom'
+                desiredOrder.push(this._activitiesButton);
+                desiredOrder.push(this._showAppsButton);
+                desiredOrder.push(this._iconsBox);
+                desiredOrder.push(this._trailingSpacer);
+                desiredOrder.push(this._systemSeparator);
+                desiredOrder.push(this._clockBox);
+                desiredOrder.push(this._systemBox);
+            }
+
+            for (const actor of desiredOrder) {
+                if (actor && actor.get_parent() === this._dockPill)
+                    this._dockPill.remove_child(actor);
+            }
+
+            for (const actor of desiredOrder) {
+                if (actor)
+                    this._dockPill.add_child(actor);
+            }
+        }
+
         _syncSystemStatusArea() {
             const showQs = this._settings?.get_boolean('show-quick-settings') ?? false;
             const showDm = this._settings?.get_boolean('show-date-menu') ?? false;
@@ -1564,25 +1668,13 @@ export const ArreraDock = GObject.registerClass(
                 this._restoreQuickSettings();
             }
 
-            const hasSystemItems = this._dmReparented || this._qsReparented;
+            if (this._clockBox)
+                this._clockBox.visible = this._dmReparented;
 
-            if (hasSystemItems) {
-                if (!this._systemSeparator) {
-                    this._systemSeparator = new St.Widget({
-                        style_class: 'dock-separator system-separator',
-                        x_align: Clutter.ActorAlign.CENTER,
-                        y_align: Clutter.ActorAlign.CENTER,
-                    });
-                    this._dockPill.insert_child_below(this._systemSeparator, this._systemBox);
-                }
-                this._systemSeparator.visible = true;
-                this._systemBox.visible = true;
-            } else {
-                if (this._systemSeparator)
-                    this._systemSeparator.visible = false;
-                this._systemBox.visible = false;
-            }
+            if (this._systemBox)
+                this._systemBox.visible = this._qsReparented;
 
+            this._updatePillLayout();
             this._syncPosition();
         }
 
@@ -1704,12 +1796,7 @@ export const ArreraDock = GObject.registerClass(
             container.add_style_class_name('dock-system-item');
             container.add_style_class_name('dock-date-menu-item');
 
-            const qsContainer = Main.panel?.statusArea?.quickSettings?.container;
-            if (qsContainer && this._systemBox.contains(qsContainer))
-                this._systemBox.insert_child_below(container, qsContainer);
-            else
-                this._systemBox.add_child(container);
-
+            this._clockBox.add_child(container);
             this._dmReparented = true;
 
             this._updateMenuSide(dm.menu, this._position);
@@ -1741,7 +1828,9 @@ export const ArreraDock = GObject.registerClass(
             if (this._dmBtnOrigYExpand !== undefined) dm.y_expand = this._dmBtnOrigYExpand;
             if (this._dmBtnOrigXExpand !== undefined) dm.x_expand = this._dmBtnOrigXExpand;
 
-            if (container.get_parent() === this._systemBox)
+            if (container.get_parent() === this._clockBox)
+                this._clockBox.remove_child(container);
+            else if (container.get_parent() === this._systemBox)
                 this._systemBox.remove_child(container);
 
             this._restoreMenuSide(dm.menu);
@@ -1802,6 +1891,11 @@ export const ArreraDock = GObject.registerClass(
             if (this._systemSeparator) {
                 this._systemSeparator.destroy();
                 this._systemSeparator = null;
+            }
+
+            if (this._clockBox) {
+                this._clockBox.remove_all_children();
+                this._clockBox.visible = false;
             }
 
             if (this._systemBox) {
@@ -2302,6 +2396,11 @@ export const ArreraDock = GObject.registerClass(
 
             this._cleanupActivitiesButton();
             this._cleanupSystemStatusArea();
+
+            if (this._clockBox) {
+                this._clockBox.destroy();
+                this._clockBox = null;
+            }
 
             if (this._systemBox) {
                 this._systemBox.destroy();

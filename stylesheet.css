@@ -126,6 +126,7 @@
    Android 16 / Material 3 Dock System Status Area (Quick Settings & Date)
    ========================================================================== */
 
+.arrera-dock-clock-box,
 .arrera-dock-system-box {
     spacing: 4px;
 }

@@ -85,3 +85,13 @@
 * **Valeurs possibles** :
   * `false` *(défaut)* : Bouton Activités conservé dans la barre supérieure.
   * `true` : Bouton Activités présent dans le dock avec le logo Arrera.
+
+---
+
+### `clock-position` (chaîne)
+* **Description** : Emplacement de l'horloge/date dans le dock.
+* **Valeurs possibles** :
+  * `'top'` : En tête du dock, sous le bouton Logo Arrera (ou au début si pas de logo).
+  * `'between-logo-and-apps'` : Entre les boutons de contrôle (logo / show apps) et les applications.
+  * `'bottom'` *(défaut)* : En fin de dock, après les applications.
+

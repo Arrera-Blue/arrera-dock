@@ -8,10 +8,10 @@ Liste des fonctionnalités manquantes pour permettre la réalisation des 3 desig
 ---
 
 ## 1. Agencement & Ordre des éléments (Crucial pour le Design 3)
-- [ ] **Ordre personnalisable des éléments dans le dock (`_dockPill`)** :
+- [x] **Ordre personnalisable des éléments dans le dock (`_dockPill`)** :
   - Permettre de modifier l'ordre des éléments dans la pilule (actuellement figé dans `dock.js` : Logo -> Show Apps -> Applications -> Horloge/Status).
   - Supporter l'ordre du Design 3 : **Logo Arrera -> Horloge -> Show Apps -> Applications**.
-- [ ] **Clé GSettings pour la position de l'horloge** :
+- [x] **Clé GSettings pour la position de l'horloge** :
   - Ajouter une option `clock-position` avec les choix : `'top'` (en haut sous le logo), `'between-logo-and-apps'`, `'bottom'` (après les apps).
 
 ---

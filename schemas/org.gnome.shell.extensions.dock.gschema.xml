@@ -82,5 +82,16 @@
       <description>Intègre le bouton Activités (avec le logo Arrera) directement dans le dock et masque le bouton de la barre supérieure.</description>
     </key>
 
+    <key name="clock-position" type="s">
+      <choices>
+        <choice value="top"/>
+        <choice value="between-logo-and-apps"/>
+        <choice value="bottom"/>
+      </choices>
+      <default>'bottom'</default>
+      <summary>Position de l'horloge dans le dock</summary>
+      <description>Emplacement de l'horloge dans le dock : top (en haut / début, sous le logo), between-logo-and-apps (entre les boutons de contrôle et les applications) ou bottom (en bas / fin, après les applications).</description>
+    </key>
+
   </schema>
 </schemalist>
