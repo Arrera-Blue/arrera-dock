@@ -851,7 +851,8 @@ export const ActivitiesButton = GObject.registerClass(
 
         _onClicked() {
             this._hideTooltip();
-            Main.overview.toggle();
+            if (Main.overview.shouldToggleByCornerOrButton?.() ?? true)
+                Main.overview.toggle();
         }
 
         updatePositionStyle(position) {

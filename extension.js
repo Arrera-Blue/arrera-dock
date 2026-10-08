@@ -32,6 +32,13 @@ export default class ArreraDockExtension extends Extension {
             this
         );
 
+        // Switch dock layer between desktop background and overview in island mode
+        Main.overview.connectObject(
+            'showing', () => this.updateDockLayer(null, true),
+            'hidden', () => this.updateDockLayer(null, false),
+            this
+        );
+
         this._updateDockPosition();
 
         // Totally replace the native dash in the overview
@@ -57,12 +64,15 @@ export default class ArreraDockExtension extends Extension {
         }
     }
 
-    updateDockLayer(isIslandMode = null) {
+    updateDockLayer(isIslandMode = null, inOverview = null) {
         if (!this._dock)
             return;
 
         if (isIslandMode === null)
             isIslandMode = this._settings?.get_boolean('island-mode') ?? false;
+
+        if (inOverview === null)
+            inOverview = Main.overview.visible;
 
         const autohide = this._settings?.get_boolean('autohide') ?? false;
 
@@ -73,7 +83,7 @@ export default class ArreraDockExtension extends Extension {
             }
 
             // Anchor directly to desktop (in window_group above wallpaper, below all windows)
-            if (!Main.overview.visible) {
+            if (!inOverview) {
                 if (this._dock.get_parent() !== global.window_group) {
                     if (this._dock.get_parent())
                         this._dock.get_parent().remove_child(this._dock);
@@ -209,6 +219,7 @@ export default class ArreraDockExtension extends Extension {
             this._settings = null;
         }
 
+        Main.overview.disconnectObject(this);
         Main.layoutManager.disconnectObject(this);
     }
 }
