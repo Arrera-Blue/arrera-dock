@@ -93,5 +93,17 @@
       <description>Emplacement de l'horloge dans le dock : top (en haut / début, sous le logo), between-logo-and-apps (entre les boutons de contrôle et les applications) ou bottom (en bas / fin, après les applications).</description>
     </key>
 
+    <key name="date-format" type="s">
+      <choices>
+        <choice value="default"/>
+        <choice value="uppercase-date"/>
+        <choice value="uppercase-date-year"/>
+        <choice value="uppercase-datetime"/>
+      </choices>
+      <default>'default'</default>
+      <summary>Format de la date dans le dock</summary>
+      <description>Format d'affichage de la date dans le dock : default (format GNOME standard), uppercase-date (date complète textuelle en majuscules, ex. MERCREDI 7 OCTOBRE), uppercase-date-year (date avec année, ex. MERCREDI 7 OCTOBRE 2026), uppercase-datetime (date textuelle en majuscules avec heure, ex. MERCREDI 7 OCTOBRE 10:15).</description>
+    </key>
+
   </schema>
 </schemalist>

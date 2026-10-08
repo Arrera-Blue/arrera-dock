@@ -25,6 +25,7 @@ while true; do
     SHOW_DATE=$(gsettings get $SCHEMA show-date-menu 2>/dev/null || echo "false")
     SHOW_ACT=$(gsettings get $SCHEMA show-activities-button 2>/dev/null || echo "false")
     CLOCK_POS=$(gsettings get $SCHEMA clock-position 2>/dev/null | tr -d "'" || echo "bottom")
+    DATE_FMT=$(gsettings get $SCHEMA date-format 2>/dev/null | tr -d "'" || echo "default")
 
     echo "=========================================================="
     echo "            Arrera Dock - Configuration Rapide            "
@@ -40,11 +41,12 @@ while true; do
     echo " 9) Date et horloge (date-menu)           : $SHOW_DATE"
     echo "10) Bouton Activités (activities-button)  : $SHOW_ACT"
     echo "11) Position horloge (clock-position)     : $CLOCK_POS"
+    echo "12) Format date (date-format)             : $DATE_FMT"
     echo "----------------------------------------------------------"
     echo " r) Réinitialiser toutes les options par défaut"
     echo " q) Quitter"
     echo "=========================================================="
-    read -p " Choisissez une option [1-11, r, q] : " CHOIX
+    read -p " Choisissez une option [1-12, r, q] : " CHOIX
 
     case "$CHOIX" in
         1)
@@ -152,6 +154,21 @@ while true; do
                 3) gsettings set $SCHEMA clock-position "bottom" ;;
             esac
             ;;
+        12)
+            echo ""
+            echo " Format de la date dans le dock :"
+            echo "   1) Format GNOME standard (default)"
+            echo "   2) Majuscules sans année / ex: MERCREDI 7 OCTOBRE (uppercase-date)"
+            echo "   3) Majuscules avec année / ex: MERCREDI 7 OCTOBRE 2026 (uppercase-date-year)"
+            echo "   4) Majuscules avec heure / ex: MERCREDI 7 OCTOBRE 10:15 (uppercase-datetime)"
+            read -p " Choix [1-4] : " DFMT_CHOIX
+            case "$DFMT_CHOIX" in
+                1) gsettings set $SCHEMA date-format "default" ;;
+                2) gsettings set $SCHEMA date-format "uppercase-date" ;;
+                3) gsettings set $SCHEMA date-format "uppercase-date-year" ;;
+                4) gsettings set $SCHEMA date-format "uppercase-datetime" ;;
+            esac
+            ;;
         r|R)
             echo ""
             read -p " Confirmer la réinitialisation par défaut ? [o/N] : " CONFIRM
@@ -167,6 +184,7 @@ while true; do
                 gsettings reset $SCHEMA show-date-menu
                 gsettings reset $SCHEMA show-activities-button
                 gsettings reset $SCHEMA clock-position
+                gsettings reset $SCHEMA date-format
                 echo " Paramètres réinitialisés !"
                 sleep 1
             fi

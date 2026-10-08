@@ -81,6 +81,7 @@ Toutes les options sont déclarées dans `schemas/org.gnome.shell.extensions.doc
 | `show-date-menu` | `b` | `false` | `true`, `false` | Place l'horloge/date/calendrier dans le dock |
 | `show-activities-button`| `b` | `false` | `true`, `false` | Intègre le bouton Activités avec logo Arrera dans le dock et masque le bouton natif |
 | `clock-position` | `s` | `'bottom'` | `'top'`, `'between-logo-and-apps'`, `'bottom'` | Emplacement de l'horloge dans le dock |
+| `date-format`    | `s` | `'default'` | `'default'`, `'uppercase-date'`, `'uppercase-date-year'`, `'uppercase-datetime'` | Formatage personnalisé de la date dans le dock |
 
 ---
 

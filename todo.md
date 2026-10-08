@@ -26,9 +26,9 @@ Liste des fonctionnalités manquantes pour permettre la réalisation des 3 desig
 ---
 
 ## 3. Formatage de la Date et du Statut (Pour le Design 2)
-- [ ] **Format de date personnalisé dans le dock** :
+- [x] **Format de date personnalisé dans le dock** :
   - Ajouter une option permettant d'afficher la date au format complet en majuscules textuelles (ex. `DAY MONTH YEAR` / `MERCREDI 7 OCTOBRE`).
-- [ ] **Organisation de la zone droite en mode barre** :
+- [x] **Organisation de la zone droite en mode barre** :
   - Placer la date à gauche du groupe des paramètres rapides avec un espacement propre.
   - Encapsuler les paramètres rapides dans un style de pilule grise distincte (comme sur la maquette).
 

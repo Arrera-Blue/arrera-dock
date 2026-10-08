@@ -1320,6 +1320,7 @@ export const ArreraDock = GObject.registerClass(
             });
 
             this._clockPosition = this._settings?.get_string('clock-position') || 'bottom';
+            this._dateFormat = this._settings?.get_string('date-format') || 'default';
 
             // Leading spacer for bar mode (centers icons when dock spans full screen)
             this._leadingSpacer = new Clutter.Actor({ visible: false, x_expand: false, y_expand: false });
@@ -1422,7 +1423,11 @@ export const ArreraDock = GObject.registerClass(
 
             // Synchronize with GNOME accent color settings (Material 3 Expressive)
             this._interfaceSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.interface' });
-            this._interfaceSettings.connectObject('changed::accent-color', () => this._syncAccentColor(), this);
+            this._interfaceSettings.connectObject(
+                'changed::accent-color', () => this._syncAccentColor(),
+                'changed::clock-format', () => this._applyCustomDateFormat(),
+                this
+            );
             this._syncAccentColor();
 
             // Connect GSettings for Dock customization
@@ -1439,6 +1444,7 @@ export const ArreraDock = GObject.registerClass(
                     'changed::show-date-menu', () => this._syncSystemStatusArea(),
                     'changed::show-activities-button', () => this._syncActivitiesButton(),
                     'changed::clock-position', () => this._syncClockPosition(),
+                    'changed::date-format', () => this._syncDateFormat(),
                     this
                 );
             }
@@ -1459,6 +1465,7 @@ export const ArreraDock = GObject.registerClass(
             this._syncAutohide();
             this._syncActivitiesButton();
             this._syncClockPosition();
+            this._syncDateFormat();
             this._syncSystemStatusArea();
             this._trackWorkspaceWindows();
             this._updateBarMode();
@@ -1876,6 +1883,56 @@ export const ArreraDock = GObject.registerClass(
             this._syncPosition();
         }
 
+        _syncDateFormat() {
+            const format = this._settings?.get_string('date-format') || 'default';
+            const valid = ['default', 'uppercase-date', 'uppercase-date-year', 'uppercase-datetime'];
+            this._dateFormat = valid.includes(format) ? format : 'default';
+            this._applyCustomDateFormat();
+        }
+
+        _getCustomDateString() {
+            const now = GLib.DateTime.new_now_local();
+            if (!now)
+                return '';
+
+            const weekday = now.format('%A')?.toUpperCase() || '';
+            const day = now.get_day_of_month();
+            const month = now.format('%B')?.toUpperCase() || '';
+            const year = now.get_year();
+
+            if (this._dateFormat === 'uppercase-date') {
+                return `${weekday} ${day} ${month}`;
+            } else if (this._dateFormat === 'uppercase-date-year') {
+                return `${weekday} ${day} ${month} ${year}`;
+            } else if (this._dateFormat === 'uppercase-datetime') {
+                const format = this._interfaceSettings?.get_string('clock-format') || '24h';
+                const is12h = format === '12h';
+                const timeStr = is12h ? now.format('%I:%M %p') : now.format('%H:%M');
+                return `${weekday} ${day} ${month} ${timeStr}`;
+            }
+            return '';
+        }
+
+        _applyCustomDateFormat() {
+            const dm = Main.panel?.statusArea?.dateMenu;
+            if (!dm || !this._dmReparented)
+                return;
+
+            const label = dm._clockDisplay || dm.label_actor;
+            if (!label)
+                return;
+
+            if (this._dateFormat === 'default') {
+                if (dm._clock?.clock)
+                    label.text = dm._clock.clock;
+                return;
+            }
+
+            const formatted = this._getCustomDateString();
+            if (formatted)
+                label.text = formatted;
+        }
+
         _updatePillLayout() {
             if (!this._dockPill)
                 return;
@@ -1894,7 +1951,7 @@ export const ArreraDock = GObject.registerClass(
                 ? (this._dmReparented || this._qsReparented)
                 : this._qsReparented;
 
-            this._systemSeparator.visible = hasTrailingSystem;
+            this._systemSeparator.visible = !this._isBarMode && hasTrailingSystem;
 
             const desiredOrder = [];
             desiredOrder.push(this._leadingSpacer);
@@ -2113,6 +2170,14 @@ export const ArreraDock = GObject.registerClass(
                     this
                 );
             }
+
+            if (dm._clock) {
+                dm._clock.connectObject?.(
+                    'notify::clock', () => this._applyCustomDateFormat(),
+                    this
+                );
+            }
+            this._applyCustomDateFormat();
         }
 
         _restoreDateMenu() {
@@ -2141,6 +2206,13 @@ export const ArreraDock = GObject.registerClass(
 
             if (this._clockTile)
                 this._clockTile.visible = false;
+
+            if (dm._clock)
+                dm._clock.disconnectObject?.(this);
+
+            const label = dm._clockDisplay || dm.label_actor;
+            if (label && dm._clock?.clock)
+                label.text = dm._clock.clock;
 
             if (dm.menu) {
                 if (dm.menu.sourceActor === this._clockTile)
@@ -2530,19 +2602,19 @@ export const ArreraDock = GObject.registerClass(
                     this._dockPill.height = thickness;
                     this._dockPill.x_align = Clutter.ActorAlign.FILL;
                     this._dockPill.y_align = Clutter.ActorAlign.FILL;
-                    this._dockPill.set_style('border-radius: 0px !important; border-bottom: none !important; border-left: none !important; border-right: none !important; margin: 0px !important; padding-left: 0px !important; padding-right: 0px !important;');
+                    this._dockPill.set_style('border-radius: 0px !important; border-bottom: none !important; border-left: none !important; border-right: none !important; margin: 0px !important; padding-left: 14px !important; padding-right: 14px !important;');
                 } else if (this._position === 'left') {
                     this._dockPill.width = thickness;
                     this._dockPill.height = availableHeight;
                     this._dockPill.x_align = Clutter.ActorAlign.FILL;
                     this._dockPill.y_align = Clutter.ActorAlign.FILL;
-                    this._dockPill.set_style('border-radius: 0px !important; border-left: none !important; border-top: none !important; border-bottom: none !important; margin: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important;');
+                    this._dockPill.set_style('border-radius: 0px !important; border-left: none !important; border-top: none !important; border-bottom: none !important; margin: 0px !important; padding-top: 10px !important; padding-bottom: 10px !important;');
                 } else if (this._position === 'right') {
                     this._dockPill.width = thickness;
                     this._dockPill.height = availableHeight;
                     this._dockPill.x_align = Clutter.ActorAlign.FILL;
                     this._dockPill.y_align = Clutter.ActorAlign.FILL;
-                    this._dockPill.set_style('border-radius: 0px !important; border-right: none !important; border-top: none !important; border-bottom: none !important; margin: 0px !important; padding-top: 0px !important; padding-bottom: 0px !important;');
+                    this._dockPill.set_style('border-radius: 0px !important; border-right: none !important; border-top: none !important; border-bottom: none !important; margin: 0px !important; padding-top: 10px !important; padding-bottom: 10px !important;');
                 }
 
                 const alignment = this._barIconsAlignment || 'center';
@@ -2622,6 +2694,7 @@ export const ArreraDock = GObject.registerClass(
             this._iconsBox.set_x_expand(false);
             this._iconsBox.set_y_expand(false);
 
+            this._updatePillLayout();
             this._iconsBox.queue_relayout();
             this._dockPill.queue_relayout();
             this.queue_relayout();

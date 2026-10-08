@@ -95,3 +95,13 @@
   * `'between-logo-and-apps'` : Entre les boutons de contrôle (logo / show apps) et les applications.
   * `'bottom'` *(défaut)* : En fin de dock, après les applications.
 
+---
+
+### `date-format` (chaîne)
+* **Description** : Format d'affichage de la date lorsque le menu date est intégré au dock.
+* **Valeurs possibles** :
+  * `'default'` *(défaut)* : Format standard de GNOME Shell (ex. `8 oct. 10:15`).
+  * `'uppercase-date'` : Date complète textuelle en majuscules (ex. `MERCREDI 7 OCTOBRE`).
+  * `'uppercase-date-year'` : Date complète textuelle en majuscules avec l'année (ex. `MERCREDI 7 OCTOBRE 2026`).
+  * `'uppercase-datetime'` : Date complète textuelle en majuscules avec l'heure (ex. `MERCREDI 7 OCTOBRE 10:15`).
+
