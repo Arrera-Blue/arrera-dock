@@ -35,9 +35,9 @@ Liste des fonctionnalités manquantes pour permettre la réalisation des 3 desig
 ---
 
 ## 4. Style visuel en « Tuiles sombres » (Squircle) (Designs 1, 2 et 3)
-- [ ] **Arrière-plan permanent pour les icônes d'applications** :
+- [x] **Arrière-plan permanent pour les icônes d'applications** :
   - Ajouter une option de style donnant à chaque icône un fond de tuile sombre arrondi (carré aux coins arrondis / squircle sombre permanent).
-- [ ] **Harmonisation des boutons de contrôle** :
+- [x] **Harmonisation des boutons de contrôle** :
   - Appliquer ce même conteneur sombre au logo Arrera, au bouton Show Apps et à l'horloge.
 
 ---

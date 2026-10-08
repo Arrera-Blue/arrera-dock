@@ -105,5 +105,11 @@
       <description>Format d'affichage de la date dans le dock : default (format GNOME standard), uppercase-date (date complète textuelle en majuscules, ex. MERCREDI 7 OCTOBRE), uppercase-date-year (date avec année, ex. MERCREDI 7 OCTOBRE 2026), uppercase-datetime (date textuelle en majuscules avec heure, ex. MERCREDI 7 OCTOBRE 10:15).</description>
     </key>
 
+    <key name="dark-tiles" type="b">
+      <default>false</default>
+      <summary>Style en tuiles sombres (squircle)</summary>
+      <description>Donne à chaque icône d'application, au bouton Arrera, au bouton Show Apps et à l'horloge un fond sombre permanent aux coins arrondis (squircle).</description>
+    </key>
+
   </schema>
 </schemalist>

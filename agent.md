@@ -82,6 +82,7 @@ Toutes les options sont déclarées dans `schemas/org.gnome.shell.extensions.doc
 | `show-activities-button`| `b` | `false` | `true`, `false` | Intègre le bouton Activités avec logo Arrera dans le dock et masque le bouton natif |
 | `clock-position` | `s` | `'bottom'` | `'top'`, `'between-logo-and-apps'`, `'bottom'` | Emplacement de l'horloge dans le dock |
 | `date-format`    | `s` | `'default'` | `'default'`, `'uppercase-date'`, `'uppercase-date-year'`, `'uppercase-datetime'` | Formatage personnalisé de la date dans le dock |
+| `dark-tiles`     | `b` | `false` | `true`, `false` | Affiche chaque élément du dock dans une tuile sombre arrondie permanente (squircle) |
 
 ---
 

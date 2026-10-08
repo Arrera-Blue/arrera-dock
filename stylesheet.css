@@ -1421,3 +1421,133 @@
     padding: 0 5px !important;
     margin: 0 !important;
 }
+
+/* ==========================================================================
+   Dark Tiles Mode (Squircle Tiles for Apps, Controls and Clock)
+   ========================================================================== */
+
+.dark-tiles .dock-app-icon,
+.dark-tiles .activities-button,
+.dark-tiles .show-apps-button,
+.dark-tiles .dock-clock-tile {
+    background-color: rgba(255, 255, 255, 0.09);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 6px 8px;
+    transition-duration: 200ms;
+}
+
+.dark-tiles .dock-app-icon:hover,
+.dark-tiles .dock-app-icon:focus:hover,
+.dark-tiles .dock-app-icon:focused:hover,
+.dark-tiles .activities-button:hover,
+.dark-tiles .show-apps-button:hover,
+.dark-tiles .dock-clock-tile:hover {
+    background-color: st-transparentize(-st-accent-color, 0.75);
+    box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.45), 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.dark-tiles .dock-app-icon:active,
+.dark-tiles .dock-app-icon:focus:active,
+.dark-tiles .dock-app-icon:focused:active,
+.dark-tiles .activities-button:active,
+.dark-tiles .show-apps-button:active,
+.dark-tiles .show-apps-button:checked,
+.dark-tiles .dock-clock-tile:active,
+.dark-tiles .dock-clock-tile:checked {
+    background-color: st-transparentize(-st-accent-color, 0.58);
+    box-shadow: 0 0 14px -st-accent-color;
+}
+
+.dark-tiles .dock-app-icon .app-grid-running-dot {
+    margin-top: 1px;
+}
+
+/* Dark Tiles - Small size */
+.size-small.dark-tiles .dock-app-icon,
+.size-small.dark-tiles .activities-button,
+.size-small.dark-tiles .show-apps-button,
+.size-small.dark-tiles .dock-clock-tile,
+.size-small .dark-tiles .dock-app-icon,
+.size-small .dark-tiles .activities-button,
+.size-small .dark-tiles .show-apps-button,
+.size-small .dark-tiles .dock-clock-tile {
+    border-radius: 12px;
+    padding: 4px 6px;
+}
+
+/* Dark Tiles - Medium size (Default) */
+.size-medium.dark-tiles .dock-app-icon,
+.size-medium.dark-tiles .activities-button,
+.size-medium.dark-tiles .show-apps-button,
+.size-medium.dark-tiles .dock-clock-tile,
+.size-medium .dark-tiles .dock-app-icon,
+.size-medium .dark-tiles .activities-button,
+.size-medium .dark-tiles .show-apps-button,
+.size-medium .dark-tiles .dock-clock-tile {
+    border-radius: 16px;
+    padding: 6px 8px;
+}
+
+/* Dark Tiles - Large size */
+.size-large.dark-tiles .dock-app-icon,
+.size-large.dark-tiles .activities-button,
+.size-large.dark-tiles .show-apps-button,
+.size-large.dark-tiles .dock-clock-tile,
+.size-large .dark-tiles .dock-app-icon,
+.size-large .dark-tiles .activities-button,
+.size-large .dark-tiles .show-apps-button,
+.size-large .dark-tiles .dock-clock-tile {
+    border-radius: 20px;
+    padding: 8px 10px;
+}
+
+/* Dark Tiles - Black-Outline theme adaptation */
+.theme-black-outline.dark-tiles .dock-app-icon,
+.theme-black-outline.dark-tiles .activities-button,
+.theme-black-outline.dark-tiles .show-apps-button,
+.theme-black-outline.dark-tiles .dock-clock-tile,
+.theme-black-outline .dark-tiles .dock-app-icon,
+.theme-black-outline .dark-tiles .activities-button,
+.theme-black-outline .dark-tiles .show-apps-button,
+.theme-black-outline .dark-tiles .dock-clock-tile {
+    background-color: rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.65);
+}
+
+.theme-black-outline.dark-tiles .dock-app-icon:hover,
+.theme-black-outline.dark-tiles .activities-button:hover,
+.theme-black-outline.dark-tiles .show-apps-button:hover,
+.theme-black-outline.dark-tiles .dock-clock-tile:hover,
+.theme-black-outline .dark-tiles .dock-app-icon:hover,
+.theme-black-outline .dark-tiles .activities-button:hover,
+.theme-black-outline .dark-tiles .show-apps-button:hover,
+.theme-black-outline .dark-tiles .dock-clock-tile:hover {
+    background-color: rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 0 0 1.5px -st-accent-color, 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark Tiles - Vanilla GNOME theme adaptation */
+.theme-vanilla-gnome.dark-tiles .dock-app-icon,
+.theme-vanilla-gnome.dark-tiles .activities-button,
+.theme-vanilla-gnome.dark-tiles .show-apps-button,
+.theme-vanilla-gnome.dark-tiles .dock-clock-tile,
+.theme-vanilla-gnome .dark-tiles .dock-app-icon,
+.theme-vanilla-gnome .dark-tiles .activities-button,
+.theme-vanilla-gnome .dark-tiles .show-apps-button,
+.theme-vanilla-gnome .dark-tiles .dock-clock-tile {
+    background-color: rgba(255, 255, 255, 0.10);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.theme-vanilla-gnome.dark-tiles .dock-app-icon:hover,
+.theme-vanilla-gnome.dark-tiles .activities-button:hover,
+.theme-vanilla-gnome.dark-tiles .show-apps-button:hover,
+.theme-vanilla-gnome.dark-tiles .dock-clock-tile:hover,
+.theme-vanilla-gnome .dark-tiles .dock-app-icon:hover,
+.theme-vanilla-gnome .dark-tiles .activities-button:hover,
+.theme-vanilla-gnome .dark-tiles .show-apps-button:hover,
+.theme-vanilla-gnome .dark-tiles .dock-clock-tile:hover {
+    background-color: rgba(255, 255, 255, 0.20);
+    box-shadow: none;
+}

@@ -26,6 +26,7 @@ while true; do
     SHOW_ACT=$(gsettings get $SCHEMA show-activities-button 2>/dev/null || echo "false")
     CLOCK_POS=$(gsettings get $SCHEMA clock-position 2>/dev/null | tr -d "'" || echo "bottom")
     DATE_FMT=$(gsettings get $SCHEMA date-format 2>/dev/null | tr -d "'" || echo "default")
+    DARK_TILES=$(gsettings get $SCHEMA dark-tiles 2>/dev/null || echo "false")
 
     echo "=========================================================="
     echo "            Arrera Dock - Configuration Rapide            "
@@ -42,11 +43,12 @@ while true; do
     echo "10) Bouton Activités (activities-button)  : $SHOW_ACT"
     echo "11) Position horloge (clock-position)     : $CLOCK_POS"
     echo "12) Format date (date-format)             : $DATE_FMT"
+    echo "13) Tuiles sombres (dark-tiles)           : $DARK_TILES"
     echo "----------------------------------------------------------"
     echo " r) Réinitialiser toutes les options par défaut"
     echo " q) Quitter"
     echo "=========================================================="
-    read -p " Choisissez une option [1-12, r, q] : " CHOIX
+    read -p " Choisissez une option [1-13, r, q] : " CHOIX
 
     case "$CHOIX" in
         1)
@@ -169,6 +171,13 @@ while true; do
                 4) gsettings set $SCHEMA date-format "uppercase-datetime" ;;
             esac
             ;;
+        13)
+            if [ "$DARK_TILES" = "true" ]; then
+                gsettings set $SCHEMA dark-tiles false
+            else
+                gsettings set $SCHEMA dark-tiles true
+            fi
+            ;;
         r|R)
             echo ""
             read -p " Confirmer la réinitialisation par défaut ? [o/N] : " CONFIRM
@@ -185,6 +194,7 @@ while true; do
                 gsettings reset $SCHEMA show-activities-button
                 gsettings reset $SCHEMA clock-position
                 gsettings reset $SCHEMA date-format
+                gsettings reset $SCHEMA dark-tiles
                 echo " Paramètres réinitialisés !"
                 sleep 1
             fi

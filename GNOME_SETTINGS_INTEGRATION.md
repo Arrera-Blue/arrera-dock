@@ -105,3 +105,11 @@
   * `'uppercase-date-year'` : Date complète textuelle en majuscules avec l'année (ex. `MERCREDI 7 OCTOBRE 2026`).
   * `'uppercase-datetime'` : Date complète textuelle en majuscules avec l'heure (ex. `MERCREDI 7 OCTOBRE 10:15`).
 
+---
+
+### `dark-tiles` (booléen)
+* **Description** : Affiche chaque icône d'application, le logo Arrera, le bouton Show Apps et l'horloge dans une tuile sombre arrondie permanente (squircle).
+* **Valeurs possibles** :
+  * `false` *(défaut)* : Icônes transparentes sans fond de tuile permanent.
+  * `true` : Tuiles sombres squircle permanentes pour tous les éléments du dock.
+

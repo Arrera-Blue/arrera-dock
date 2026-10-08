@@ -762,7 +762,7 @@ export const ActivitiesButton = GObject.registerClass(
     class ActivitiesButton extends St.Button {
         _init(dock, iconSize = DEFAULT_ICON_SIZE) {
             super._init({
-                style_class: 'dock-app-icon activities-button',
+                style_class: 'dock-item dock-app-icon activities-button',
                 reactive: true,
                 can_focus: false,
                 track_hover: true,
@@ -1321,6 +1321,7 @@ export const ArreraDock = GObject.registerClass(
 
             this._clockPosition = this._settings?.get_string('clock-position') || 'bottom';
             this._dateFormat = this._settings?.get_string('date-format') || 'default';
+            this._darkTiles = this._settings?.get_boolean('dark-tiles') ?? false;
 
             // Leading spacer for bar mode (centers icons when dock spans full screen)
             this._leadingSpacer = new Clutter.Actor({ visible: false, x_expand: false, y_expand: false });
@@ -1445,6 +1446,7 @@ export const ArreraDock = GObject.registerClass(
                     'changed::show-activities-button', () => this._syncActivitiesButton(),
                     'changed::clock-position', () => this._syncClockPosition(),
                     'changed::date-format', () => this._syncDateFormat(),
+                    'changed::dark-tiles', () => this._syncDarkTiles(),
                     this
                 );
             }
@@ -1459,6 +1461,7 @@ export const ArreraDock = GObject.registerClass(
             this._syncIconSize(false);
             this._syncPosition();
             this._syncThemeMode();
+            this._syncDarkTiles();
             this._syncExtendOnMaximize();
             this._syncAlwaysBarMode();
             this._syncBarIconsAlignment();
@@ -2300,6 +2303,17 @@ export const ArreraDock = GObject.registerClass(
 
             this.add_style_class_name(`theme-${mode}`);
             this._dockPill?.add_style_class_name(`theme-${mode}`);
+        }
+
+        _syncDarkTiles() {
+            this._darkTiles = this._settings?.get_boolean('dark-tiles') ?? false;
+            if (this._darkTiles) {
+                this.add_style_class_name('dark-tiles');
+                this._dockPill?.add_style_class_name('dark-tiles');
+            } else {
+                this.remove_style_class_name('dark-tiles');
+                this._dockPill?.remove_style_class_name('dark-tiles');
+            }
         }
 
         _syncAccentColor() {
