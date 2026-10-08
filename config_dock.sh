@@ -27,6 +27,7 @@ while true; do
     CLOCK_POS=$(gsettings get $SCHEMA clock-position 2>/dev/null | tr -d "'" || echo "bottom")
     DATE_FMT=$(gsettings get $SCHEMA date-format 2>/dev/null | tr -d "'" || echo "default")
     DARK_TILES=$(gsettings get $SCHEMA dark-tiles 2>/dev/null || echo "false")
+    ISLAND_MODE=$(gsettings get $SCHEMA island-mode 2>/dev/null || echo "false")
 
     echo "=========================================================="
     echo "            Arrera Dock - Configuration Rapide            "
@@ -44,11 +45,12 @@ while true; do
     echo "11) Position horloge (clock-position)     : $CLOCK_POS"
     echo "12) Format date (date-format)             : $DATE_FMT"
     echo "13) Tuiles sombres (dark-tiles)           : $DARK_TILES"
+    echo "14) Tuiles détachées (island-mode)        : $ISLAND_MODE"
     echo "----------------------------------------------------------"
     echo " r) Réinitialiser toutes les options par défaut"
     echo " q) Quitter"
     echo "=========================================================="
-    read -p " Choisissez une option [1-13, r, q] : " CHOIX
+    read -p " Choisissez une option [1-14, r, q] : " CHOIX
 
     case "$CHOIX" in
         1)
@@ -178,6 +180,13 @@ while true; do
                 gsettings set $SCHEMA dark-tiles true
             fi
             ;;
+        14)
+            if [ "$ISLAND_MODE" = "true" ]; then
+                gsettings set $SCHEMA island-mode false
+            else
+                gsettings set $SCHEMA island-mode true
+            fi
+            ;;
         r|R)
             echo ""
             read -p " Confirmer la réinitialisation par défaut ? [o/N] : " CONFIRM
@@ -195,6 +204,7 @@ while true; do
                 gsettings reset $SCHEMA clock-position
                 gsettings reset $SCHEMA date-format
                 gsettings reset $SCHEMA dark-tiles
+                gsettings reset $SCHEMA island-mode
                 echo " Paramètres réinitialisés !"
                 sleep 1
             fi

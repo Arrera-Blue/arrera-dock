@@ -1551,3 +1551,46 @@
     background-color: rgba(255, 255, 255, 0.20);
     box-shadow: none;
 }
+
+/* ==========================================================================
+   Island Mode (Tuiles détachées / Fond 100% transparent sans bordure ni ombre)
+   ========================================================================== */
+
+.island-mode.arrera-dock,
+.island-mode .arrera-dock,
+.island-mode.arrera-dock.mode-bar,
+.island-mode .arrera-dock.mode-bar,
+.position-bottom.island-mode.arrera-dock,
+.position-left.island-mode.arrera-dock,
+.position-right.island-mode.arrera-dock,
+.position-bottom.island-mode.arrera-dock.mode-bar,
+.position-left.island-mode.arrera-dock.mode-bar,
+.position-right.island-mode.arrera-dock.mode-bar,
+.theme-expressive.island-mode.arrera-dock,
+.theme-black-outline.island-mode.arrera-dock,
+.theme-vanilla-gnome.island-mode.arrera-dock,
+.theme-expressive .island-mode.arrera-dock,
+.theme-black-outline .island-mode.arrera-dock,
+.theme-vanilla-gnome .island-mode.arrera-dock,
+.accent-blue.island-mode.arrera-dock,
+.accent-teal.island-mode.arrera-dock,
+.accent-green.island-mode.arrera-dock,
+.accent-yellow.island-mode.arrera-dock,
+.accent-orange.island-mode.arrera-dock,
+.accent-red.island-mode.arrera-dock,
+.accent-pink.island-mode.arrera-dock,
+.accent-purple.island-mode.arrera-dock,
+.accent-slate.island-mode.arrera-dock,
+.accent-blue .island-mode.arrera-dock,
+.accent-teal .island-mode.arrera-dock,
+.accent-green .island-mode.arrera-dock,
+.accent-yellow .island-mode.arrera-dock,
+.accent-orange .island-mode.arrera-dock,
+.accent-red .island-mode.arrera-dock,
+.accent-pink .island-mode.arrera-dock,
+.accent-purple .island-mode.arrera-dock,
+.accent-slate .island-mode.arrera-dock {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}

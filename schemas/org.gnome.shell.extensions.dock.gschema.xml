@@ -111,5 +111,11 @@
       <description>Donne à chaque icône d'application, au bouton Arrera, au bouton Show Apps et à l'horloge un fond sombre permanent aux coins arrondis (squircle).</description>
     </key>
 
+    <key name="island-mode" type="b">
+      <default>false</default>
+      <summary>Mode tuiles détachées (Island mode / fond transparent)</summary>
+      <description>Rend le conteneur du dock complètement transparent (sans fond, sans bordure ni ombre), permettant aux tuiles ou icônes de flotter directement sur le bord de l'écran.</description>
+    </key>
+
   </schema>
 </schemalist>

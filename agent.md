@@ -83,6 +83,7 @@ Toutes les options sont déclarées dans `schemas/org.gnome.shell.extensions.doc
 | `clock-position` | `s` | `'bottom'` | `'top'`, `'between-logo-and-apps'`, `'bottom'` | Emplacement de l'horloge dans le dock |
 | `date-format`    | `s` | `'default'` | `'default'`, `'uppercase-date'`, `'uppercase-date-year'`, `'uppercase-datetime'` | Formatage personnalisé de la date dans le dock |
 | `dark-tiles`     | `b` | `false` | `true`, `false` | Affiche chaque élément du dock dans une tuile sombre arrondie permanente (squircle) |
+| `island-mode`    | `b` | `false` | `true`, `false` | Rend le fond du conteneur de dock 100% transparent (tuiles détachées / Design 3) |
 
 ---
 

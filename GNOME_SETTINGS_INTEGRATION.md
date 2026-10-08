@@ -113,3 +113,12 @@
   * `false` *(défaut)* : Icônes transparentes sans fond de tuile permanent.
   * `true` : Tuiles sombres squircle permanentes pour tous les éléments du dock.
 
+---
+
+### `island-mode` (booléen)
+* **Description** : Rend le conteneur du dock complètement transparent (sans fond, bordure ni ombre), permettant aux tuiles ou icônes de flotter directement sur le bord de l'écran (Island mode / Design 3).
+* **Valeurs possibles** :
+  * `false` *(défaut)* : Conteneur standard du dock visible avec son fond, sa bordure et son ombre.
+  * `true` : Conteneur 100 % transparent ; seules les tuiles et icônes individuelles restent visibles.
+
+

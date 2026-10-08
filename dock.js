@@ -1322,6 +1322,7 @@ export const ArreraDock = GObject.registerClass(
             this._clockPosition = this._settings?.get_string('clock-position') || 'bottom';
             this._dateFormat = this._settings?.get_string('date-format') || 'default';
             this._darkTiles = this._settings?.get_boolean('dark-tiles') ?? false;
+            this._islandMode = this._settings?.get_boolean('island-mode') ?? false;
 
             // Leading spacer for bar mode (centers icons when dock spans full screen)
             this._leadingSpacer = new Clutter.Actor({ visible: false, x_expand: false, y_expand: false });
@@ -1447,6 +1448,7 @@ export const ArreraDock = GObject.registerClass(
                     'changed::clock-position', () => this._syncClockPosition(),
                     'changed::date-format', () => this._syncDateFormat(),
                     'changed::dark-tiles', () => this._syncDarkTiles(),
+                    'changed::island-mode', () => this._syncIslandMode(),
                     this
                 );
             }
@@ -1462,6 +1464,7 @@ export const ArreraDock = GObject.registerClass(
             this._syncPosition();
             this._syncThemeMode();
             this._syncDarkTiles();
+            this._syncIslandMode();
             this._syncExtendOnMaximize();
             this._syncAlwaysBarMode();
             this._syncBarIconsAlignment();
@@ -2313,6 +2316,17 @@ export const ArreraDock = GObject.registerClass(
             } else {
                 this.remove_style_class_name('dark-tiles');
                 this._dockPill?.remove_style_class_name('dark-tiles');
+            }
+        }
+
+        _syncIslandMode() {
+            this._islandMode = this._settings?.get_boolean('island-mode') ?? false;
+            if (this._islandMode) {
+                this.add_style_class_name('island-mode');
+                this._dockPill?.add_style_class_name('island-mode');
+            } else {
+                this.remove_style_class_name('island-mode');
+                this._dockPill?.remove_style_class_name('island-mode');
             }
         }
 

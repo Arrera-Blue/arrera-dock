@@ -43,7 +43,7 @@ Liste des fonctionnalités manquantes pour permettre la réalisation des 3 desig
 ---
 
 ## 5. Mode « Tuiles détachées / Fond transparent » (Island Mode) (Pour le Design 3)
-- [ ] **Conteneur transparent pour dock vertical** :
+- [x] **Conteneur transparent pour dock vertical** :
   - Option permettant de rendre le fond du dock (`.arrera-dock`) 100 % transparent (sans bordure ni ombre globale), afin que seules les tuiles individuelles flottent sur le bord droit de l'écran.
 
 ---
