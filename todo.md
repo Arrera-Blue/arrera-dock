@@ -50,5 +50,9 @@ Liste des fonctionnalités manquantes pour permettre la réalisation des 3 desig
 - [x] **Tuile carrée dédiée pour les Paramètres Rapides (`DockQuickSettingsTile`)** :
   - Évite la tour d'indicateurs verticaux étirés et les débordements sur dock vertical.
   - Offre une tuile carrée compacte et uniforme avec icône système, infobulle et ouverture directe du menu Quick Settings.
+- [x] **Ancrage au bureau sous les fenêtres (Island Mode)** :
+  - En mode `island-mode`, le dock reste ancré sur le bureau (fond d'écran) en dessous des fenêtres d'applications.
+  - Les fenêtres peuvent se maximiser ou se placer par-dessus le dock (pas de réservation d'espace/struts).
+  - Désactivation du mode barre pleine largeur (`extend-on-maximize`) pour conserver les tuiles détachées en permanence sur le bureau.
 
 ---

@@ -116,10 +116,10 @@
 ---
 
 ### `island-mode` (booléen)
-* **Description** : Rend le conteneur du dock complètement transparent (sans fond, bordure ni ombre), permettant aux tuiles ou icônes de flotter directement sur le bord de l'écran (Island mode / Design 3).
+* **Description** : Active le mode îlot / tuiles détachées (Design 3). Le conteneur du dock devient 100 % transparent (sans fond, bordure ni ombre). Le dock reste ancré directement sur le bureau (fond d'écran) en dessous des fenêtres d'applications, sans réserver d'espace d'écran (struts). Les fenêtres peuvent ainsi se maximiser et se superposer par-dessus le dock.
 * **Valeurs possibles** :
-  * `false` *(défaut)* : Conteneur standard du dock visible avec son fond, sa bordure et son ombre.
-  * `true` : Conteneur 100 % transparent ; seules les tuiles et icônes individuelles restent visibles.
+  * `false` *(défaut)* : Dock système classique dans le chrome supérieur avec réservation d'espace (struts).
+  * `true` : Dock en îlot ancré sur le bureau sous les fenêtres (pas de struts, pas d'agrandissement en barre sur maximisation).
 
 ---
 

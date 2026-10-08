@@ -38,8 +38,10 @@ Ce document fournit aux agents de développement toutes les informations nécess
 
 ### `extension.js`
 * Gère l'activation (`enable()`) et la désactivation (`disable()`).
-* Ajoute le dock au gestionnaire d'affichage de GNOME via `Main.layoutManager.addTopChrome()`.
-* Surveille les changements d'écrans (`monitors-changed`) pour repositionner le dock.
+* Gère l'ancrage et la hiérarchie visuelle du dock :
+  * **Mode standard** : Ajouté au chrome supérieur (`Main.layoutManager.addTopChrome()`) avec réservation d'espace d'écran (`affectsStruts: !autohide`).
+  * **Island mode** : Ancré directement sur le bureau (`global.window_group`) immédiatement au-dessus du fond d'écran (`Main.layoutManager._backgroundGroup`) et sous les fenêtres d'applications, sans struts (permettant aux fenêtres de se maximiser et de passer par-dessus le dock).
+* Surveille les changements d'écrans (`monitors-changed`) et l'ordre des fenêtres (`global.display: restacked`) pour maintenir le dock ancré sous les fenêtres.
 * **Vue Activités** : `_replaceNativeDash()` masque le Dash noir natif de GNOME (`opacity = 0`, `visible = false`) et réserve la hauteur du dock pour conserver un alignement parfait de la carte d'aperçu du bureau.
 
 ### `dock.js`

@@ -1631,7 +1631,10 @@ export const ArreraDock = GObject.registerClass(
                     this._scheduleBarModeUpdate();
                 },
                 'window-created', (_d, win) => this._onWindowCreated(win),
-                'restacked', () => this._scheduleBarModeUpdate(),
+                'restacked', () => {
+                    this._extension?.ensureDockZOrder?.();
+                    this._scheduleBarModeUpdate();
+                },
                 this
             );
 
@@ -1703,7 +1706,10 @@ export const ArreraDock = GObject.registerClass(
 
         _bindOverview() {
             Main.overview.connectObject(
-                'showing', () => this._syncWithOverview(),
+                'showing', () => {
+                    this._onOverviewShowing();
+                    this._syncWithOverview();
+                },
                 'hiding', () => this._syncWithOverview(),
                 'hidden', () => this._onOverviewHidden(),
                 this
@@ -1727,7 +1733,30 @@ export const ArreraDock = GObject.registerClass(
             }
         }
 
+        _onOverviewShowing() {
+            if (this._islandMode) {
+                if (global.window_group.contains(this)) {
+                    global.window_group.remove_child(this);
+                    Main.layoutManager.overviewGroup.add_child(this);
+                }
+            }
+        }
+
         _onOverviewHidden() {
+            if (this._islandMode) {
+                if (Main.layoutManager.overviewGroup?.contains(this)) {
+                    Main.layoutManager.overviewGroup.remove_child(this);
+                }
+                if (this.get_parent() !== global.window_group) {
+                    if (this.get_parent())
+                        this.get_parent().remove_child(this);
+                    global.window_group.add_child(this);
+                }
+                if (Main.layoutManager._backgroundGroup) {
+                    global.window_group.set_child_above_sibling(this, Main.layoutManager._backgroundGroup);
+                }
+            }
+
             this.show();
             this._dockPill.remove_all_transitions();
             this._dockPill.opacity = 255;
@@ -1736,7 +1765,7 @@ export const ArreraDock = GObject.registerClass(
             this._dockPill.reactive = true;
             this._updateBarMode();
 
-            if (this._autohide && !this.hover && !this._dockPill.hover)
+            if (!this._islandMode && this._autohide && !this.hover && !this._dockPill.hover)
                 this._onLeave();
         }
 
@@ -1834,7 +1863,7 @@ export const ArreraDock = GObject.registerClass(
         }
 
         _onEnter() {
-            if (!this._autohide)
+            if (this._islandMode || !this._autohide)
                 return;
 
             if (this._autohideTimeoutId) {
@@ -1846,7 +1875,7 @@ export const ArreraDock = GObject.registerClass(
         }
 
         _onLeave() {
-            if (!this._autohide)
+            if (this._islandMode || !this._autohide)
                 return;
 
             const appMenu = globalThis.arreraAppMenu;
@@ -1914,10 +1943,20 @@ export const ArreraDock = GObject.registerClass(
 
         _syncAutohide() {
             this._autohide = this._settings?.get_boolean('autohide') ?? false;
-            this.reactive = this._autohide;
-            this.track_hover = this._autohide;
+            this.reactive = this._autohide && !this._islandMode;
+            this.track_hover = this._autohide && !this._islandMode;
 
             this._extension?.updateChromeStruts?.(!this._autohide);
+
+            if (this._islandMode) {
+                if (this._autohideTimeoutId) {
+                    GLib.source_remove(this._autohideTimeoutId);
+                    this._autohideTimeoutId = 0;
+                }
+                this._showDock();
+                this._updateBarMode();
+                return;
+            }
 
             if (!this._autohide) {
                 if (this._autohideTimeoutId) {
@@ -2595,6 +2634,10 @@ export const ArreraDock = GObject.registerClass(
                 this.remove_style_class_name('island-mode');
                 this._dockPill?.remove_style_class_name('island-mode');
             }
+
+            this._extension?.updateDockLayer?.(this._islandMode);
+            this._updateBarMode();
+            this.updatePosition();
         }
 
         _syncVerticalAlignment() {
@@ -2794,12 +2837,14 @@ export const ArreraDock = GObject.registerClass(
         }
 
         _onWorkspaceChanged() {
+            this._extension?.ensureDockZOrder?.();
             this._trackWorkspaceWindows();
             this._updateActiveWindow();
             this._scheduleBarModeUpdate();
         }
 
         _onWindowCreated(win) {
+            this._extension?.ensureDockZOrder?.();
             this._trackWindow(win);
             this._scheduleBarModeUpdate();
         }
@@ -2898,7 +2943,7 @@ export const ArreraDock = GObject.registerClass(
         }
 
         _updateBarMode() {
-            const shouldBeBar = !this._autohide && (this._alwaysBarMode || (this._extendOnMaximize && this._hasMaximizedOrFullscreenWindow()));
+            const shouldBeBar = !this._islandMode && !this._autohide && (this._alwaysBarMode || (this._extendOnMaximize && this._hasMaximizedOrFullscreenWindow()));
             if (this._isBarMode === shouldBeBar)
                 return;
 
@@ -3129,6 +3174,12 @@ export const ArreraDock = GObject.registerClass(
             }
 
             Main.panel.disconnectObject?.(this);
+
+            if (global.window_group.contains(this)) {
+                global.window_group.remove_child(this);
+            } else if (Main.layoutManager.overviewGroup?.contains(this)) {
+                Main.layoutManager.overviewGroup.remove_child(this);
+            }
 
             super.destroy();
         }
