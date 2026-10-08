@@ -98,8 +98,9 @@
     margin: 3px 6px;
 }
 
-/* Show applications launcher button */
-.show-apps-button {
+/* Show applications launcher button & compact clock tile */
+.show-apps-button,
+.dock-clock-tile {
     padding: 3px 6px;
     border-radius: 20px;
     background-color: transparent;
@@ -109,17 +110,37 @@
     transition-duration: 200ms;
 }
 
-.show-apps-button:hover {
+.show-apps-button:hover,
+.dock-clock-tile:hover {
     background-color: st-transparentize(-st-accent-color, 0.80);
     box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.60);
     color: #ffffff;
 }
 
 .show-apps-button:active,
-.show-apps-button:checked {
+.show-apps-button:checked,
+.dock-clock-tile:active,
+.dock-clock-tile:checked {
     background-color: st-transparentize(-st-accent-color, 0.65);
     box-shadow: 0 0 16px -st-accent-color;
     color: #ffffff;
+}
+
+/* Vertical compact clock tile styles */
+.dock-clock-tile-content {
+    spacing: 0px;
+}
+
+.clock-tile-hour,
+.clock-tile-minute {
+    font-weight: 700;
+    font-size: 8.5pt;
+    color: #ffffff;
+    text-align: center;
+}
+
+.clock-tile-minute {
+    opacity: 0.85;
 }
 
 /* ==========================================================================
@@ -705,9 +726,15 @@
     height: 20px;
 }
 
-.size-small .show-apps-button {
+.size-small .show-apps-button,
+.size-small .dock-clock-tile {
     padding: 2px 4px;
     border-radius: 14px;
+}
+
+.size-small .clock-tile-hour,
+.size-small .clock-tile-minute {
+    font-size: 7.5pt;
 }
 
 .size-small .dock-app-icon .app-grid-running-dot {
@@ -740,7 +767,8 @@
     height: 26px;
 }
 
-.size-medium .show-apps-button {
+.size-medium .show-apps-button,
+.size-medium .dock-clock-tile {
     padding: 3px 6px;
     border-radius: 20px;
 }
@@ -775,9 +803,15 @@
     height: 32px;
 }
 
-.size-large .show-apps-button {
+.size-large .show-apps-button,
+.size-large .dock-clock-tile {
     padding: 4px 8px;
     border-radius: 24px;
+}
+
+.size-large .clock-tile-hour,
+.size-large .clock-tile-minute {
+    font-size: 10.5pt;
 }
 
 .size-large .dock-app-icon .app-grid-running-dot {
@@ -811,7 +845,8 @@
     background-color: rgba(255, 255, 255, 0.18);
 }
 
-.theme-black-outline .show-apps-button:hover {
+.theme-black-outline .show-apps-button:hover,
+.theme-black-outline .dock-clock-tile:hover {
     background-color: rgba(255, 255, 255, 0.12);
     box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.60);
 }
@@ -983,13 +1018,16 @@
     background-color: rgba(255, 255, 255, 0.15) !important;
 }
 
-.theme-vanilla-gnome .show-apps-button:hover {
+.theme-vanilla-gnome .show-apps-button:hover,
+.theme-vanilla-gnome .dock-clock-tile:hover {
     background-color: rgba(255, 255, 255, 0.10) !important;
     box-shadow: none !important;
 }
 
 .theme-vanilla-gnome .show-apps-button:checked,
-.theme-vanilla-gnome .show-apps-button:active {
+.theme-vanilla-gnome .show-apps-button:active,
+.theme-vanilla-gnome .dock-clock-tile:checked,
+.theme-vanilla-gnome .dock-clock-tile:active {
     background-color: rgba(255, 255, 255, 0.16) !important;
     box-shadow: none !important;
 }

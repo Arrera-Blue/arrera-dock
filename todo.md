@@ -17,10 +17,10 @@ Liste des fonctionnalités manquantes pour permettre la réalisation des 3 desig
 ---
 
 ## 2. Widget Horloge compacte pour dock vertical (Pour le Design 3)
-- [ ] **Widget Horloge verticale dédiée ("HH : MM")** :
+- [x] **Widget Horloge verticale dédiée ("HH : MM")** :
   - Créer un widget horloge compact au format tuile (évitant le débordement horizontal du `dateMenu` natif de GNOME sur un dock vertical étroit).
   - Affichage textuel compact (ex. `HH : MM` sur deux lignes ou taille réduite).
-- [ ] **Gestion du clic sur l'horloge** :
+- [x] **Gestion du clic sur l'horloge** :
   - Ouvrir le menu du calendrier GNOME sans casser la géométrie verticale du dock.
 
 ---

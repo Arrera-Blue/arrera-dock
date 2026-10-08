@@ -13,6 +13,7 @@ import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 import St from 'gi://St';
+import GnomeDesktop from 'gi://GnomeDesktop?version=4.0';
 
 import * as AppFavorites from 'resource:///org/gnome/shell/ui/appFavorites.js';
 import { AppMenu } from 'resource:///org/gnome/shell/ui/appMenu.js';
@@ -965,6 +966,275 @@ export const ActivitiesButton = GObject.registerClass(
 );
 
 /**
+ * DockClockTile represents a compact vertical clock widget ("HH" over "MM")
+ * for vertical dock orientations (Design 3).
+ * It opens GNOME Shell's calendar menu on click and displays localized date on hover.
+ */
+export const DockClockTile = GObject.registerClass(
+    class DockClockTile extends St.Button {
+        _init(dock, iconSize = DEFAULT_ICON_SIZE) {
+            super._init({
+                style_class: 'dock-item dock-clock-tile',
+                reactive: true,
+                can_focus: true,
+                track_hover: true,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+
+            this._dock = dock;
+            this._iconSize = iconSize;
+            this._tooltip = null;
+
+            // Inner vertical layout for stacked hours and minutes
+            this._container = new St.BoxLayout({
+                style_class: 'dock-clock-tile-content',
+                vertical: true,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+
+            this._hourLabel = new St.Label({
+                style_class: 'clock-tile-hour',
+                text: '00',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+
+            this._minuteLabel = new St.Label({
+                style_class: 'clock-tile-minute',
+                text: '00',
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+
+            this._container.add_child(this._hourLabel);
+            this._container.add_child(this._minuteLabel);
+            this.set_child(this._container);
+
+            this.updatePositionStyle(this._dock?._position || 'bottom');
+            this.setIconSize(iconSize);
+
+            // Interface settings for 12h/24h format
+            this._interfaceSettings = new Gio.Settings({ schema_id: 'org.gnome.desktop.interface' });
+            this._interfaceSettings.connectObject('changed::clock-format', () => this._updateClock(), this);
+
+            // Wall clock for synchronizing time
+            this._wallClock = new GnomeDesktop.WallClock();
+            this._wallClock.connectObject('notify::clock', () => this._updateClock(), this);
+            this._updateClock();
+
+            // Connect to GNOME Shell date menu
+            this._connectDateMenu();
+
+            this.connect('clicked', () => this._onClicked());
+            this.connect('notify::hover', () => {
+                if (this.hover)
+                    this._showTooltip();
+                else
+                    this._hideTooltip();
+            });
+
+            this.connect('destroy', () => {
+                this._cleanupTooltip();
+                if (this._interfaceSettings) {
+                    this._interfaceSettings.disconnectObject(this);
+                    this._interfaceSettings = null;
+                }
+                if (this._wallClock) {
+                    this._wallClock.disconnectObject(this);
+                    this._wallClock = null;
+                }
+                const dm = Main.panel?.statusArea?.dateMenu;
+                if (dm?.menu) {
+                    dm.menu.disconnectObject(this);
+                    if (dm.menu.sourceActor === this)
+                        dm.menu.sourceActor = dm;
+                }
+            });
+        }
+
+        _connectDateMenu() {
+            const dm = Main.panel?.statusArea?.dateMenu;
+            if (dm?.menu) {
+                dm.menu.connectObject(
+                    'open-state-changed', (_m, open) => {
+                        if (open)
+                            this.add_style_pseudo_class('checked');
+                        else
+                            this.remove_style_pseudo_class('checked');
+                    },
+                    this
+                );
+            }
+        }
+
+        _updateClock() {
+            const now = GLib.DateTime.new_now_local();
+            const format = this._interfaceSettings?.get_string('clock-format') || '24h';
+            const is12h = format === '12h';
+
+            const hourStr = is12h ? now.format('%I') : now.format('%H');
+            const minuteStr = now.format('%M');
+
+            if (this._hourLabel)
+                this._hourLabel.text = hourStr || '00';
+            if (this._minuteLabel)
+                this._minuteLabel.text = minuteStr || '00';
+
+            if (this._tooltip && this._tooltip.visible)
+                this._tooltip.text = this._getFormattedDate();
+        }
+
+        _getFormattedDate() {
+            const now = GLib.DateTime.new_now_local();
+            const dateStr = now.format('%A %e %B %Y') || now.format('%x');
+            return dateStr ? (dateStr.charAt(0).toUpperCase() + dateStr.slice(1)) : '';
+        }
+
+        _onClicked() {
+            this._hideTooltip();
+            const dm = Main.panel?.statusArea?.dateMenu;
+            if (!dm?.menu)
+                return;
+
+            const isVertical = this._dock?._position === 'left' || this._dock?._position === 'right';
+            if (isVertical) {
+                dm.menu.sourceActor = this;
+                this._dock?._updateMenuSide(dm.menu, this._dock._position);
+            } else {
+                dm.menu.sourceActor = dm;
+                this._dock?._updateMenuSide(dm.menu, this._dock?._position || 'bottom');
+            }
+
+            dm.menu.toggle();
+        }
+
+        setIconSize(size) {
+            this._iconSize = size;
+            for (const s of ['small', 'medium', 'large'])
+                this.remove_style_class_name(`size-${s}`);
+            const sizeName = this._dock?._sizeName || (size <= 28 ? 'small' : (size >= 48 ? 'large' : 'medium'));
+            this.add_style_class_name(`size-${sizeName}`);
+        }
+
+        updatePositionStyle(position) {
+            for (const p of ['bottom', 'left', 'right'])
+                this.remove_style_class_name(`position-${p}`);
+            this.add_style_class_name(`position-${position}`);
+
+            if (position === 'left') {
+                this.set_pivot_point(0.0, 0.5);
+            } else if (position === 'right') {
+                this.set_pivot_point(1.0, 0.5);
+            } else {
+                this.set_pivot_point(0.5, 1.0);
+            }
+        }
+
+        _showTooltip() {
+            if (!this.get_stage())
+                return;
+
+            if (!this._tooltip) {
+                this._tooltip = new St.Label({
+                    style_class: 'dock-tooltip',
+                    text: this._getFormattedDate(),
+                });
+                this._tooltip.connect('destroy', () => {
+                    this._tooltip = null;
+                });
+                Main.layoutManager.addTopChrome(this._tooltip);
+            } else {
+                this._tooltip.text = this._getFormattedDate();
+            }
+
+            this._tooltip.opacity = 0;
+            this._tooltip.show();
+            this.updateTooltipPosition();
+
+            this._tooltip.ease({
+                opacity: 255,
+                duration: 150,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        }
+
+        _hideTooltip() {
+            if (!this._tooltip)
+                return;
+
+            this._tooltip.ease({
+                opacity: 0,
+                duration: 100,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => {
+                    if (this._tooltip)
+                        this._tooltip.hide();
+                },
+            });
+        }
+
+        updateTooltipPosition() {
+            if (!this._tooltip || !this._tooltip.visible)
+                return;
+
+            const [stageX, stageY] = this.get_transformed_position();
+            const [w, h] = this.get_transformed_size();
+            const [, , natW, natH] = this._tooltip.get_preferred_size();
+            const tw = this._tooltip.width || natW;
+            const th = this._tooltip.height || natH;
+            const pos = this._dock?._position || 'bottom';
+
+            let x, y;
+            if (pos === 'left') {
+                const dockX = this._dock ? this._dock.x : stageX;
+                const dockW = this._dock ? this._dock.width : w;
+                x = Math.round(dockX + dockW + 10);
+                y = Math.round(stageY + (h - th) / 2);
+            } else if (pos === 'right') {
+                const dockX = this._dock ? this._dock.x : stageX;
+                x = Math.round(dockX - tw - 10);
+                y = Math.round(stageY + (h - th) / 2);
+            } else {
+                const dockY = this._dock ? this._dock.y : stageY;
+                x = Math.round(stageX + (w - tw) / 2);
+                y = Math.round(dockY - th - 10);
+            }
+
+            const monitor = Main.layoutManager.primaryMonitor;
+            if (monitor) {
+                const panelHeight = (Main.panel && Main.panel.visible) ? Main.panel.height : 0;
+                const minY = monitor.y + panelHeight + 4;
+                const maxY = monitor.y + monitor.height - th - 4;
+                const minX = monitor.x + 4;
+                const maxX = monitor.x + monitor.width - tw - 4;
+
+                x = Math.clamp(x, minX, maxX);
+                y = Math.clamp(y, minY, maxY);
+            }
+
+            this._tooltip.set_position(x, y);
+        }
+
+        _cleanupTooltip() {
+            if (!this._tooltip)
+                return;
+
+            try {
+                this._tooltip.remove_all_transitions();
+                Main.layoutManager.removeChrome(this._tooltip);
+                this._tooltip.destroy();
+            } catch (_e) {
+                // Ignore
+            } finally {
+                this._tooltip = null;
+            }
+        }
+    }
+);
+
+/**
  * ArreraDock is the main dock widget container added to GNOME Shell's chrome.
  */
 export const ArreraDock = GObject.registerClass(
@@ -1086,6 +1356,11 @@ export const ArreraDock = GObject.registerClass(
                 visible: false,
             });
             this._clockBox._delegate = this;
+
+            // Compact vertical clock tile
+            this._clockTile = new DockClockTile(this, this._iconSize);
+            this._clockTile.visible = false;
+            this._clockBox.add_child(this._clockTile);
 
             // Trailing spacer for bar mode (centers icons when dock spans full screen)
             this._trailingSpacer = new Clutter.Actor({ visible: false, x_expand: false, y_expand: false });
@@ -1446,6 +1721,7 @@ export const ArreraDock = GObject.registerClass(
             }
             this._activitiesButton?.setIconSize(this._iconSize);
             this._showAppsButton?.setIconSize(this._iconSize);
+            this._clockTile?.setIconSize(this._iconSize);
 
             this.updatePosition();
             this._extension?._updateDockPosition?.();
@@ -1521,6 +1797,15 @@ export const ArreraDock = GObject.registerClass(
                     this._systemSeparator.x_align = Clutter.ActorAlign.CENTER;
                 }
             }
+            if (this._clockTile)
+                this._clockTile.visible = this._dmReparented && isVertical;
+
+            const dm = Main.panel?.statusArea?.dateMenu;
+            if (dm?.container && this._dmReparented)
+                dm.container.visible = !isVertical;
+
+            if (dm?.menu && this._dmReparented)
+                dm.menu.sourceActor = isVertical ? this._clockTile : dm;
 
             if (this._qsReparented)
                 this._updateMenuSide(Main.panel?.statusArea?.quickSettings?.menu, this._position);
@@ -1543,6 +1828,7 @@ export const ArreraDock = GObject.registerClass(
             }
             this._activitiesButton?.updatePositionStyle?.(this._position);
             this._showAppsButton?.updatePositionStyle?.(this._position);
+            this._clockTile?.updatePositionStyle?.(this._position);
 
             this.updatePosition();
             this._applyBarMode();
@@ -1668,8 +1954,20 @@ export const ArreraDock = GObject.registerClass(
                 this._restoreQuickSettings();
             }
 
+            const isVertical = this._position === 'left' || this._position === 'right';
+
             if (this._clockBox)
                 this._clockBox.visible = this._dmReparented;
+
+            if (this._clockTile)
+                this._clockTile.visible = this._dmReparented && isVertical;
+
+            const dm = Main.panel?.statusArea?.dateMenu;
+            if (dm?.container && this._dmReparented)
+                dm.container.visible = !isVertical;
+
+            if (dm?.menu && this._dmReparented)
+                dm.menu.sourceActor = isVertical ? this._clockTile : dm;
 
             if (this._systemBox)
                 this._systemBox.visible = this._qsReparented;
@@ -1799,6 +2097,14 @@ export const ArreraDock = GObject.registerClass(
             this._clockBox.add_child(container);
             this._dmReparented = true;
 
+            const isVertical = this._position === 'left' || this._position === 'right';
+            container.visible = !isVertical;
+            if (this._clockTile)
+                this._clockTile.visible = isVertical;
+
+            if (dm.menu)
+                dm.menu.sourceActor = isVertical ? this._clockTile : dm;
+
             this._updateMenuSide(dm.menu, this._position);
 
             if (dm.menu) {
@@ -1833,8 +2139,15 @@ export const ArreraDock = GObject.registerClass(
             else if (container.get_parent() === this._systemBox)
                 this._systemBox.remove_child(container);
 
-            this._restoreMenuSide(dm.menu);
-            dm.menu?.disconnectObject?.(this);
+            if (this._clockTile)
+                this._clockTile.visible = false;
+
+            if (dm.menu) {
+                if (dm.menu.sourceActor === this._clockTile)
+                    dm.menu.sourceActor = dm;
+                this._restoreMenuSide(dm.menu);
+                dm.menu.disconnectObject?.(this);
+            }
 
             if (this._dmOrigParent) {
                 const nChildren = this._dmOrigParent.get_n_children();
@@ -2396,6 +2709,11 @@ export const ArreraDock = GObject.registerClass(
 
             this._cleanupActivitiesButton();
             this._cleanupSystemStatusArea();
+
+            if (this._clockTile) {
+                this._clockTile.destroy();
+                this._clockTile = null;
+            }
 
             if (this._clockBox) {
                 this._clockBox.destroy();
