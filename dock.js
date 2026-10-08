@@ -1605,8 +1605,7 @@ export const DockTrayFlyout = GObject.registerClass(
 
             this._iconsBox = new St.BoxLayout({
                 style_class: 'dock-tray-flyout-icons',
-                orientation: Clutter.Orientation.HORIZONTAL,
-                spacing: 6,
+                vertical: false,
                 reactive: true,
             });
             this._window.add_child(this._iconsBox);
