@@ -28,6 +28,7 @@ while true; do
     DATE_FMT=$(gsettings get $SCHEMA date-format 2>/dev/null | tr -d "'" || echo "default")
     DARK_TILES=$(gsettings get $SCHEMA dark-tiles 2>/dev/null || echo "false")
     ISLAND_MODE=$(gsettings get $SCHEMA island-mode 2>/dev/null || echo "false")
+    VERT_ALIGN=$(gsettings get $SCHEMA vertical-alignment 2>/dev/null | tr -d "'" || echo "center")
 
     echo "=========================================================="
     echo "            Arrera Dock - Configuration Rapide            "
@@ -46,11 +47,12 @@ while true; do
     echo "12) Format date (date-format)             : $DATE_FMT"
     echo "13) Tuiles sombres (dark-tiles)           : $DARK_TILES"
     echo "14) Tuiles détachées (island-mode)        : $ISLAND_MODE"
+    echo "15) Alignement vertical (vert-align)      : $VERT_ALIGN"
     echo "----------------------------------------------------------"
     echo " r) Réinitialiser toutes les options par défaut"
     echo " q) Quitter"
     echo "=========================================================="
-    read -p " Choisissez une option [1-14, r, q] : " CHOIX
+    read -p " Choisissez une option [1-15, r, q] : " CHOIX
 
     case "$CHOIX" in
         1)
@@ -187,6 +189,19 @@ while true; do
                 gsettings set $SCHEMA island-mode true
             fi
             ;;
+        15)
+            echo ""
+            echo " Alignement vertical du dock latéral (gauche / droite) :"
+            echo "   1) En haut / top (Haut à droite / Haut à gauche)"
+            echo "   2) Centré / center (défaut)"
+            echo "   3) En bas / bottom"
+            read -p " Choix [1-3] : " VA_CHOIX
+            case "$VA_CHOIX" in
+                1) gsettings set $SCHEMA vertical-alignment "top" ;;
+                2) gsettings set $SCHEMA vertical-alignment "center" ;;
+                3) gsettings set $SCHEMA vertical-alignment "bottom" ;;
+            esac
+            ;;
         r|R)
             echo ""
             read -p " Confirmer la réinitialisation par défaut ? [o/N] : " CONFIRM
@@ -205,6 +220,7 @@ while true; do
                 gsettings reset $SCHEMA date-format
                 gsettings reset $SCHEMA dark-tiles
                 gsettings reset $SCHEMA island-mode
+                gsettings reset $SCHEMA vertical-alignment
                 echo " Paramètres réinitialisés !"
                 sleep 1
             fi

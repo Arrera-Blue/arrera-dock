@@ -121,4 +121,14 @@
   * `false` *(défaut)* : Conteneur standard du dock visible avec son fond, sa bordure et son ombre.
   * `true` : Conteneur 100 % transparent ; seules les tuiles et icônes individuelles restent visibles.
 
+---
+
+### `vertical-alignment` (chaîne)
+* **Description** : Positionnement vertical du dock lorsqu'il est placé sur un bord latéral (gauche ou droite).
+* **Valeurs possibles** :
+  * `'center'` *(défaut)* : Centré verticalement sur l'écran.
+  * `'top'` : En haut de l'écran (Haut à gauche ou Haut à droite).
+  * `'bottom'` : En bas de l'écran.
+
+
 

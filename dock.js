@@ -1235,6 +1235,217 @@ export const DockClockTile = GObject.registerClass(
 );
 
 /**
+ * DockQuickSettingsTile represents a compact square Quick Settings tile
+ * for vertical dock orientations (Design 3).
+ * It opens GNOME Shell's Quick Settings menu on click and displays localized tooltip on hover.
+ */
+export const DockQuickSettingsTile = GObject.registerClass(
+    class DockQuickSettingsTile extends St.Button {
+        _init(dock, iconSize = DEFAULT_ICON_SIZE) {
+            super._init({
+                style_class: 'dock-item dock-quick-settings-tile',
+                reactive: true,
+                can_focus: true,
+                track_hover: true,
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+
+            this._dock = dock;
+            this._iconSize = iconSize;
+            this._tooltip = null;
+
+            this._icon = new St.Icon({
+                style_class: 'dock-quick-settings-icon',
+                icon_name: 'preferences-system-symbolic',
+                icon_size: Math.round(iconSize * 0.58),
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            this.set_child(this._icon);
+
+            this.updatePositionStyle(this._dock?._position || 'bottom');
+            this.setIconSize(iconSize);
+
+            this._connectQuickSettingsMenu();
+
+            this.connect('clicked', () => this._onClicked());
+            this.connect('notify::hover', () => {
+                if (this.hover)
+                    this._showTooltip();
+                else
+                    this._hideTooltip();
+            });
+
+            this.connect('destroy', () => {
+                this._cleanupTooltip();
+                const qs = Main.panel?.statusArea?.quickSettings;
+                if (qs?.menu) {
+                    qs.menu.disconnectObject(this);
+                    if (qs.menu.sourceActor === this)
+                        qs.menu.sourceActor = qs;
+                }
+            });
+        }
+
+        _connectQuickSettingsMenu() {
+            const qs = Main.panel?.statusArea?.quickSettings;
+            if (qs?.menu) {
+                qs.menu.connectObject(
+                    'open-state-changed', (_m, open) => {
+                        if (open)
+                            this.add_style_pseudo_class('checked');
+                        else
+                            this.remove_style_pseudo_class('checked');
+                    },
+                    this
+                );
+            }
+        }
+
+        _onClicked() {
+            this._hideTooltip();
+            const qs = Main.panel?.statusArea?.quickSettings;
+            if (!qs?.menu)
+                return;
+
+            const isVertical = this._dock?._position === 'left' || this._dock?._position === 'right';
+            if (isVertical) {
+                qs.menu.sourceActor = this;
+                this._dock?._updateMenuSide(qs.menu, this._dock._position);
+            } else {
+                qs.menu.sourceActor = qs;
+                this._dock?._updateMenuSide(qs.menu, this._dock?._position || 'bottom');
+            }
+
+            qs.menu.toggle();
+        }
+
+        setIconSize(size) {
+            this._iconSize = size;
+            if (this._icon)
+                this._icon.icon_size = Math.round(size * 0.58);
+            for (const s of ['small', 'medium', 'large'])
+                this.remove_style_class_name(`size-${s}`);
+            const sizeName = this._dock?._sizeName || (size <= 28 ? 'small' : (size >= 48 ? 'large' : 'medium'));
+            this.add_style_class_name(`size-${sizeName}`);
+        }
+
+        updatePositionStyle(position) {
+            for (const p of ['bottom', 'left', 'right'])
+                this.remove_style_class_name(`position-${p}`);
+            this.add_style_class_name(`position-${position}`);
+
+            if (position === 'left') {
+                this.set_pivot_point(0.0, 0.5);
+            } else if (position === 'right') {
+                this.set_pivot_point(1.0, 0.5);
+            } else {
+                this.set_pivot_point(0.5, 1.0);
+            }
+        }
+
+        _showTooltip() {
+            if (!this.get_stage())
+                return;
+
+            if (!this._tooltip) {
+                this._tooltip = new St.Label({
+                    style_class: 'dock-tooltip',
+                    text: _('Quick Settings') || 'Paramètres rapides',
+                });
+                this._tooltip.connect('destroy', () => {
+                    this._tooltip = null;
+                });
+                Main.layoutManager.addTopChrome(this._tooltip);
+            }
+
+            this._tooltip.opacity = 0;
+            this._tooltip.show();
+            this.updateTooltipPosition();
+
+            this._tooltip.ease({
+                opacity: 255,
+                duration: 150,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        }
+
+        _hideTooltip() {
+            if (!this._tooltip)
+                return;
+
+            this._tooltip.ease({
+                opacity: 0,
+                duration: 100,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                onComplete: () => {
+                    if (this._tooltip)
+                        this._tooltip.hide();
+                },
+            });
+        }
+
+        updateTooltipPosition() {
+            if (!this._tooltip || !this._tooltip.visible)
+                return;
+
+            const [stageX, stageY] = this.get_transformed_position();
+            const [w, h] = this.get_transformed_size();
+            const [, , natW, natH] = this._tooltip.get_preferred_size();
+            const tw = this._tooltip.width || natW;
+            const th = this._tooltip.height || natH;
+            const pos = this._dock?._position || 'bottom';
+
+            let x, y;
+            if (pos === 'left') {
+                const dockX = this._dock ? this._dock.x : stageX;
+                const dockW = this._dock ? this._dock.width : w;
+                x = Math.round(dockX + dockW + 10);
+                y = Math.round(stageY + (h - th) / 2);
+            } else if (pos === 'right') {
+                const dockX = this._dock ? this._dock.x : stageX;
+                x = Math.round(dockX - tw - 10);
+                y = Math.round(stageY + (h - th) / 2);
+            } else {
+                const dockY = this._dock ? this._dock.y : stageY;
+                x = Math.round(stageX + (w - tw) / 2);
+                y = Math.round(dockY - th - 10);
+            }
+
+            const monitor = Main.layoutManager.primaryMonitor;
+            if (monitor) {
+                const panelHeight = (Main.panel && Main.panel.visible) ? Main.panel.height : 0;
+                const minY = monitor.y + panelHeight + 4;
+                const maxY = monitor.y + monitor.height - th - 4;
+                const minX = monitor.x + 4;
+                const maxX = monitor.x + monitor.width - tw - 4;
+
+                x = Math.clamp(x, minX, maxX);
+                y = Math.clamp(y, minY, maxY);
+            }
+
+            this._tooltip.set_position(x, y);
+        }
+
+        _cleanupTooltip() {
+            if (!this._tooltip)
+                return;
+
+            try {
+                this._tooltip.remove_all_transitions();
+                Main.layoutManager.removeChrome(this._tooltip);
+                this._tooltip.destroy();
+            } catch (_e) {
+                // Ignore
+            } finally {
+                this._tooltip = null;
+            }
+        }
+    }
+);
+
+/**
  * ArreraDock is the main dock widget container added to GNOME Shell's chrome.
  */
 export const ArreraDock = GObject.registerClass(
@@ -1323,6 +1534,7 @@ export const ArreraDock = GObject.registerClass(
             this._dateFormat = this._settings?.get_string('date-format') || 'default';
             this._darkTiles = this._settings?.get_boolean('dark-tiles') ?? false;
             this._islandMode = this._settings?.get_boolean('island-mode') ?? false;
+            this._verticalAlignment = this._settings?.get_string('vertical-alignment') || 'center';
 
             // Leading spacer for bar mode (centers icons when dock spans full screen)
             this._leadingSpacer = new Clutter.Actor({ visible: false, x_expand: false, y_expand: false });
@@ -1379,6 +1591,11 @@ export const ArreraDock = GObject.registerClass(
                 visible: false,
             });
             this._systemBox._delegate = this;
+
+            // Compact vertical quick settings tile
+            this._quickSettingsTile = new DockQuickSettingsTile(this, this._iconSize);
+            this._quickSettingsTile.visible = false;
+            this._systemBox.add_child(this._quickSettingsTile);
 
             // Build initial layout in _dockPill
             this._updatePillLayout();
@@ -1449,6 +1666,7 @@ export const ArreraDock = GObject.registerClass(
                     'changed::date-format', () => this._syncDateFormat(),
                     'changed::dark-tiles', () => this._syncDarkTiles(),
                     'changed::island-mode', () => this._syncIslandMode(),
+                    'changed::vertical-alignment', () => this._syncVerticalAlignment(),
                     this
                 );
             }
@@ -1465,6 +1683,7 @@ export const ArreraDock = GObject.registerClass(
             this._syncThemeMode();
             this._syncDarkTiles();
             this._syncIslandMode();
+            this._syncVerticalAlignment();
             this._syncExtendOnMaximize();
             this._syncAlwaysBarMode();
             this._syncBarIconsAlignment();
@@ -1735,6 +1954,7 @@ export const ArreraDock = GObject.registerClass(
             this._activitiesButton?.setIconSize(this._iconSize);
             this._showAppsButton?.setIconSize(this._iconSize);
             this._clockTile?.setIconSize(this._iconSize);
+            this._quickSettingsTile?.setIconSize(this._iconSize);
 
             this.updatePosition();
             this._extension?._updateDockPosition?.();
@@ -1820,8 +2040,18 @@ export const ArreraDock = GObject.registerClass(
             if (dm?.menu && this._dmReparented)
                 dm.menu.sourceActor = isVertical ? this._clockTile : dm;
 
-            if (this._qsReparented)
-                this._updateMenuSide(Main.panel?.statusArea?.quickSettings?.menu, this._position);
+            if (this._quickSettingsTile)
+                this._quickSettingsTile.visible = this._qsReparented && isVertical;
+
+            const qs = Main.panel?.statusArea?.quickSettings;
+            if (qs?.container && this._qsReparented)
+                qs.container.visible = !isVertical;
+
+            if (this._qsReparented) {
+                this._updateMenuSide(qs?.menu, this._position);
+                if (qs?.menu)
+                    qs.menu.sourceActor = isVertical ? this._quickSettingsTile : qs;
+            }
             if (this._dmReparented)
                 this._updateMenuSide(Main.panel?.statusArea?.dateMenu?.menu, this._position);
 
@@ -1830,10 +2060,14 @@ export const ArreraDock = GObject.registerClass(
                 this._dockPill.y_align = Clutter.ActorAlign.END;
             } else if (this._position === 'left') {
                 this._dockPill.x_align = Clutter.ActorAlign.START;
-                this._dockPill.y_align = Clutter.ActorAlign.CENTER;
+                this._dockPill.y_align = (this._verticalAlignment === 'top')
+                    ? Clutter.ActorAlign.START
+                    : (this._verticalAlignment === 'bottom' ? Clutter.ActorAlign.END : Clutter.ActorAlign.CENTER);
             } else if (this._position === 'right') {
                 this._dockPill.x_align = Clutter.ActorAlign.END;
-                this._dockPill.y_align = Clutter.ActorAlign.CENTER;
+                this._dockPill.y_align = (this._verticalAlignment === 'top')
+                    ? Clutter.ActorAlign.START
+                    : (this._verticalAlignment === 'bottom' ? Clutter.ActorAlign.END : Clutter.ActorAlign.CENTER);
             }
 
             for (const icon of this._appIcons.values()) {
@@ -1842,6 +2076,7 @@ export const ArreraDock = GObject.registerClass(
             this._activitiesButton?.updatePositionStyle?.(this._position);
             this._showAppsButton?.updatePositionStyle?.(this._position);
             this._clockTile?.updatePositionStyle?.(this._position);
+            this._quickSettingsTile?.updatePositionStyle?.(this._position);
 
             this.updatePosition();
             this._applyBarMode();
@@ -2035,6 +2270,16 @@ export const ArreraDock = GObject.registerClass(
             if (this._systemBox)
                 this._systemBox.visible = this._qsReparented;
 
+            if (this._quickSettingsTile)
+                this._quickSettingsTile.visible = this._qsReparented && isVertical;
+
+            const qs = Main.panel?.statusArea?.quickSettings;
+            if (qs?.container && this._qsReparented)
+                qs.container.visible = !isVertical;
+
+            if (qs?.menu && this._qsReparented)
+                qs.menu.sourceActor = isVertical ? this._quickSettingsTile : qs;
+
             this._updatePillLayout();
             this._syncPosition();
         }
@@ -2072,8 +2317,18 @@ export const ArreraDock = GObject.registerClass(
 
             container.add_style_class_name('dock-system-item');
             container.add_style_class_name('dock-quick-settings-item');
+            container.add_style_class_name('dock-item');
+            qs.add_style_class_name('dock-item');
             this._systemBox.add_child(container);
             this._qsReparented = true;
+
+            const isVertical = this._position === 'left' || this._position === 'right';
+            container.visible = !isVertical;
+            if (this._quickSettingsTile)
+                this._quickSettingsTile.visible = isVertical;
+
+            if (qs.menu)
+                qs.menu.sourceActor = isVertical ? this._quickSettingsTile : qs;
 
             this._updateMenuSide(qs.menu, this._position);
 
@@ -2090,9 +2345,18 @@ export const ArreraDock = GObject.registerClass(
             if (!this._qsReparented || !qs?.container)
                 return;
 
+            if (this._quickSettingsTile)
+                this._quickSettingsTile.visible = false;
+
             const container = qs.container;
+            container.visible = true;
             container.remove_style_class_name('dock-system-item');
             container.remove_style_class_name('dock-quick-settings-item');
+            container.remove_style_class_name('dock-item');
+            container.remove_style_class_name('vertical-tile');
+            qs.remove_style_class_name('dock-item');
+            qs.remove_style_class_name('dock-quick-settings-tile');
+            qs.remove_style_class_name('vertical-tile');
 
             if (this._qsOrigYAlign !== undefined) container.y_align = this._qsOrigYAlign;
             if (this._qsOrigXAlign !== undefined) container.x_align = this._qsOrigXAlign;
@@ -2106,6 +2370,9 @@ export const ArreraDock = GObject.registerClass(
 
             if (container.get_parent() === this._systemBox)
                 this._systemBox.remove_child(container);
+
+            if (qs.menu && qs.menu.sourceActor === this._quickSettingsTile)
+                qs.menu.sourceActor = qs;
 
             this._restoreMenuSide(qs.menu);
             qs.menu?.disconnectObject?.(this);
@@ -2327,6 +2594,31 @@ export const ArreraDock = GObject.registerClass(
             } else {
                 this.remove_style_class_name('island-mode');
                 this._dockPill?.remove_style_class_name('island-mode');
+            }
+        }
+
+        _syncVerticalAlignment() {
+            const align = this._settings?.get_string('vertical-alignment') || 'center';
+            const valid = ['top', 'center', 'bottom'];
+            this._verticalAlignment = valid.includes(align) ? align : 'center';
+
+            for (const a of valid) {
+                this.remove_style_class_name(`align-${a}`);
+                this._dockPill?.remove_style_class_name(`align-${a}`);
+            }
+            this.add_style_class_name(`align-${this._verticalAlignment}`);
+            this._dockPill?.add_style_class_name(`align-${this._verticalAlignment}`);
+
+            if (this._position === 'left' || this._position === 'right') {
+                if (this._verticalAlignment === 'top') {
+                    this._dockPill.y_align = Clutter.ActorAlign.START;
+                } else if (this._verticalAlignment === 'bottom') {
+                    this._dockPill.y_align = Clutter.ActorAlign.END;
+                } else {
+                    this._dockPill.y_align = Clutter.ActorAlign.CENTER;
+                }
+            } else {
+                this._dockPill.y_align = Clutter.ActorAlign.END;
             }
         }
 
@@ -2814,6 +3106,11 @@ export const ArreraDock = GObject.registerClass(
             if (this._clockTile) {
                 this._clockTile.destroy();
                 this._clockTile = null;
+            }
+
+            if (this._quickSettingsTile) {
+                this._quickSettingsTile.destroy();
+                this._quickSettingsTile = null;
             }
 
             if (this._clockBox) {

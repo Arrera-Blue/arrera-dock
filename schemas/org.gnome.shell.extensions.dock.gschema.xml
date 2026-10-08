@@ -117,5 +117,16 @@
       <description>Rend le conteneur du dock complètement transparent (sans fond, sans bordure ni ombre), permettant aux tuiles ou icônes de flotter directement sur le bord de l'écran.</description>
     </key>
 
+    <key name="vertical-alignment" type="s">
+      <choices>
+        <choice value="top"/>
+        <choice value="center"/>
+        <choice value="bottom"/>
+      </choices>
+      <default>'center'</default>
+      <summary>Alignement vertical du dock latéral</summary>
+      <description>Positionnement vertical du dock lorsqu'il est placé à gauche ou à droite de l'écran : top (en haut / haut à gauche ou haut à droite), center (centré verticalement) ou bottom (en bas).</description>
+    </key>
+
   </schema>
 </schemalist>

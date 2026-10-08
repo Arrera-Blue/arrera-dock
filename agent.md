@@ -52,6 +52,8 @@ Ce document fournit aux agents de développement toutes les informations nécess
 * **`DockAppIcon`** : Représente chaque lanceur d'application (favori ou active). Gère les indicateurs d'état d'exécution (points blancs ou colorés), les fenêtres actives, les clics, les menus contextuels et le drag-and-drop.
 * **`ActivitiesButton`** : Bouton orné du logo Arrera (`icons/arrera-logo.svg`) ouvrant/fermant la vue Activités (`Main.overview.toggle()`), synchronisé avec l'état de l'aperçu et gérant le Drag-and-Drop.
 * **`ShowAppsButton`** : Bouton grille d'applications ouvrant Arrera App Menu ou la grille GNOME Shell.
+* **`DockClockTile`** : Tuile d'horloge compacte ("HH" sur "MM") dédiée au dock vertical pour éviter les débordements textuels et ouvrir le calendrier GNOME.
+* **`DockQuickSettingsTile`** : Tuile carrée dédiée aux Paramètres Rapides sur dock vertical (icône système évitant la colonne d'indicateurs étirée et ouvrant le menu Quick Settings).
 
 ### `stylesheet.css`
 * Feuille de style utilisant le moteur CSS de Clutter/St.
@@ -84,6 +86,7 @@ Toutes les options sont déclarées dans `schemas/org.gnome.shell.extensions.doc
 | `date-format`    | `s` | `'default'` | `'default'`, `'uppercase-date'`, `'uppercase-date-year'`, `'uppercase-datetime'` | Formatage personnalisé de la date dans le dock |
 | `dark-tiles`     | `b` | `false` | `true`, `false` | Affiche chaque élément du dock dans une tuile sombre arrondie permanente (squircle) |
 | `island-mode`    | `b` | `false` | `true`, `false` | Rend le fond du conteneur de dock 100% transparent (tuiles détachées / Design 3) |
+| `vertical-alignment` | `s` | `'center'` | `'top'`, `'center'`, `'bottom'` | Alignement vertical du dock latéral (en haut, centré, en bas) |
 
 ---
 

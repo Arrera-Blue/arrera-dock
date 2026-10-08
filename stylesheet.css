@@ -98,9 +98,10 @@
     margin: 3px 6px;
 }
 
-/* Show applications launcher button & compact clock tile */
+/* Show applications launcher button & compact clock / quick settings tiles */
 .show-apps-button,
-.dock-clock-tile {
+.dock-clock-tile,
+.dock-quick-settings-tile {
     padding: 3px 6px;
     border-radius: 20px;
     background-color: transparent;
@@ -111,7 +112,8 @@
 }
 
 .show-apps-button:hover,
-.dock-clock-tile:hover {
+.dock-clock-tile:hover,
+.dock-quick-settings-tile:hover {
     background-color: st-transparentize(-st-accent-color, 0.80);
     box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.60);
     color: #ffffff;
@@ -120,7 +122,9 @@
 .show-apps-button:active,
 .show-apps-button:checked,
 .dock-clock-tile:active,
-.dock-clock-tile:checked {
+.dock-clock-tile:checked,
+.dock-quick-settings-tile:active,
+.dock-quick-settings-tile:checked {
     background-color: st-transparentize(-st-accent-color, 0.65);
     box-shadow: 0 0 16px -st-accent-color;
     color: #ffffff;
@@ -195,8 +199,8 @@
     color: #f4f4f5;
 }
 
-/* Quick Settings capsule / grey pill styling (Design 2) */
-.dock-system-item.dock-quick-settings-item .panel-button {
+/* Quick Settings capsule / grey pill styling (Design 2 horizontal mode) */
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button {
     border-radius: 9999px;
     border: none;
     background-color: rgba(255, 255, 255, 0.12);
@@ -207,15 +211,15 @@
     transition-duration: 200ms;
 }
 
-.dock-system-item.dock-quick-settings-item .panel-button:hover,
-.dock-system-item.dock-quick-settings-item .panel-button:focus:hover {
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button:hover,
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button:focus:hover {
     background-color: rgba(255, 255, 255, 0.20);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
     color: #ffffff;
 }
 
-.dock-system-item.dock-quick-settings-item .panel-button:active,
-.dock-system-item.dock-quick-settings-item .panel-button:checked {
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button:active,
+.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button:checked {
     background-color: rgba(255, 255, 255, 0.28);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 0 12px rgba(255, 255, 255, 0.20);
     color: #ffffff;
@@ -282,7 +286,8 @@
     border-radius: 9999px;
 }
 
-.size-small .dock-system-item.dock-quick-settings-item .panel-button {
+.size-small.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button,
+.size-small .position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button {
     padding: 2px 10px;
     border-radius: 9999px;
 }
@@ -311,7 +316,8 @@
     border-radius: 9999px;
 }
 
-.size-large .dock-system-item.dock-quick-settings-item .panel-button {
+.size-large.position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button,
+.size-large .position-bottom:not(.dark-tiles) .dock-system-item.dock-quick-settings-item .panel-button {
     padding: 6px 18px;
     border-radius: 9999px;
 }
@@ -341,10 +347,14 @@
     padding: 6px 3px;
 }
 
-.position-left .dock-system-item.dock-quick-settings-item .panel-button,
-.position-right .dock-system-item.dock-quick-settings-item .panel-button {
-    padding: 8px 4px;
-    border-radius: 16px;
+/* Vertical dock square tile for Quick Settings */
+.dock-quick-settings-tile .dock-quick-settings-icon {
+    padding: 0;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    color: #ffffff;
 }
 
 .position-left .dock-system-item.dock-date-menu-item .clock-display .clock,
@@ -799,9 +809,12 @@
 }
 
 .size-small .show-apps-button,
-.size-small .dock-clock-tile {
+.size-small .dock-clock-tile,
+.size-small .dock-quick-settings-tile {
     padding: 2px 4px;
     border-radius: 14px;
+    min-width: 30px;
+    min-height: 30px;
 }
 
 .size-small .clock-tile-hour,
@@ -840,9 +853,12 @@
 }
 
 .size-medium .show-apps-button,
-.size-medium .dock-clock-tile {
+.size-medium .dock-clock-tile,
+.size-medium .dock-quick-settings-tile {
     padding: 3px 6px;
     border-radius: 20px;
+    min-width: 38px;
+    min-height: 38px;
 }
 
 .size-medium .dock-app-icon .app-grid-running-dot {
@@ -876,9 +892,12 @@
 }
 
 .size-large .show-apps-button,
-.size-large .dock-clock-tile {
+.size-large .dock-clock-tile,
+.size-large .dock-quick-settings-tile {
     padding: 4px 8px;
     border-radius: 24px;
+    min-width: 46px;
+    min-height: 46px;
 }
 
 .size-large .clock-tile-hour,
@@ -918,7 +937,8 @@
 }
 
 .theme-black-outline .show-apps-button:hover,
-.theme-black-outline .dock-clock-tile:hover {
+.theme-black-outline .dock-clock-tile:hover,
+.theme-black-outline .dock-quick-settings-tile:hover {
     background-color: rgba(255, 255, 255, 0.12);
     box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.60);
 }
@@ -1091,7 +1111,8 @@
 }
 
 .theme-vanilla-gnome .show-apps-button:hover,
-.theme-vanilla-gnome .dock-clock-tile:hover {
+.theme-vanilla-gnome .dock-clock-tile:hover,
+.theme-vanilla-gnome .dock-quick-settings-tile:hover {
     background-color: rgba(255, 255, 255, 0.10) !important;
     box-shadow: none !important;
 }
@@ -1099,7 +1120,9 @@
 .theme-vanilla-gnome .show-apps-button:checked,
 .theme-vanilla-gnome .show-apps-button:active,
 .theme-vanilla-gnome .dock-clock-tile:checked,
-.theme-vanilla-gnome .dock-clock-tile:active {
+.theme-vanilla-gnome .dock-clock-tile:active,
+.theme-vanilla-gnome .dock-quick-settings-tile:checked,
+.theme-vanilla-gnome .dock-quick-settings-tile:active {
     background-color: rgba(255, 255, 255, 0.16) !important;
     box-shadow: none !important;
 }
@@ -1429,7 +1452,9 @@
 .dark-tiles .dock-app-icon,
 .dark-tiles .activities-button,
 .dark-tiles .show-apps-button,
-.dark-tiles .dock-clock-tile {
+.dark-tiles .dock-clock-tile,
+.dark-tiles .dock-quick-settings-tile,
+.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button {
     background-color: rgba(255, 255, 255, 0.09);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
     border-radius: 16px;
@@ -1442,7 +1467,9 @@
 .dark-tiles .dock-app-icon:focused:hover,
 .dark-tiles .activities-button:hover,
 .dark-tiles .show-apps-button:hover,
-.dark-tiles .dock-clock-tile:hover {
+.dark-tiles .dock-clock-tile:hover,
+.dark-tiles .dock-quick-settings-tile:hover,
+.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:hover {
     background-color: st-transparentize(-st-accent-color, 0.75);
     box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.45), 0 2px 10px rgba(0, 0, 0, 0.35);
 }
@@ -1454,7 +1481,11 @@
 .dark-tiles .show-apps-button:active,
 .dark-tiles .show-apps-button:checked,
 .dark-tiles .dock-clock-tile:active,
-.dark-tiles .dock-clock-tile:checked {
+.dark-tiles .dock-clock-tile:checked,
+.dark-tiles .dock-quick-settings-tile:active,
+.dark-tiles .dock-quick-settings-tile:checked,
+.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:active,
+.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:checked {
     background-color: st-transparentize(-st-accent-color, 0.58);
     box-shadow: 0 0 14px -st-accent-color;
 }
@@ -1468,12 +1499,18 @@
 .size-small.dark-tiles .activities-button,
 .size-small.dark-tiles .show-apps-button,
 .size-small.dark-tiles .dock-clock-tile,
+.size-small.dark-tiles .dock-quick-settings-tile,
+.size-small.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button,
 .size-small .dark-tiles .dock-app-icon,
 .size-small .dark-tiles .activities-button,
 .size-small .dark-tiles .show-apps-button,
-.size-small .dark-tiles .dock-clock-tile {
+.size-small .dark-tiles .dock-clock-tile,
+.size-small .dark-tiles .dock-quick-settings-tile,
+.size-small .dark-tiles .dock-system-item.dock-quick-settings-item .panel-button {
     border-radius: 12px;
     padding: 4px 6px;
+    min-width: 30px;
+    min-height: 30px;
 }
 
 /* Dark Tiles - Medium size (Default) */
@@ -1481,12 +1518,18 @@
 .size-medium.dark-tiles .activities-button,
 .size-medium.dark-tiles .show-apps-button,
 .size-medium.dark-tiles .dock-clock-tile,
+.size-medium.dark-tiles .dock-quick-settings-tile,
+.size-medium.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button,
 .size-medium .dark-tiles .dock-app-icon,
 .size-medium .dark-tiles .activities-button,
 .size-medium .dark-tiles .show-apps-button,
-.size-medium .dark-tiles .dock-clock-tile {
+.size-medium .dark-tiles .dock-clock-tile,
+.size-medium .dark-tiles .dock-quick-settings-tile,
+.size-medium .dark-tiles .dock-system-item.dock-quick-settings-item .panel-button {
     border-radius: 16px;
     padding: 6px 8px;
+    min-width: 38px;
+    min-height: 38px;
 }
 
 /* Dark Tiles - Large size */
@@ -1494,12 +1537,18 @@
 .size-large.dark-tiles .activities-button,
 .size-large.dark-tiles .show-apps-button,
 .size-large.dark-tiles .dock-clock-tile,
+.size-large.dark-tiles .dock-quick-settings-tile,
+.size-large.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button,
 .size-large .dark-tiles .dock-app-icon,
 .size-large .dark-tiles .activities-button,
 .size-large .dark-tiles .show-apps-button,
-.size-large .dark-tiles .dock-clock-tile {
+.size-large .dark-tiles .dock-clock-tile,
+.size-large .dark-tiles .dock-quick-settings-tile,
+.size-large .dark-tiles .dock-system-item.dock-quick-settings-item .panel-button {
     border-radius: 20px;
     padding: 8px 10px;
+    min-width: 46px;
+    min-height: 46px;
 }
 
 /* Dark Tiles - Black-Outline theme adaptation */
@@ -1507,10 +1556,14 @@
 .theme-black-outline.dark-tiles .activities-button,
 .theme-black-outline.dark-tiles .show-apps-button,
 .theme-black-outline.dark-tiles .dock-clock-tile,
+.theme-black-outline.dark-tiles .dock-quick-settings-tile,
+.theme-black-outline.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button,
 .theme-black-outline .dark-tiles .dock-app-icon,
 .theme-black-outline .dark-tiles .activities-button,
 .theme-black-outline .dark-tiles .show-apps-button,
-.theme-black-outline .dark-tiles .dock-clock-tile {
+.theme-black-outline .dark-tiles .dock-clock-tile,
+.theme-black-outline .dark-tiles .dock-quick-settings-tile,
+.theme-black-outline .dark-tiles .dock-system-item.dock-quick-settings-item .panel-button {
     background-color: rgba(255, 255, 255, 0.06);
     box-shadow: inset 0 0 0 1px st-transparentize(-st-accent-color, 0.65);
 }
@@ -1519,10 +1572,14 @@
 .theme-black-outline.dark-tiles .activities-button:hover,
 .theme-black-outline.dark-tiles .show-apps-button:hover,
 .theme-black-outline.dark-tiles .dock-clock-tile:hover,
+.theme-black-outline.dark-tiles .dock-quick-settings-tile:hover,
+.theme-black-outline.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:hover,
 .theme-black-outline .dark-tiles .dock-app-icon:hover,
 .theme-black-outline .dark-tiles .activities-button:hover,
 .theme-black-outline .dark-tiles .show-apps-button:hover,
-.theme-black-outline .dark-tiles .dock-clock-tile:hover {
+.theme-black-outline .dark-tiles .dock-clock-tile:hover,
+.theme-black-outline .dark-tiles .dock-quick-settings-tile:hover,
+.theme-black-outline .dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:hover {
     background-color: rgba(255, 255, 255, 0.16);
     box-shadow: inset 0 0 0 1.5px -st-accent-color, 0 0 10px rgba(0, 0, 0, 0.5);
 }
@@ -1532,10 +1589,14 @@
 .theme-vanilla-gnome.dark-tiles .activities-button,
 .theme-vanilla-gnome.dark-tiles .show-apps-button,
 .theme-vanilla-gnome.dark-tiles .dock-clock-tile,
+.theme-vanilla-gnome.dark-tiles .dock-quick-settings-tile,
+.theme-vanilla-gnome.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button,
 .theme-vanilla-gnome .dark-tiles .dock-app-icon,
 .theme-vanilla-gnome .dark-tiles .activities-button,
 .theme-vanilla-gnome .dark-tiles .show-apps-button,
-.theme-vanilla-gnome .dark-tiles .dock-clock-tile {
+.theme-vanilla-gnome .dark-tiles .dock-clock-tile,
+.theme-vanilla-gnome .dark-tiles .dock-quick-settings-tile,
+.theme-vanilla-gnome .dark-tiles .dock-system-item.dock-quick-settings-item .panel-button {
     background-color: rgba(255, 255, 255, 0.10);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
@@ -1544,13 +1605,18 @@
 .theme-vanilla-gnome.dark-tiles .activities-button:hover,
 .theme-vanilla-gnome.dark-tiles .show-apps-button:hover,
 .theme-vanilla-gnome.dark-tiles .dock-clock-tile:hover,
+.theme-vanilla-gnome.dark-tiles .dock-quick-settings-tile:hover,
+.theme-vanilla-gnome.dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:hover,
 .theme-vanilla-gnome .dark-tiles .dock-app-icon:hover,
 .theme-vanilla-gnome .dark-tiles .activities-button:hover,
 .theme-vanilla-gnome .dark-tiles .show-apps-button:hover,
-.theme-vanilla-gnome .dark-tiles .dock-clock-tile:hover {
+.theme-vanilla-gnome .dark-tiles .dock-clock-tile:hover,
+.theme-vanilla-gnome .dark-tiles .dock-quick-settings-tile:hover,
+.theme-vanilla-gnome .dark-tiles .dock-system-item.dock-quick-settings-item .panel-button:hover {
     background-color: rgba(255, 255, 255, 0.20);
     box-shadow: none;
 }
+
 
 /* ==========================================================================
    Island Mode (Tuiles détachées / Fond 100% transparent sans bordure ni ombre)
@@ -1593,4 +1659,32 @@
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
+}
+
+/* ==========================================================================
+   Vertical Alignment Margins (Left / Right positions)
+   ========================================================================== */
+
+.align-top.position-left.arrera-dock,
+.align-top.position-right.arrera-dock,
+.align-top .position-left.arrera-dock,
+.align-top .position-right.arrera-dock {
+    margin-top: 10px;
+    margin-bottom: 0;
+}
+
+.align-bottom.position-left.arrera-dock,
+.align-bottom.position-right.arrera-dock,
+.align-bottom .position-left.arrera-dock,
+.align-bottom .position-right.arrera-dock {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.align-top.position-left.arrera-dock.mode-bar,
+.align-top.position-right.arrera-dock.mode-bar,
+.align-bottom.position-left.arrera-dock.mode-bar,
+.align-bottom.position-right.arrera-dock.mode-bar {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 }

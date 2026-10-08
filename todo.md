@@ -45,5 +45,10 @@ Liste des fonctionnalités manquantes pour permettre la réalisation des 3 desig
 ## 5. Mode « Tuiles détachées / Fond transparent » (Island Mode) (Pour le Design 3)
 - [x] **Conteneur transparent pour dock vertical** :
   - Option permettant de rendre le fond du dock (`.arrera-dock`) 100 % transparent (sans bordure ni ombre globale), afin que seules les tuiles individuelles flottent sur le bord droit de l'écran.
+- [x] **Alignement vertical pour dock latéral (Haut à droite / Haut à gauche)** :
+  - Option `vertical-alignment` (`top`, `center`, `bottom`) pour positionner les tuiles détachées en haut ou au centre de l'écran.
+- [x] **Tuile carrée dédiée pour les Paramètres Rapides (`DockQuickSettingsTile`)** :
+  - Évite la tour d'indicateurs verticaux étirés et les débordements sur dock vertical.
+  - Offre une tuile carrée compacte et uniforme avec icône système, infobulle et ouverture directe du menu Quick Settings.
 
 ---
