@@ -31,6 +31,24 @@
     spacing: 10px;
 }
 
+/* Scrollable container for application icons */
+.arrera-dock-scrollview {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.arrera-dock-scrollview StScrollBar {
+    width: 0 !important;
+    height: 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    opacity: 0 !important;
+}
+
+
 /* Individual application icon button - Material 3 State Layer */
 .dock-app-icon,
 .dock-app-icon:focus,

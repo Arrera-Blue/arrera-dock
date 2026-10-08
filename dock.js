@@ -141,6 +141,10 @@ export const DockAppIcon = GObject.registerClass(
             rightClickGesture.connect('recognize', () => this.popupMenu());
             this.add_action(rightClickGesture);
 
+            this.connect('scroll-event', (_actor, event) => {
+                return this._dock?._onIconsScroll?.(event) ?? Clutter.EVENT_PROPAGATE;
+            });
+
             this.connect('notify::stage', () => {
                 this._updateDotStyle();
             });
@@ -1870,6 +1874,10 @@ export const ArreraDock = GObject.registerClass(
                 return Clutter.EVENT_PROPAGATE;
             });
 
+            this._dockPill.connect('scroll-event', (_actor, event) => {
+                return this._onIconsScroll(event);
+            });
+
             this._dockPill.connect('notify::hover', () => {
                 if (this._dockPill.hover) {
                     this._onEnter();
@@ -1914,6 +1922,27 @@ export const ArreraDock = GObject.registerClass(
                 reactive: true,
             });
             this._iconsBox._delegate = this;
+
+            // ScrollView container for icons to enable smooth scrolling when apps overflow
+            this._iconsScrollView = new St.ScrollView({
+                style_class: 'arrera-dock-scrollview',
+                hscrollbar_policy: St.PolicyType.EXTERNAL,
+                vscrollbar_policy: St.PolicyType.EXTERNAL,
+                overlay_scrollbars: true,
+                enable_mouse_scrolling: false,
+                x_expand: false,
+                y_expand: false,
+                reactive: true,
+            });
+            this._iconsScrollView._delegate = this;
+            this._iconsScrollView.set_child(this._iconsBox);
+
+            this._iconsScrollView.connect('scroll-event', (_actor, event) => {
+                return this._onIconsScroll(event);
+            });
+            this._iconsBox.connect('scroll-event', (_actor, event) => {
+                return this._onIconsScroll(event);
+            });
 
             // Clock status box (Date/Clock)
             this._clockBox = new St.BoxLayout({
@@ -2422,6 +2451,16 @@ export const ArreraDock = GObject.registerClass(
                 this._iconsBox.vertical = isVertical;
             }
 
+            if (this._iconsScrollView) {
+                if (isVertical) {
+                    this._iconsScrollView.hscrollbar_policy = St.PolicyType.NEVER;
+                    this._iconsScrollView.vscrollbar_policy = St.PolicyType.EXTERNAL;
+                } else {
+                    this._iconsScrollView.hscrollbar_policy = St.PolicyType.EXTERNAL;
+                    this._iconsScrollView.vscrollbar_policy = St.PolicyType.NEVER;
+                }
+            }
+
             if (this._clockBox) {
                 if ('orientation' in this._clockBox) {
                     this._clockBox.orientation = isVertical
@@ -2624,11 +2663,13 @@ export const ArreraDock = GObject.registerClass(
             const desiredOrder = [];
             desiredOrder.push(this._leadingSpacer);
 
+            const iconsWidget = this._iconsScrollView || this._iconsBox;
+
             if (clockPos === 'top') {
                 desiredOrder.push(this._activitiesButton);
                 desiredOrder.push(this._clockBox);
                 desiredOrder.push(this._showAppsButton);
-                desiredOrder.push(this._iconsBox);
+                desiredOrder.push(iconsWidget);
                 desiredOrder.push(this._trailingSpacer);
                 desiredOrder.push(this._systemSeparator);
                 desiredOrder.push(this._systemBox);
@@ -2636,18 +2677,25 @@ export const ArreraDock = GObject.registerClass(
                 desiredOrder.push(this._activitiesButton);
                 desiredOrder.push(this._showAppsButton);
                 desiredOrder.push(this._clockBox);
-                desiredOrder.push(this._iconsBox);
+                desiredOrder.push(iconsWidget);
                 desiredOrder.push(this._trailingSpacer);
                 desiredOrder.push(this._systemSeparator);
                 desiredOrder.push(this._systemBox);
             } else { // 'bottom'
                 desiredOrder.push(this._activitiesButton);
                 desiredOrder.push(this._showAppsButton);
-                desiredOrder.push(this._iconsBox);
+                desiredOrder.push(iconsWidget);
                 desiredOrder.push(this._trailingSpacer);
                 desiredOrder.push(this._systemSeparator);
                 desiredOrder.push(this._clockBox);
                 desiredOrder.push(this._systemBox);
+            }
+
+            if (this._iconsBox && this._iconsScrollView && this._iconsBox.get_parent() === this._dockPill) {
+                this._dockPill.remove_child(this._iconsBox);
+            }
+            if (this._iconsBox && this._iconsScrollView && this._iconsBox.get_parent() !== this._iconsScrollView) {
+                this._iconsScrollView.set_child(this._iconsBox);
             }
 
             for (const actor of desiredOrder) {
@@ -3277,6 +3325,8 @@ export const ArreraDock = GObject.registerClass(
 
             if (this._isBarMode)
                 this._applyBarMode();
+            else
+                this._updateIconsScroll();
         }
 
         _redisplay() {
@@ -3358,7 +3408,9 @@ export const ArreraDock = GObject.registerClass(
             this._scheduleBarModeUpdate();
             if (this._isBarMode)
                 this._applyBarMode();
+            this._updateIconsScroll();
             this._iconsBox.queue_relayout();
+            this._iconsScrollView?.queue_relayout();
             this._dockPill.queue_relayout();
         }
 
@@ -3568,6 +3620,8 @@ export const ArreraDock = GObject.registerClass(
                     this._trailingSpacer.height = 0;
 
                     this._iconsBox.x_align = Clutter.ActorAlign.START;
+                    if (this._iconsScrollView)
+                        this._iconsScrollView.x_align = Clutter.ActorAlign.START;
                 }
             } else {
                 this.remove_style_class_name('mode-bar');
@@ -3594,13 +3648,25 @@ export const ArreraDock = GObject.registerClass(
                     this._dockPill.y_align = Clutter.ActorAlign.END;
                 } else if (this._position === 'left') {
                     this._dockPill.x_align = Clutter.ActorAlign.START;
-                    this._dockPill.y_align = Clutter.ActorAlign.CENTER;
+                    if (this._verticalAlignment === 'top')
+                        this._dockPill.y_align = Clutter.ActorAlign.START;
+                    else if (this._verticalAlignment === 'bottom')
+                        this._dockPill.y_align = Clutter.ActorAlign.END;
+                    else
+                        this._dockPill.y_align = Clutter.ActorAlign.CENTER;
                 } else if (this._position === 'right') {
                     this._dockPill.x_align = Clutter.ActorAlign.END;
-                    this._dockPill.y_align = Clutter.ActorAlign.CENTER;
+                    if (this._verticalAlignment === 'top')
+                        this._dockPill.y_align = Clutter.ActorAlign.START;
+                    else if (this._verticalAlignment === 'bottom')
+                        this._dockPill.y_align = Clutter.ActorAlign.END;
+                    else
+                        this._dockPill.y_align = Clutter.ActorAlign.CENTER;
                 }
 
                 this._iconsBox.x_align = Clutter.ActorAlign.CENTER;
+                if (this._iconsScrollView)
+                    this._iconsScrollView.x_align = Clutter.ActorAlign.CENTER;
             }
 
             this._activitiesButton?.set_x_expand(false);
@@ -3609,11 +3675,174 @@ export const ArreraDock = GObject.registerClass(
             this._showAppsButton?.set_y_expand(false);
             this._iconsBox.set_x_expand(false);
             this._iconsBox.set_y_expand(false);
+            this._iconsScrollView?.set_x_expand(false);
+            this._iconsScrollView?.set_y_expand(false);
 
             this._updatePillLayout();
+            this._updateIconsScroll();
             this._iconsBox.queue_relayout();
+            this._iconsScrollView?.queue_relayout();
             this._dockPill.queue_relayout();
             this.queue_relayout();
+        }
+
+        _onIconsScroll(event) {
+            const isVertical = this._position === 'left' || this._position === 'right';
+            const adj = isVertical
+                ? (this._iconsScrollView?.vadjustment ?? this._iconsScrollView?.get_vscroll_bar?.()?.get_adjustment?.())
+                : (this._iconsScrollView?.hadjustment ?? this._iconsScrollView?.get_hscroll_bar?.()?.get_adjustment?.());
+
+            if (!adj || adj.upper <= adj.page_size)
+                return Clutter.EVENT_PROPAGATE;
+
+            // Hide tooltips while scrolling to prevent floating ghost labels
+            for (const icon of this._appIcons.values()) {
+                icon._hideTooltip?.();
+            }
+
+            const direction = event.get_scroll_direction();
+            const step = this._iconSize ? (this._iconSize + 14) : 56;
+
+            if (direction === Clutter.ScrollDirection.UP || (!isVertical && direction === Clutter.ScrollDirection.LEFT)) {
+                adj.value = Math.max(adj.lower, adj.value - step);
+                return Clutter.EVENT_STOP;
+            } else if (direction === Clutter.ScrollDirection.DOWN || (!isVertical && direction === Clutter.ScrollDirection.RIGHT)) {
+                adj.value = Math.min(adj.upper - adj.page_size, adj.value + step);
+                return Clutter.EVENT_STOP;
+            } else if (direction === Clutter.ScrollDirection.SMOOTH) {
+                const [dx, dy] = event.get_scroll_delta();
+                const delta = isVertical
+                    ? (Math.abs(dy) > 0 ? dy : dx)
+                    : (Math.abs(dx) > 0 ? dx : dy);
+                const target = adj.value + delta * step;
+                adj.value = Math.max(adj.lower, Math.min(adj.upper - adj.page_size, target));
+                return Clutter.EVENT_STOP;
+            }
+
+            return Clutter.EVENT_PROPAGATE;
+        }
+
+        _updateIconsScroll() {
+            if (!this._iconsScrollView || !this._iconsBox)
+                return;
+
+            const monitor = Main.layoutManager.primaryMonitor;
+            if (!monitor)
+                return;
+
+            const isVertical = this._position === 'left' || this._position === 'right';
+            const panelHeight = (Main.panel && Main.panel.visible) ? Main.panel.height : 0;
+            const availableHeight = Math.max(0, monitor.height - panelHeight);
+
+            if (isVertical) {
+                // Vertical dock (Left or Right)
+                const maxDockHeight = availableHeight - 24;
+
+                let nonIconsHeight = 0;
+                let visibleCount = 0;
+                for (const child of this._dockPill.get_children()) {
+                    if (child && child !== this._iconsScrollView && child !== this._leadingSpacer && child !== this._trailingSpacer && child.visible) {
+                        const [, natH] = child.get_preferred_height(-1);
+                        nonIconsHeight += (natH > 0 ? natH : (this._iconSize + 16));
+                        visibleCount++;
+                    }
+                }
+                const pillSpacing = visibleCount * 8 + 16;
+                nonIconsHeight += pillSpacing;
+
+                const maxIconsHeight = Math.max(80, maxDockHeight - nonIconsHeight);
+                const [, naturalIconsHeight] = this._iconsBox.get_preferred_height(-1);
+                const nIcons = this._iconsBox.get_n_children();
+                const estimatedIconsHeight = nIcons * (this._iconSize + 14);
+                const requiredIconsHeight = Math.max(naturalIconsHeight, estimatedIconsHeight);
+
+                this._iconsScrollView.set_width(-1);
+                this._iconsScrollView.hscrollbar_policy = St.PolicyType.NEVER;
+                this._iconsScrollView.vscrollbar_policy = St.PolicyType.EXTERNAL;
+
+                if (requiredIconsHeight > maxIconsHeight) {
+                    this._iconsScrollView.set_height(maxIconsHeight);
+                    const vadj = this._iconsScrollView.vadjustment;
+                    if (vadj && vadj.value > vadj.upper - vadj.page_size) {
+                        vadj.value = Math.max(vadj.lower, vadj.upper - vadj.page_size);
+                    }
+                } else {
+                    this._iconsScrollView.set_height(-1);
+                    const vadj = this._iconsScrollView.vadjustment;
+                    if (vadj && vadj.value > vadj.lower)
+                        vadj.value = vadj.lower;
+                }
+            } else {
+                // Horizontal dock (Bottom)
+                const maxDockWidth = monitor.width - 24;
+
+                let nonIconsWidth = 0;
+                let visibleCount = 0;
+                for (const child of this._dockPill.get_children()) {
+                    if (child && child !== this._iconsScrollView && child !== this._leadingSpacer && child !== this._trailingSpacer && child.visible) {
+                        const [, natW] = child.get_preferred_width(-1);
+                        nonIconsWidth += (natW > 0 ? natW : (this._iconSize + 16));
+                        visibleCount++;
+                    }
+                }
+                const pillSpacing = visibleCount * 8 + 16;
+                nonIconsWidth += pillSpacing;
+
+                const maxIconsWidth = Math.max(80, maxDockWidth - nonIconsWidth);
+                const [, naturalIconsWidth] = this._iconsBox.get_preferred_width(-1);
+                const nIcons = this._iconsBox.get_n_children();
+                const estimatedIconsWidth = nIcons * (this._iconSize + 14);
+                const requiredIconsWidth = Math.max(naturalIconsWidth, estimatedIconsWidth);
+
+                this._iconsScrollView.set_height(-1);
+                this._iconsScrollView.vscrollbar_policy = St.PolicyType.NEVER;
+                this._iconsScrollView.hscrollbar_policy = St.PolicyType.EXTERNAL;
+
+                if (requiredIconsWidth > maxIconsWidth) {
+                    this._iconsScrollView.set_width(maxIconsWidth);
+                    const hadj = this._iconsScrollView.hadjustment;
+                    if (hadj && hadj.value > hadj.upper - hadj.page_size) {
+                        hadj.value = Math.max(hadj.lower, hadj.upper - hadj.page_size);
+                    }
+                } else {
+                    this._iconsScrollView.set_width(-1);
+                    const hadj = this._iconsScrollView.hadjustment;
+                    if (hadj && hadj.value > hadj.lower)
+                        hadj.value = hadj.lower;
+                }
+            }
+
+            this._iconsScrollView.queue_relayout();
+            this._dockPill.queue_relayout();
+        }
+
+        _ensureActorVisibleInScrollView(actor) {
+            if (!this._iconsScrollView || !actor)
+                return;
+
+            const isVertical = this._position === 'left' || this._position === 'right';
+            const adj = isVertical ? this._iconsScrollView.vadjustment : this._iconsScrollView.hadjustment;
+            if (!adj || adj.upper <= adj.page_size)
+                return;
+
+            const box = actor.get_allocation_box();
+            if (isVertical) {
+                const top = box.y1;
+                const bottom = box.y2;
+                if (top < adj.value) {
+                    adj.value = Math.max(adj.lower, top);
+                } else if (bottom > adj.value + adj.page_size) {
+                    adj.value = Math.min(adj.upper - adj.page_size, bottom - adj.page_size);
+                }
+            } else {
+                const left = box.x1;
+                const right = box.x2;
+                if (left < adj.value) {
+                    adj.value = Math.max(adj.lower, left);
+                } else if (right > adj.value + adj.page_size) {
+                    adj.value = Math.min(adj.upper - adj.page_size, right - adj.page_size);
+                }
+            }
         }
 
         // Drag-and-drop support: reorder favorites inside Arrera Dock
@@ -3634,7 +3863,10 @@ export const ArreraDock = GObject.registerClass(
             const favorites = this._appFavorites.getFavorites();
 
             const isVertical = this._position === 'left' || this._position === 'right';
-            const coord = isVertical ? y : x;
+            const scrollOffset = isVertical
+                ? (this._iconsScrollView?.vadjustment?.value || 0)
+                : (this._iconsScrollView?.hadjustment?.value || 0);
+            const coord = (isVertical ? y : x) + scrollOffset;
             const totalSize = isVertical ? this._iconsBox.height : this._iconsBox.width;
 
             let pos = Math.min(
@@ -3727,6 +3959,11 @@ export const ArreraDock = GObject.registerClass(
             if (this._systemBox) {
                 this._systemBox.destroy();
                 this._systemBox = null;
+            }
+
+            if (this._iconsScrollView) {
+                this._iconsScrollView.destroy();
+                this._iconsScrollView = null;
             }
 
             if (this._interfaceSettings) {
